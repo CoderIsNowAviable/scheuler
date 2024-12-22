@@ -1,0 +1,229 @@
+/* General styles */
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+}
+
+.container {
+    display: flex;
+    width: 800px;
+    height: 600px;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    transition: flex-direction 0.3s ease;
+}
+
+.form-section {
+    background-color: #d6d6d6;
+    width: 50%;
+    padding: 40px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.info-section {
+    background-color: black;
+    color: white;
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 40px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.info-section a {
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.info-section a:hover {
+    color: #ccc;
+}
+
+.graphics {
+    position: relative;
+    margin: 0 auto 20px auto;
+    width: 100px;
+}
+
+.square {
+    width: 70px;
+    height: 70px;
+    position: absolute;
+    border-radius: 5px;
+}
+
+.square.white {
+    background-color: white;
+    left: 0;
+}
+
+.square.gray {
+    background-color: gray;
+    left: 30px;
+    top: 25px;
+}
+
+.toggle-btn {
+    background-color: #ccc;
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 5px;
+    margin: 0 10px;
+}
+
+.toggle-btn:hover {
+    background-color: #888;
+}
+
+.toggle-btn.active {
+    background-color: #000;
+    color: white;
+}
+
+.footer-links {
+    text-align: center;
+    margin-top: 50px;
+    font-size: 12px;
+}
+
+.footer-links a {
+    color: white;
+    text-decoration: none;
+    margin: 7px;
+    font-size: 12px;
+    transition: text-decoration 0.3s ease;
+}
+
+.footer-links a:hover {
+    text-decoration: underline;
+}
+
+.form-content {
+    display: none;
+}
+
+.form-content.visible {
+    display: block;
+}
+
+
+#signup-form {
+    display: block;
+}
+
+
+#login-form {
+    display: none;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    transition: box-shadow 0.3s ease;
+    font-family: Montserrat, sans-serif;
+}
+
+input:hover {
+    box-shadow: 0 0 4px #000;
+}
+
+label {
+    font-weight: normal; /* Reset font weight */
+    font-size: 16px;
+    font-family: Coolvetica, sans-serif;
+    margin-top: 10px;
+    display: block;
+}
+
+.button {
+    margin: 20px auto 40px auto;
+    padding: 10px 20px;
+    background-color: black;
+    color: white;
+    font-size: 18px;
+    font-family: Coolvetica, sans-serif;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.button:hover {
+    box-shadow: 7px 7px 0px #BEBEBE;
+    transform: translateY(-5px);
+}
+
+.social-signup {
+    text-align: center;
+    font-size: 15px;
+    margin-top: -10px;
+}
+
+.social-signup img {
+    height: 30px;
+    position: relative;
+    top: 10px;
+}
+
+.terms, .remember-me {
+    margin: 10px 0; /* Adjust spacing */
+    display: flex;
+    align-items: center;
+}
+
+.terms input, .remember-me input {
+    width: 16px; /* Standard checkbox size */
+    height: 16px;
+    margin: 0 10px 0 0; /* Compact spacing */
+    padding: 0; /* Remove any default padding */
+    cursor: pointer;
+}
+
+.terms label, .remember-me label {
+    font-size: 14px;
+    font-weight: normal; /* Reset font weight */
+}
+
+.terms a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.terms a:hover {
+    text-decoration: underline;
+}
+
+.form-toggle-links {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 14px;
+    color: white;
+}
+
+.form-toggle-links a {
+    color: white;
+    text-decoration: none;
+    margin: 0 10px;
+    display: inline-block;
+    transition: color 0.3s ease;
+}
+
+.form-toggle-links a:hover {
+    color: #ddd;
+}

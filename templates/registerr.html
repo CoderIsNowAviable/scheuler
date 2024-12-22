@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up and Log In</title>
+    <link rel="stylesheet" href="/static/css/registerr.css">
+</head>
+<body>
+    <div class="form-container">
+        <div class="container" id="form-container">
+            <div class="form-section">
+                <!-- Sign Up Form -->
+                <div class="form-content" id="signup-form" style="display: {{ 'block' if form_type == 'signup' else 'none' }}">
+                    <h1>hello,<br>there! :D</h1>
+                    <form action="/users/signup" method="POST">
+                        <label for="username">User Name</label>
+                        <input type="text" id="username" name="full_name" placeholder="Create a Username" required>
+
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" placeholder="Enter an Email" required>
+
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" placeholder="Create a password" required>
+
+                        <div class="terms">
+                            <input type="checkbox" id="terms" required>
+                            <label for="terms">I agree to all statements in <a href="tos.html" target="_blank">Terms of Service</a>.</label>
+                        </div>
+
+                        <button type="submit" class="button">Sign Up</button>
+                    </form>
+                </div>
+
+                <!-- Log In Form -->
+                <div class="form-content" id="login-form" style="display: {{ 'block' if form_type == 'signin' else 'none' }}">
+                    <h2>Howdy,<br>Welcome Back!</h2>
+                    <form id="signin-form" method="POST">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="Enter Your Email" required>
+
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" placeholder="Enter Your Password" required>
+
+                        <div class="remember-me">
+                            <input type="checkbox" id="remember">
+                            <label for="remember">Remember Me</label>
+                        </div>
+
+                        <a href="">
+                            <p>Forgot your Password?</p>
+                        </a>
+
+                        <button type="submit" class="button">Log In</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Info Section -->
+            <div class="info-section">
+                <h2>Uncomplicate your<br>social media presence...</h2>
+                <div class="graphics">
+                    <div class="square white"></div>
+                    <div class="square gray"></div>
+                </div>
+
+                <div class="form-toggle-links">
+                    <a id="signup-link" href="/register?form=signin" style="display: {{ 'none' if form_type == 'signin' else 'block' }}">I am already a member</a>
+                    <a id="login-link" href="/register?form=signup" style="display: {{ 'none' if form_type == 'signup' else 'block' }}">Create an account</a>
+                </div>
+
+                <div class="footer-links">
+                    <a href="help.html">Help</a>
+                    <a href="privacy.html">Privacy</a>
+                    <a href="tos.html">Terms</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function login(event) {
+            event.preventDefault();
+
+            const email = document.querySelector('#login-form [name="email"]').value.trim().toLowerCase();
+            const password = document.querySelector('#login-form [name="password"]').value.trim();
+
+            const formData = new FormData();
+            formData.append("email", email);
+            formData.append("password", password);
+
+            const response = await fetch("/users/signin", {
+                method: "POST",
+                body: formData,
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                window.location.href = "/dashboard";  // Redirect to the dashboard on successful login
+            } else {
+                alert("Login failed: " + result.detail);  // Show error message
+            }
+        }
+
+        document.getElementById("signin-form").addEventListener("submit", login);
+
+        const signupForm = document.getElementById('signup-form');
+        const loginForm = document.getElementById('login-form');
+        const signupLink = document.getElementById('signup-link');
+        const loginLink = document.getElementById('login-link');
+        const container = document.getElementById('form-container');
+
+        window.onload = function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const formType = urlParams.get('form');
+
+            if (formType === 'signin') {
+                showLogin();
+            } else {
+                showSignUp(); // Default to Sign Up form
+            }
+        };
+
+        function showSignUp() {
+            signupForm.classList.add('visible');
+            loginForm.classList.remove('visible');
+            signupLink.style.display = 'block';
+            loginLink.style.display = 'none';
+            container.style.flexDirection = 'row';
+        }
+
+        function showLogin() {
+            loginForm.classList.add('visible');
+            signupForm.classList.remove('visible');
+            signupLink.style.display = 'none';
+            loginLink.style.display = 'block';
+            container.style.flexDirection = 'row-reverse';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Code</title>
+    <link rel="stylesheet" href="/static/css/authenticate.css">
+</head>
+<body>
+    <div class="verification-container">
+        <h1>Email Verification</h1>
+        <h2>Enter Verification Code</h2>
+        <form id="verificationForm">
+            <input type="hidden" name="email" id="emailField" value="{{ email }}"> 
+            <input type="hidden" name="token" id="tokenField" value="{{ token }}">
+            <p>Debug Email: {{ email }}</p> 
+            <div class="code-inputs">
+                <input type="text" maxlength="1" class="code-box" name="verification_code_1" autocomplete="off" required>
+                <input type="text" maxlength="1" class="code-box" name="verification_code_2" autocomplete="off" required>
+                <input type="text" maxlength="1" class="code-box" name="verification_code_3" autocomplete="off" required>
+                <input type="text" maxlength="1" class="code-box" name="verification_code_4" autocomplete="off" required>
+                <input type="text" maxlength="1" class="code-box" name="verification_code_5" autocomplete="off" required>
+            </div>
+            <button type="button" class="submit-btn">Submit</button>
+        </form>
+
+        <p class="note">
+            It may take a minute to receive your code.<br>
+            Haven't received your code yet? 
+            <span class="resend">Resend a new code</span>
+        </p>
+    </div>
+    <script src="/static/js/authenticate.js"></script>
+</body>
+</html>
