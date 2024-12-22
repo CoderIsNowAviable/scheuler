@@ -1,9 +1,7 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-import requests
-
 from app.core.database import engine, Base, SessionLocal
 from app.routers.user import router as user_router
 from app.routers.auth import router as auth_router
