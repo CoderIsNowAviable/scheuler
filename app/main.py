@@ -17,25 +17,7 @@ app = FastAPI()
 
 
 
-# Custom Middleware for Security Headers
-class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
-        # Process the response
-        response: Response = await call_next(request)
-        
-        # Add Security Headers
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
-        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self';"
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "SAMEORIGIN"
-        response.headers["Referrer-Policy"] = "no-referrer"
-        response.headers["Permissions-Policy"] = "geolocation=(self); microphone=(); camera=()"
-        
-        return response
 
-
-# Add the Security Headers Middleware
-app.add_middleware(SecurityHeadersMiddleware)
 
 # Dependency to manage the database session
 def get_db():
