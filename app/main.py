@@ -11,7 +11,7 @@ import os
 from dotenv import load_dotenv
 import requests
 from fastapi.middleware.cors import CORSMiddleware
-
+from urllib.parse import quote
 # Initialize database models
 Base.metadata.create_all(bind=engine)
 
@@ -37,7 +37,7 @@ def get_db():
     finally:
         db.close()
 
-
+encoded_redirect_uri = quote(REDIRECT_URI, safe='')
 
 app.add_middleware(
     CORSMiddleware,
@@ -136,7 +136,7 @@ def tiktok_login():
     auth_url = (
         f"https://www.tiktok.com/auth/authorize/"
         f"?client_key={CLIENT_KEY}&response_type=code"
-        f"&redirect_uri={REDIRECT_URI}&scope=user.info.basic"
+        f"&redirect_uri={encoded_redirect_uri}&scope=user.info.basic"
     )
     return RedirectResponse(auth_url)
 
