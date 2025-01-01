@@ -94,17 +94,23 @@ def tiktok_login():
         f"?client_key={CLIENT_KEY}&response_type=code"
         f"&redirect_uri={encoded_redirect_uri}&scope=user.info.basic"
     )
+    print(f"TikTok Auth URL: {auth_url}")  # Log the generated URL
     return RedirectResponse(auth_url)
 
 # TikTok OAuth2 Callback
 @app.get("/auth/tiktok/callback")
 async def tiktok_callback(request: Request):
-    query_params = request.query_params
+    query_params = dict(request.query_params)
+        # Log query parameters for debugging
+    print(f"Callback Query Params: {query_params}")
+    
+    
     code = query_params.get("code")
     error = query_params.get("error")
+    # Print received code and error
+    print(f"Received code: {code}")
+    print(f"Received error: {error}")
 
-    # Log query parameters for debugging
-    print(f"Callback Query Params: {query_params}")
 
     if error:
         print(f"Error received: {error}")
@@ -123,7 +129,7 @@ async def tiktok_callback(request: Request):
         "grant_type": "authorization_code",
         "redirect_uri": REDIRECT_URI,  # Use the original redirect URI
     }
-
+    response = requests.post(token_url, json=payload)
     try:
         response = requests.post(token_url, json=payload)
         response.raise_for_status()
