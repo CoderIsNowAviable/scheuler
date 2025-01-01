@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 import requests
 from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import quote
+
 # Initialize database models
 Base.metadata.create_all(bind=engine)
 
@@ -25,10 +26,6 @@ REDIRECT_URI = os.getenv("REDIRECT_URI")
 # Initialize FastAPI app
 app = FastAPI()
 
-
-
-
-
 # Dependency to manage the database session
 def get_db():
     db = SessionLocal()
@@ -37,31 +34,21 @@ def get_db():
     finally:
         db.close()
 
+# Encoding the redirect URI
 encoded_redirect_uri = quote(REDIRECT_URI, safe='')
 
+# Middleware setup for CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://127.0.0.1:8000",  # Local development
         "http://localhost:8000",  # Local development
         "https://scheduler-9v36.onrender.com",  # Your render domain
-                ], 
+    ], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Directory to store uploaded files
-UPLOAD_FOLDER = 'uploads'
-app.config = {'UPLOAD_FOLDER': UPLOAD_FOLDER}
-
-# Create the upload folder if it doesn't exist
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
-# Serve the uploaded files statically (for preview purposes)
-app.mount("/uploads", StaticFiles(directory=UPLOAD_FOLDER), name="uploads")
-
 
 # Static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -75,8 +62,6 @@ app.include_router(auth_router, prefix="/auth", tags=["auth"])
 async def startup_event():
     print(f"CLIENT_KEY: {CLIENT_KEY}")
     print(f"REDIRECT_URI: {REDIRECT_URI}")
-
-
 
 # Routes for frontend
 @app.get("/", response_class=HTMLResponse)
@@ -107,19 +92,6 @@ async def dashboard(request: Request):
     """
     return templates.TemplateResponse("dashboard.html", {"request": request})
 
-
-# Directory for uploads
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-@app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
-    file_location = os.path.join(UPLOAD_FOLDER, file.filename)
-    with open(file_location, "wb") as f:
-        f.write(await file.read())
-    return {"message": "File uploaded successfully", "file_path": f"/uploads/{file.filename}"}
-
-
 # Route to serve TikTok verification file
 @app.get("/auth/tiktok/callback/{filename}")
 async def serve_verification_file(filename: str):
@@ -127,8 +99,6 @@ async def serve_verification_file(filename: str):
     if os.path.exists(file_path):
         return FileResponse(file_path)
     return {"error": "File not found"}
-
-
 
 # TikTok Login URL
 @app.get("/login/tiktok")
@@ -146,6 +116,10 @@ async def tiktok_callback(request: Request):
     code = request.query_params.get("code")
     error = request.query_params.get("error")
 
+    # Print query parameters for debugging
+    print(f"Received code: {code}")
+    print(f"Received error: {error}")
+
     if error:
         return {"error": f"Authorization failed: {error}"}
 
@@ -156,7 +130,7 @@ async def tiktok_callback(request: Request):
             "client_secret": CLIENT_SECRET,
             "code": code,
             "grant_type": "authorization_code",
-            "redirect_uri": REDIRECT_URI,
+            "redirect_uri": REDIRECT_URI,  # Use the original redirect URI
         }
         response = requests.post(token_url, json=payload)
         try:
