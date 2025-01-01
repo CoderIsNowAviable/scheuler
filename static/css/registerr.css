@@ -1,4 +1,3 @@
-Jenish Sahukhal
 /* General styles */
 body {
     margin: 0;
@@ -9,25 +8,88 @@ body {
     background-color: #f0f0f0;
 }
 
-.container {
+.container { /*the entire form box*/
     display: flex;
     width: 800px;
     height: 600px;
     overflow: hidden;
     border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-    transition: flex-direction 0.3s ease;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);    
 }
 
-.form-section {
+.form-section { /*controls the left side box*/
     background-color: #d6d6d6;
     width: 50%;
     padding: 40px;
     box-sizing: border-box;
-    text-align: center;
 }
 
-.info-section {
+h1 { /*targets the Hello There text*/
+    margin-top: 0px;
+    font-family: Coolvetica;
+    font-size: 65px;
+    font-weight: 500;
+    margin-bottom: 0px;
+    text-align: left;
+}
+
+
+label { /*targets the username, email, pass layout only*/
+    font-weight: 100px;
+    font-size: 16px;
+    font-family: Coolvetica;
+    margin-top: 10px; /*gap between each fill up form*/
+    display: block;
+}
+
+input { /*targets the inputs*/
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    font-family: Montserrat;
+}
+
+input:hover{
+    box-shadow: 0 0 0px #000;
+}
+
+.signup-button { /*call to action*/
+    margin-left: 125px;
+    margin-top: 20px;
+    margin-bottom: 40px;
+    padding: 6px 8px;/*size of da box*/
+    background-color: black;
+    color: white;
+    font-size: 18px;
+    font-family: Coolvetica;
+    border: none;
+    padding: 8px px;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.signup-button:hover {
+    box-shadow: 7px 7px 0px #BEBEBE;
+    transform: translateY(-5px);
+}
+
+
+.social-signup { /*targets the log in with google section*/
+    text-align: center;
+    font-size: 15px;
+    margin-top: -30px; /* Adjust this based on your layout */
+    margin-left: 0px;
+}
+
+.social-signup img {
+    height: 30px; /* Adjust size to match text */
+    position: relative;
+    top: 10px;
+}
+
+.info-section { /*controls the right side*/
     background-color: black;
     color: white;
     width: 50%;
@@ -36,7 +98,7 @@ body {
     justify-content: space-between;
     padding: 40px;
     box-sizing: border-box;
-    text-align: center;
+    text-align: left;
 }
 
 .info-section a {
@@ -49,47 +111,47 @@ body {
     color: #ccc;
 }
 
-h1 { /*targets the Hello There text*/
-    margin-top: 0px;
-    font-family: Coolvetica;
-    font-size: 65px;
-    font-weight: 500;
-    margin-bottom: 0px;
-    text-align: left;
-}
-
 h2 { /*targets the info text*/
     font-size: 45px;
     font-family: Coolvetica;
     font-weight: 100;
     margin: 0;
     margin-top: -30px;
-    text-align: left;
 }
 
-
-.graphics {
+.graphics { /*controls the position of shape*/
     position: relative;
-    margin: 0 auto 20px auto;
-    width: 100px;
+    margin-top: 0px;
+    margin-left: 110px;
 }
 
-.square {
+.square { /*controls the properties of shape*/
     width: 70px;
     height: 70px;
     position: absolute;
     border-radius: 5px;
 }
 
-.square.white {
+.square.white { 
     background-color: white;
     left: 0;
+    transition: all 0.3s ease;
+}
+
+.square.white:hover{
+    transform: translateY(-5px);
 }
 
 .square.gray {
     background-color: gray;
     left: 30px;
     top: 25px;
+    transition: all 0.3s ease;
+}
+
+.square.gray:hover{
+    transform: translateY(5px);
+    
 }
 
 .toggle-btn {
@@ -131,6 +193,25 @@ h2 { /*targets the info text*/
     text-decoration: underline;
 }
 
+.button {
+    margin: 20px auto 40px auto;
+    padding: 10px 20px;
+    background-color: black;
+    color: white;
+    font-size: 18px;
+    font-family: Coolvetica, sans-serif;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.button:hover {
+    box-shadow: 7px 7px 0px #BEBEBE;
+    transform: translateY(-5px);
+}
+
+
 .form-content {
     display: none;
 }
@@ -169,7 +250,6 @@ label {
     font-family: Coolvetica, sans-serif;
     margin-top: 10px;
     display: block;
-    text-align: left;
 }
 
 .button {

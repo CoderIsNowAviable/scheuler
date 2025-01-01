@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request, UploadFile, File
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.core.database import engine, Base, SessionLocal
@@ -7,7 +7,9 @@ from app.routers.user import router as user_router
 from app.routers.auth import router as auth_router
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
-
+import os
+from dotenv import load_dotenv
+import requests
 
 # Initialize database models
 Base.metadata.create_all(bind=engine)
@@ -26,6 +28,31 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+
+# Directory to store uploaded files
+UPLOAD_FOLDER = 'uploads'
+app.config = {'UPLOAD_FOLDER': UPLOAD_FOLDER}
+
+# Create the upload folder if it doesn't exist
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# Serve the uploaded files statically (for preview purposes)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_FOLDER), name="uploads")
+
+
+
+CLIENT_KEY = os.getenv("CLIENT_KEY")
+CLIENT_SECRET = os.getenv("CLIENT_SECRE")
+REDIRECT_URI = os.getenv("REDIRECT_URI")
+
+
+
+
+
+
 
 # Static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -65,4 +92,50 @@ async def dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
 
 
+@app.get('/test', response_class=HTMLResponse)
+async def test(request: Request):
+    return templates.TemplateResponse("testing.html", {"request": request})
 
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    file_location = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    with open(file_location, "wb") as f:
+        f.write(await file.read())
+    return {"message": "File uploaded successfully", "file_path": f"/uploads/{file.filename}"}
+
+@app.post("/delete")
+async def delete_file(file_path: str):
+    file_location = os.path.join(app.config['UPLOAD_FOLDER'], file_path.split('/')[-1])
+    if os.path.exists(file_location):
+        os.remove(file_location)
+        return {"message": "File deleted successfully"}
+    return {"message": "File not found"}, 404
+
+
+
+
+@app.get("/auth/tiktok")
+def tiktok_login():
+    auth_url = (
+        f"https://www.tiktok.com/auth/authorize/"
+        f"?client_key={CLIENT_KEY}&response_type=code"
+        f"&redirect_uri={REDIRECT_URI}&scope=user.info.basic"
+    )
+    return RedirectResponse(auth_url)
+
+@app.get("/auth/tiktok/callback")
+async def tiktok_callback(request: Request):
+    code = request.query_params.get("code")
+    if code:
+        token_url = "https://open.tiktokapis.com/v2/oauth/token/"
+        payload = {
+            "client_key": CLIENT_KEY,
+            "client_secret": CLIENT_SECRET,
+            "code": code,
+            "grant_type": "authorization_code",
+            "redirect_uri": REDIRECT_URI,
+        }
+        response = requests.post(token_url, json=payload)
+        return response.json()
+    return {"error": "Authorization failed"}

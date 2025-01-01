@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload, Preview, and Delete Media</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    #preview {
+      margin-top: 20px;
+    }
+    #imagePreview, #videoPreview {
+      max-width: 300px;
+      display: none;
+    }
+    #deleteButton {
+      display: none;
+      margin-top: 20px;
+      padding: 10px;
+      background-color: red;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Upload, Preview, and Delete Media</h1>
+
+  <form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" id="mediaFile" name="mediaFile" accept="image/*,video/*" />
+    <button type="submit">Upload</button>
+  </form>
+
+  <div id="preview">
+    <img id="imagePreview" style="max-width: 300px;" />
+    <video id="videoPreview" style="max-width: 300px;" controls></video>
+  </div>
+
+  <button id="deleteButton" onclick="deleteMedia()">Delete</button>
+
+  <script>
+    const mediaFileInput = document.getElementById('mediaFile');
+    const imagePreview = document.getElementById('imagePreview');
+    const videoPreview = document.getElementById('videoPreview');
+    const deleteButton = document.getElementById('deleteButton');
+    let uploadedFilePath = '';
+
+    mediaFileInput.addEventListener('change', function () {
+      const file = mediaFileInput.files[0];
+      const reader = new FileReader();
+
+      reader.onload = function (event) {
+        const fileType = file.type;
+        if (fileType.startsWith('image/')) {
+          imagePreview.style.display = 'block';
+          videoPreview.style.display = 'none';
+          imagePreview.src = event.target.result;
+        } else if (fileType.startsWith('video/')) {
+          videoPreview.style.display = 'block';
+          imagePreview.style.display = 'none';
+          videoPreview.src = event.target.result;
+        }
+        deleteButton.style.display = 'block'; // Show delete button
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Handle form submission to upload the file
+    document.getElementById('uploadForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append('mediaFile', mediaFileInput.files[0]);
+
+      const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert('Upload successful!');
+        uploadedFilePath = data.file_path;  // Save file path for deletion
+      } else {
+        alert('Error during upload.');
+      }
+    });
+
+    // Handle the deletion of the uploaded file
+    function deleteMedia() {
+      if (uploadedFilePath) {
+        fetch('/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ file_path: uploadedFilePath })
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.message);
+          imagePreview.style.display = 'none';
+          videoPreview.style.display = 'none';
+          deleteButton.style.display = 'none';
+          uploadedFilePath = '';  // Reset file path
+        })
+        .catch(error => {
+          alert('Error deleting file.');
+        });
+      }
+    }
+  </script>
+
+</body>
+</html>

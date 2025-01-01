@@ -1,157 +1,308 @@
 /* General Reset */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  body {
-    background: #fff url('/static/images/Overlays.png') no-repeat center center;
-    background-size: 95%; /*img covers the entire screen*/
-    background-position: center 0px; /*moves the img upward*/
-    background-position: right 0px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    color: #000;
-
-    overflow-y: hidden; /* Allow vertical scrolling if content overflows */
-    overflow-x: hidden; /* Disable horizontal scrolling */
-  }
-  
-  /* The Navbar Section */
-  .navbar {
-    margin-top: -40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 2rem;
-  }
-  
-  .navbar .logo img {  /*for the logo */
-    height: 100px;
-    cursor: pointer;
-  }
-  
-  .navbar nav a { /*nav niggas*/
-    margin-left: 10px; /*this does the spacing inbetween those nav tabs*/
-    color: black;
-    font-size: 18px;
-    font-family: Coolvetica;
-    text-decoration: none;
-    transition: text-decoration 0.3s ease; /* Smooth transition */
-  }
-  
-  .navbar nav a:hover{
-    text-decoration: underline; /* Underline on hover */
-  }
-  
-  .navbar .btn-signup { /*this is the signup button*/
-    background: #000;
-    color: #fff;
-    padding: 5px 10px;
-    font-size: 18px;
-    border-radius: 0px; /*makes it's border round*/
-    transition: box-shadow 0.3s ease, transform 0.3s ease; /* Smooth transitions for both properties */
-  }
-
-  .navbar .btn-signup:hover {
-    text-decoration: none;
-    box-shadow: 7px 7px 0px #BEBEBE;
-    transform: translateY(-5px); /* Moves the button slightly up */
-  }
-  
-  /* The Hero Section */
-  .hero {
-    margin-top: 150px; /*adds space on top of hero section aka GAP*/
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: left;
-  }
-  
-  .hero .content h1 { /*targets the total text*/
-    margin-right: 800px; /*moves the whole text to left*/
-    font-size: 60px;
-    font-family: Coolvetica;
-    font-weight: 100;
-    line-height: 55px;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
-  
-  .hero .content .thin { /*tagrets only the gray stream text*/
-    color: #000;
-    font-size: 65px;
-    text-shadow: 8px 15px 0px #BEBEBE; /*adds that grey shadow*/
 
-  }
-  .hero .content .bold { /*targets the rest of da text text*/
-    font-size: 55px;
-    margin-left: 45px;
-  }
-  .hero .content .thick {/*targets the rest of da text text II*/
-    font-size: 55px;
-    margin-left: 45px;
-  }
-  
-  .hero .btn-get-started { /*call to action*/
-    background: #000;
-    color: #fff;
-    border: none;
-    margin-left: 300px;
-    margin-top: 50px;
-    padding: 6px 6px;/*size of da box*/
-    font-size: 28px;
-    font-family: Coolvetica;
-    cursor: pointer; /*when you hover over button, cursor becomes a pointer*/
-    transition: box-shadow 0.3s ease, transform 0.3s ease; /* Smooth transitions for both properties */
-    text-decoration: none; /* Ensures the link looks like a button */
-    display: inline-block; /* Ensures correct button styling for <a> */
+@font-face {
+  font-family: 'Coolvetica';
+  src: url('/fonts/coolvetica-regular.woff2') format('woff2'),
+       url('/fonts/coolvetica-regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  background: #fff url('/images/Overlays.png') no-repeat center center;
+  background-size: 95%; /*img covers the entire screen*/
+  background-position: center 0px; /*moves the img upward*/
+  background-position: right 0px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #000;
+  overflow-y: hidden; /* Allow vertical scrolling if content overflows */
+  overflow-x: hidden; /* Disable horizontal scrolling */
+}
+
+/* The Navbar Section */
+.navbar {
+  margin-top: -40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+
+.navbar .logo img {  /*for the logo */
+  height: 120px;
+  cursor: pointer;
+}
+
+.navbar nav a { /*nav niggas*/
+  margin-left: 10px; /*this does the spacing inbetween those nav tabs*/
+  color: black;
+  font-size: 18px;
+  font-family: Coolvetica;
+  text-decoration: none;
+  transition: text-decoration 0.3s ease; /* Smooth transition */
+}
+
+.navbar nav a:hover{
+  text-decoration: underline; /* Underline on hover */
+}
+
+.navbar .btn-signup { /*this is the signup button*/
+  background: #000;
+  color: #fff;
+  padding: 5px 10px;
+  font-size: 18px;
+  border-radius: 0px; /*makes it's border round*/
+  transition: box-shadow 0.3s ease, transform 0.3s ease; /* Smooth transitions for both properties */
+}
+
+.navbar .btn-signup:hover {
+  text-decoration: underline;
+}
+
+/* The Hero Section */
+.hero {
+  margin-top: 180px; /*adds space on top of hero section aka GAP*/
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: left;
+}
+
+.hero .content h1 { /*targets the total text*/
+  margin-right: 800px; /*moves the whole text to left*/
+  font-size: 60px;
+  font-family: Coolvetica;
+  font-weight: 100;
+  line-height: 55px;
+}
+
+.hero .content .thin { /*tagrets only the gray stream text*/
+  color: #000;
+  font-size: 65px;
+  text-shadow: 8px 15px 0px #BEBEBE; /*adds that grey shadow*/
+
+}
+.hero .content .bold { /*targets the rest of da text text*/
+  font-size: 55px;
+  margin-left: 45px;
+}
+.hero .content .thick {/*targets the rest of da text text II*/
+  font-size: 55px;
+  margin-left: 45px;
+}
+
+.hero .btn-get-started { /*call to action*/
+  background: #000;
+  color: #fff;
+  border: none;
+  margin-left: 300px;
+  margin-top: 50px;
+  padding: 6px 6px;/*size of da box*/
+  font-size: 28px;
+  font-family: Coolvetica;
+  cursor: pointer; /*when you hover over button, cursor becomes a pointer*/
+  transition: box-shadow 0.3s ease, transform 0.3s ease; /* Smooth transitions for both properties */
+  text-decoration: none; /* Ensures the link looks like a button */
+  display: inline-block; /* Ensures correct button styling for <a> */
+}
+
+.hero .btn-get-started:hover {
+  box-shadow: 7px 7px 0px #BEBEBE; /* Grey box shadow under the button */
+  transform: translateY(-5px); /* Moves the button slightly up */
+}
+
+.hero .for-free { /*targets the accent text*/
+  display: block;
+  margin-top: -20px;
+  margin-left: 420px; 
+  color: #555;
+  font-size: 40px;
+  font-family: Antinkodan;
+}
+
+.hero .slogan { /*targets the slogan text*/
+  margin-top: 0px;
+  margin-left: 600px;
+  margin-bottom: 0px;
+  color: #000;
+  font-size: 45px;
+  font-weight: 100;
+  font-family: Thunder HC;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.footer a {
+  margin: 7px;
+  text-decoration: none;
+  color: #000;
+  font-size: 15px;
+  font-family: Montserrat;
+  transition: text-decoration 0.3s ease;
+}
+
+.footer a:hover{
+  text-decoration: underline; /* Underline on hover */
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  /* Body */
+  body {
+    background-size: cover; /* Adjust background for smaller screens */
+    justify-content: flex-start; /* Align content properly */
+    background-position: center 45px;
   }
 
-  .hero .btn-get-started:hover {
-    box-shadow: 7px 7px 0px #BEBEBE; /* Grey box shadow under the button */
-    transform: translateY(-5px); /* Moves the button slightly up */
+  /* Navbar */
+  .navbar {
+    flex-direction: column;
+    align-items: center;
+    padding: 25px;
   }
-  
-  .hero .for-free { /*targets the accent text*/
-    display: block;
-    margin-top: -20px;
-    margin-left: 420px; 
-    color: #555;
+
+  .navbar .logo img {
+    height: 80px; /* Scale down logo */
+  }
+
+  .navbar nav a {
+    font-size: 16px;
+    margin-left: 25; /* Reduce nav tab spacing */
+  }
+
+  .navbar .btn-signup {
+    padding: 5px 12px;
+    font-size: 16px;
+  }
+
+  /* Hero Section */
+  .hero {
+    margin-top: 100px; /* Reduce top margin */
+    padding: 1rem; /* Add padding */
+    text-align: center; /* Center-align for mobile */
+  }
+
+  .hero .content h1 {
     font-size: 40px;
-    font-family: Antinkodan;
+    margin-right: 0; /* Center-align text */
+    text-align: center;
   }
-  
-  .hero .slogan { /*targets the slogan text*/
-    margin-top: 0px;
-    margin-left: 600px;
-    margin-bottom: 0px;
-    color: #000;
+
+  .hero .content .thin {
     font-size: 45px;
-    font-weight: 100;
-    font-family: Thunder HC;
+    text-shadow: 5px 10px 0px #BEBEBE;
   }
-  
+
+  .hero .content .bold,
+  .hero .content .thick {
+    font-size: 40px;
+    margin-left: 0; /* Remove margins */
+  }
+
+  .hero .btn-get-started {
+    font-size: 20px;
+    margin: 20px auto; /* Center button */
+    padding: 10px 20px;
+  }
+
+  .hero .for-free {
+    font-size: 30px;
+    margin-left: 0; /* Center-align */
+    margin-top: -20px;
+  }
+
+  .hero .slogan {
+    font-size: 35px;
+    margin: 10px auto;
+    margin-top: 60px;
+  }
+
   /* Footer */
   .footer {
-    text-align: center;
-    margin-top: 50px;
+    font-size: 12px; /* Scale down text */
+    padding: 1rem;
+    margin-top: 80px;
   }
-  
+
   .footer a {
-    margin: 5px;
-    text-decoration: none;
-    color: #000;
-    font-size: 15px;
-    font-family: Montserrat;
-    transition: text-decoration 0.3s ease;
+    font-size: 12px;
   }
-  
-  .footer a:hover{
-    text-decoration: underline; /* Underline on hover */
+}
+
+
+@media (max-width: 480px) {
+  /* Further adjustments for very small screens */
+
+  body {
+    background-size: cover; /* Adjust background for smaller screens */
+    justify-content: flex-start; /* Align content properly */
+    background-position: center 0px;
+  }
+
+  .navbar {
+    padding: 0.5rem;
+    margin-top: 0px;
+    
+  }
+
+  .navbar nav a {
+    font-size: 16px;
+    margin-left: 10; /* Reduce nav tab spacing */
+  }
+
+  /* Hero Section */
+   .hero {
+    margin-top: 100px; /* Reduce top margin */
+    padding: 1rem; /* Add padding */
+    text-align: center; /* Center-align for mobile */
+  }
+
+  .hero .content h1 {
+    font-size: 45px;
+    line-height: 0.8;
+  }
+
+  .hero .content .thin {
+    font-size: 35px;
+  }
+
+  .hero .content .bold,
+  .hero .content .thick {
+    font-size: 30px;
+  }
+
+  .hero .btn-get-started {
+    font-size: 16px;
+    padding: 8px 15px;
   }
 
 
 
+ 
+  .hero .slogan {
+    font-size: 20px;
+    margin-top: 150px;
+  }
+
+  .footer {
+    font-size: 10px;
+    margin-top: 160px;
+  }
+
+  .footer a {
+    font-size: 10px;
+  }
+}
