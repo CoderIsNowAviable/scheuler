@@ -41,7 +41,11 @@ def get_db():
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace "*" with specific domains in production for security
+    allow_origins=[
+        "http://127.0.0.1:8000",  # Local development
+        "http://localhost:8000",  # Local development
+        "https://scheduler-9v36.onrender.com",  # Your render domain
+                ], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -117,10 +121,12 @@ async def upload_file(file: UploadFile = File(...)):
 
 
 # Route to serve TikTok verification file
-@app.get("/tiktokdzabkMqzIoOJAHR2RxclszPpXyu8TQnL")
-async def serve_tiktok_verification():
-    file_path = os.path.join("static", "tiktokdzabkMqzIoOJAHR2RxclszPpXyu8TQnL.txt")
-    return FileResponse(file_path)
+@app.get("/auth/tiktok/callback/{filename}")
+async def serve_verification_file(filename: str):
+    file_path = f"static/{filename}"
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
 
 
 
