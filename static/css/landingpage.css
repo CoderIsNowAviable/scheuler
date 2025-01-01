@@ -14,7 +14,7 @@
 }
 
 body {
-  background: #fff url('/images/Overlays.png') no-repeat center center;
+  background: #fff url('/static//images/Overlays.png') no-repeat center center;
   background-size: 95%; /*img covers the entire screen*/
   background-position: center 0px; /*moves the img upward*/
   background-position: right 0px;

@@ -115,7 +115,7 @@ async def delete_file(file_path: str):
 
 
 
-@app.get("/auth/tiktok")
+@app.get("/login/tiktok")
 def tiktok_login():
     auth_url = (
         f"https://www.tiktok.com/auth/authorize/"
