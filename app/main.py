@@ -1,17 +1,15 @@
 from fastapi import FastAPI, Request, UploadFile, File
-from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.core.database import engine, Base, SessionLocal
 from app.routers.user import router as user_router
 from app.routers.auth import router as auth_router
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
-import os
-from dotenv import load_dotenv
-import requests
 from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import quote
+import os
+import requests
+from dotenv import load_dotenv
 
 # Initialize database models
 Base.metadata.create_all(bind=engine)
@@ -35,7 +33,7 @@ def get_db():
         db.close()
 
 # Encoding the redirect URI
-encoded_redirect_uri = quote(REDIRECT_URI, safe='')
+encoded_redirect_uri = quote(REDIRECT_URI, safe="")
 
 # Middleware setup for CORS
 app.add_middleware(
@@ -43,8 +41,8 @@ app.add_middleware(
     allow_origins=[
         "http://127.0.0.1:8000",  # Local development
         "http://localhost:8000",  # Local development
-        "https://scheduler-9v36.onrender.com",  # Your render domain
-    ], 
+        "https://scheduler-9v36.onrender.com",  # Production domain
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -66,30 +64,18 @@ async def startup_event():
 # Routes for frontend
 @app.get("/", response_class=HTMLResponse)
 async def read_landing_page(request: Request):
-    """
-    Display the landing page.
-    """
     return templates.TemplateResponse("landingpage.html", {"request": request})
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request, form: str = "signup"):
-    """
-    Display the registration page based on the form type.
-    """
     return templates.TemplateResponse("registerr.html", {"request": request, "form_type": form})
 
 @app.get("/authenticate", response_class=HTMLResponse)
 async def authenticate(request: Request, email: str, token: str):
-    """
-    Display the authentication page.
-    """
     return templates.TemplateResponse("authenticate.html", {"request": request, "email": email, "token": token})
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
-    """
-    Display the user dashboard.
-    """
     return templates.TemplateResponse("dashboard.html", {"request": request})
 
 # Route to serve TikTok verification file
@@ -113,30 +99,38 @@ def tiktok_login():
 # TikTok OAuth2 Callback
 @app.get("/auth/tiktok/callback")
 async def tiktok_callback(request: Request):
-    code = request.query_params.get("code")
-    error = request.query_params.get("error")
+    query_params = request.query_params
+    code = query_params.get("code")
+    error = query_params.get("error")
 
-    # Print query parameters for debugging
-    print(f"Received code: {code}")
-    print(f"Received error: {error}")
+    # Log query parameters for debugging
+    print(f"Callback Query Params: {query_params}")
 
     if error:
-        return {"error": f"Authorization failed: {error}"}
+        print(f"Error received: {error}")
+        return JSONResponse(content={"error": f"Authorization failed: {error}"}, status_code=400)
 
-    if code:
-        token_url = "https://open.tiktokapis.com/v1/oauth/token/"
-        payload = {
-            "client_key": CLIENT_KEY,
-            "client_secret": CLIENT_SECRET,
-            "code": code,
-            "grant_type": "authorization_code",
-            "redirect_uri": REDIRECT_URI,  # Use the original redirect URI
-        }
+    if not code:
+        print("No authorization code provided.")
+        return JSONResponse(content={"error": "No authorization code provided"}, status_code=400)
+
+    # Exchange code for access token
+    token_url = "https://open.tiktokapis.com/v1/oauth/token/"
+    payload = {
+        "client_key": CLIENT_KEY,
+        "client_secret": CLIENT_SECRET,
+        "code": code,
+        "grant_type": "authorization_code",
+        "redirect_uri": REDIRECT_URI,  # Use the original redirect URI
+    }
+
+    try:
         response = requests.post(token_url, json=payload)
-        try:
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            return {"error": f"Failed to fetch token: {e.response.json()}"}
-
-    return {"error": "No authorization code provided"}
+        response.raise_for_status()
+        token_data = response.json()
+        print(f"Token response: {token_data}")
+        return token_data
+    except requests.exceptions.RequestException as e:
+        error_response = e.response.json() if e.response else str(e)
+        print(f"Failed to fetch token: {error_response}")
+        return JSONResponse(content={"error": "Failed to fetch token", "details": error_response}, status_code=500)
