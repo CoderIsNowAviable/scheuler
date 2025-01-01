@@ -113,6 +113,12 @@ async def delete_file(file_path: str):
     return {"message": "File not found"}, 404
 
 
+@app.get("/tiktokxIdqLGXtYjicLLpl4juckbzUebcUR17D", response_class=HTMLResponse)
+async def serve_tiktok_verification():
+    """
+    Serve TikTok's verification file for domain verification.
+    """
+    return "tiktok-developers-site-verification=0y1JQw2zrNHsEfBAPVWknquCGkwJprM4"
 
 
 @app.get("/login/tiktok")
@@ -126,7 +132,15 @@ def tiktok_login():
 
 @app.get("/auth/tiktok/callback")
 async def tiktok_callback(request: Request):
+    """
+    Handle TikTok OAuth2 callback.
+    """
     code = request.query_params.get("code")
+    error = request.query_params.get("error")
+
+    if error:
+        return {"error": f"Authorization failed: {error}"}
+
     if code:
         token_url = "https://open.tiktokapis.com/v2/oauth/token/"
         payload = {
@@ -137,5 +151,9 @@ async def tiktok_callback(request: Request):
             "redirect_uri": REDIRECT_URI,
         }
         response = requests.post(token_url, json=payload)
-        return response.json()
-    return {"error": "Authorization failed"}
+        
+        if response.status_code == 200:
+            return response.json()
+        return {"error": f"Failed to fetch token: {response.json()}"}
+    
+    return {"error": "No authorization code provided"}
