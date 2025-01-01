@@ -10,6 +10,7 @@ from starlette.responses import Response
 import os
 from dotenv import load_dotenv
 import requests
+from fastapi.middleware.cors import CORSMiddleware
 
 # Initialize database models
 Base.metadata.create_all(bind=engine)
@@ -37,6 +38,14 @@ def get_db():
         db.close()
 
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Replace "*" with specific domains in production for security
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Directory to store uploaded files
 UPLOAD_FOLDER = 'uploads'
@@ -108,9 +117,11 @@ async def upload_file(file: UploadFile = File(...)):
 
 
 # Route to serve TikTok verification file
-@app.get("/tiktokAQqwgsPnzXVQ9uew3SojqKOd6KcKjFFF", response_class=HTMLResponse)
+@app.get("/tiktokdzabkMqzIoOJAHR2RxclszPpXyu8TQnL")
 async def serve_tiktok_verification():
-    return "AQqwgsPnzXVQ9uew3SojqKOd6KcKjFFF"
+    file_path = os.path.join("static", "tiktokdzabkMqzIoOJAHR2RxclszPpXyu8TQnL.txt")
+    return FileResponse(file_path)
+
 
 
 # TikTok Login URL
