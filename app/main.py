@@ -58,6 +58,13 @@ templates = Jinja2Templates(directory="templates")
 app.include_router(user_router, prefix="/users", tags=["users"])
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
+@app.on_event("startup")
+async def startup_event():
+    print(f"CLIENT_KEY: {CLIENT_KEY}")
+    print(f"REDIRECT_URI: {REDIRECT_URI}")
+
+
+
 # Routes for frontend
 @app.get("/", response_class=HTMLResponse)
 async def read_landing_page(request: Request):
@@ -103,7 +110,7 @@ async def upload_file(file: UploadFile = File(...)):
 # Route to serve TikTok verification file
 @app.get("/tiktokAQqwgsPnzXVQ9uew3SojqKOd6KcKjFFF", response_class=HTMLResponse)
 async def serve_tiktok_verification():
-    return "tiktok-developers-site-verification=AQqwgsPnzXVQ9uew3SojqKOd6KcKjFFF"
+    return "AQqwgsPnzXVQ9uew3SojqKOd6KcKjFFF"
 
 
 # TikTok Login URL
@@ -126,7 +133,7 @@ async def tiktok_callback(request: Request):
         return {"error": f"Authorization failed: {error}"}
 
     if code:
-        token_url = "https://open.tiktokapis.com/v2/oauth/token/"
+        token_url = "https://open.tiktokapis.com/v1/oauth/token/"
         payload = {
             "client_key": CLIENT_KEY,
             "client_secret": CLIENT_SECRET,
