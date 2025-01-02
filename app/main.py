@@ -143,7 +143,7 @@ async def serve_verification_file(filename: str):
     return {"error": "File not found"}
 
 
-@app.get("/tiktokCvwcy7TmgBroNQ5qZERcmWUXGj0jXbWl.txt")
+@app.get("https://scheduler-9v36.onrender.com/tiktokCvwcy7TmgBroNQ5qZERcmWUXGj0jXbWl.txt")
 async def serve_tiktok_verification_file():
     file_path = "static/tiktokCvwcy7TmgBroNQ5qZERcmWUXGj0jXbWl.txt"
     if os.path.exists(file_path):
