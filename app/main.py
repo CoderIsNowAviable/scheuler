@@ -66,6 +66,25 @@ async def startup_event():
 async def read_landing_page(request: Request):
     return templates.TemplateResponse("landingpage.html", {"request": request})
 
+@app.get("/features", response_class=HTMLResponse)
+async def read_landing_page(request: Request):
+    return templates.TemplateResponse("features.html", {"request": request})
+@app.get("/about", response_class=HTMLResponse)
+async def read_landing_page(request: Request):
+    return templates.TemplateResponse("about.html", {"request": request})
+@app.get("/contact", response_class=HTMLResponse)
+async def read_landing_page(request: Request):
+    return templates.TemplateResponse("contact.html", {"request": request})
+@app.get("/help", response_class=HTMLResponse)
+async def read_landing_page(request: Request):
+    return templates.TemplateResponse("help.html", {"request": request})
+@app.get("/privacy-policy", response_class=HTMLResponse)
+async def read_landing_page(request: Request):
+    return templates.TemplateResponse("privacy-policy.html", {"request": request})
+@app.get("/terms-and-condition", response_class=HTMLResponse)
+async def read_landing_page(request: Request):
+    return templates.TemplateResponse("terms-and-conditions.html", {"request": request})
+
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request, form: str = "signup"):
     return templates.TemplateResponse("registerr.html", {"request": request, "form_type": form})
