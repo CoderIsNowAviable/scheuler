@@ -66,9 +66,21 @@ async def startup_event():
     print(f"REDIRECT_URI: {REDIRECT_URI}")
 
 # Routes for frontend
-@app.get("/", response_class=HTMLResponse)
-async def read_landing_page(request: Request):
+@app.get("/")
+async def root(request: Request):
+    """
+    Serve the root page, and also handle TikTok verification if the correct file is requested.
+    """
+    verification_filename = "tiktok1mlPqbmkhePwn452hhO3qnADJdhqrsNB.txt"  # Your verification file name
+    file_path = os.path.join("static", verification_filename)
+
+    # If the verification file is requested, return it directly
+    if request.query_params.get("verify") == "true" and os.path.exists(file_path):
+        return FileResponse(file_path)
+    
+    # Otherwise, render the regular landing page or other content
     return templates.TemplateResponse("landingpage.html", {"request": request})
+
 
 
 
@@ -143,12 +155,6 @@ async def serve_verification_file(filename: str):
     return {"error": "File not found"}
 
 
-@app.get("https://scheduler-9v36.onrender.com/tiktokCvwcy7TmgBroNQ5qZERcmWUXGj0jXbWl.txt")
-async def serve_tiktok_verification_file():
-    file_path = "static/tiktokCvwcy7TmgBroNQ5qZERcmWUXGj0jXbWl.txt"
-    if os.path.exists(file_path):
-        return FileResponse(file_path)
-    return {"error": "File not found"}
 
 
 
