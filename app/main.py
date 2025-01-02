@@ -100,43 +100,30 @@ def tiktok_login():
 # TikTok OAuth2 Callback
 @app.get("/auth/tiktok/callback")
 async def tiktok_callback(request: Request):
-    query_params = dict(request.query_params)
-        # Log query parameters for debugging
-    print(f"Callback Query Params: {query_params}")
+    code = request.query_params.get("code")
+    error = request.query_params.get("error")
     
-    
-    code = query_params.get("code")
-    error = query_params.get("error")
-    # Print received code and error
+    # Debugging: Print received parameters
     print(f"Received code: {code}")
     print(f"Received error: {error}")
 
-
     if error:
-        print(f"Error received: {error}")
-        return JSONResponse(content={"error": f"Authorization failed: {error}"}, status_code=400)
+        return {"error": f"Authorization failed: {error}"}
 
-    if not code:
-        print("No authorization code provided.")
-        return JSONResponse(content={"error": "No authorization code provided"}, status_code=400)
-
-    # Exchange code for access token
-    token_url = "https://open.tiktokapis.com/v1/oauth/token/"
-    payload = {
-        "client_key": CLIENT_KEY,
-        "client_secret": CLIENT_SECRET,
-        "code": code,
-        "grant_type": "authorization_code",
-        "redirect_uri": REDIRECT_URI,  # Use the original redirect URI
-    }
-    response = requests.post(token_url, json=payload)
-    try:
+    if code:
+        token_url = "https://open.tiktokapis.com/v1/oauth/token/"
+        payload = {
+            "client_key": CLIENT_KEY,
+            "client_secret": CLIENT_SECRET,
+            "code": code,
+            "grant_type": "authorization_code",
+            "redirect_uri": REDIRECT_URI,  # Use the original redirect URI
+        }
         response = requests.post(token_url, json=payload)
-        response.raise_for_status()
-        token_data = response.json()
-        print(f"Token response: {token_data}")
-        return token_data
-    except requests.exceptions.RequestException as e:
-        error_response = e.response.json() if e.response else str(e)
-        print(f"Failed to fetch token: {error_response}")
-        return JSONResponse(content={"error": "Failed to fetch token", "details": error_response}, status_code=500)
+        try:
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            return {"error": f"Failed to fetch token: {e.response.json()}"}
+
+    return {"error": "No authorization code provided"}

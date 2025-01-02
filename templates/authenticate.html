@@ -12,8 +12,7 @@
         <h2>Enter Verification Code</h2>
         <form id="verificationForm">
             <input type="hidden" name="email" id="emailField" value="{{ email }}"> 
-            <input type="hidden" name="token" id="tokenField" value="{{ token }}">
-            <p>Debug Email: {{ email }}</p> 
+            <input type="hidden" name="token" id="tokenField" value="{{ token }}"> 
             <div class="code-inputs">
                 <input type="text" maxlength="1" class="code-box" name="verification_code_1" autocomplete="off" required>
                 <input type="text" maxlength="1" class="code-box" name="verification_code_2" autocomplete="off" required>
