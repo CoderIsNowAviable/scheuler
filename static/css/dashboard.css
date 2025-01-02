@@ -3,8 +3,6 @@ body {
   margin: 0;
   font-family: Coolvetica;
   background-color: white;
-  height: 100vh;
-  
 }
 
 
@@ -84,53 +82,6 @@ header .logo .logo-icon { /*targets the scheduler icon*/
   transform: scale(1.1); /* Slight enlargement on hover */
 }
 
-/* Sidebar menu styling */
-.menu-sidebar {
-  position: fixed;
-  top: 0;
-  left: -300px; /* Initially hidden */
-  width: 300px;
-  height: 100%;
-  background-color: #fff;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-}
-
-.menu-sidebar.open {
-  transform: translateX(300px); /* Slide into view */
-}
-
-.menu-sidebar ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.menu-sidebar li {
-  margin-bottom: 15px;
-}
-
-.menu-sidebar a {
-  text-decoration: none;
-  font-size: 18px;
-  color: #333;
-}
-
-.close-sidebar {
-  margin-top: auto;
-  padding: 10px 20px;
-  background-color: #f44336;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-
-
 /* Profile Card */
 .profile-card { 
   display: flex;
@@ -193,21 +144,21 @@ main {
   background: #d9d9d9;
   width: 1415px;
   height: 400px;
-  border-radius: 10px ;
+  border-radius: 10px;
   margin-bottom: 30px;
 }
 
 .upload-box { /*targets the "upload" box*/
   text-align: center;
-  border: 2px dashed #ccc;
-  padding: 160px;
+  border: 2px dashed #6a6a6a;
+  padding: 140px;
   margin-right: 45px;
   border-radius: 10px;
 }
 
 .upload-box p { /*drag or drop a file text*/
   font-family: Montserrat;
-  margin-bottom: 1rem;
+  margin-bottom: 50px;
 }
 
 .upload-box button { /*select button*/
@@ -216,6 +167,9 @@ main {
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 5px;
+  font-family: Coolvetica;
+  font-weight: 100;
+  font-size: 18px;
 }
 
 .upload-text {
@@ -223,6 +177,35 @@ main {
   font-weight: 100;
   margin-left: 75px;
 }
+
+
+
+/* Uploaded Images Container */
+.img-wrapper {
+    display: inline-block;
+    text-align: center;
+    margin: 10px;
+}
+
+.uploaded-img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 5px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.img-wrapper p {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #555;
+    word-break: break-word;
+}
+
+
+
+
+
 
 /* Schedule Section */
 .schedule-section { 
@@ -285,6 +268,7 @@ main {
   margin-bottom: 1rem;
   border: 1px solid #ccc;
   border-radius: 5px;
+  font-family: Montserrat;
 }
 
 .schedule-form button {
@@ -344,4 +328,3 @@ main {
   border-radius: 5px;
   width: 100%;
 }
-

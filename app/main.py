@@ -81,7 +81,7 @@ async def read_landing_page(request: Request):
 @app.get("/privacy-policy", response_class=HTMLResponse)
 async def read_landing_page(request: Request):
     return templates.TemplateResponse("privacy-policy.html", {"request": request})
-@app.get("/terms-and-condition", response_class=HTMLResponse)
+@app.get("/terms-and-conditions", response_class=HTMLResponse)
 async def read_landing_page(request: Request):
     return templates.TemplateResponse("terms-and-conditions.html", {"request": request})
 
