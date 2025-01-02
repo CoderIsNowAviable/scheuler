@@ -66,24 +66,38 @@ async def startup_event():
 async def read_landing_page(request: Request):
     return templates.TemplateResponse("landingpage.html", {"request": request})
 
+
+
+
 @app.get("/features", response_class=HTMLResponse)
-async def read_landing_page(request: Request):
+async def features_page(request: Request):
     return templates.TemplateResponse("features.html", {"request": request})
+
 @app.get("/about", response_class=HTMLResponse)
-async def read_landing_page(request: Request):
+async def about_page(request: Request):
     return templates.TemplateResponse("about.html", {"request": request})
+
 @app.get("/contact", response_class=HTMLResponse)
-async def read_landing_page(request: Request):
+async def contact_page(request: Request):
     return templates.TemplateResponse("contact.html", {"request": request})
+
 @app.get("/help", response_class=HTMLResponse)
-async def read_landing_page(request: Request):
+async def help_page(request: Request):
     return templates.TemplateResponse("help.html", {"request": request})
+
 @app.get("/privacy-policy", response_class=HTMLResponse)
-async def read_landing_page(request: Request):
+async def privacy_policy_page(request: Request):
     return templates.TemplateResponse("privacy-policy.html", {"request": request})
+
 @app.get("/terms-and-conditions", response_class=HTMLResponse)
-async def read_landing_page(request: Request):
+async def terms_page(request: Request):
     return templates.TemplateResponse("terms-and-conditions.html", {"request": request})
+
+
+
+
+
+
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request, form: str = "signup"):
@@ -96,6 +110,11 @@ async def authenticate(request: Request, email: str, token: str):
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
+
+
+
+
+
 
 # Route to serve TikTok verification file
 @app.get("/auth/tiktok/callback/{filename}")
@@ -116,18 +135,21 @@ def tiktok_login():
     print(f"TikTok Auth URL: {auth_url}")  # Log the generated URL
     return RedirectResponse(auth_url)
 
-# TikTok OAuth2 Callback
+# TikTok OAuth2 Callback with better debugging
 @app.get("/auth/tiktok/callback")
 async def tiktok_callback(request: Request):
     code = request.query_params.get("code")
     error = request.query_params.get("error")
-    
-    # Debugging: Print received parameters
+
+    # Debugging: Log the full request URL
+    print(f"Full request URL: {request.url}")
     print(f"Received code: {code}")
     print(f"Received error: {error}")
 
     if error:
-        return {"error": f"Authorization failed: {error}"}
+        return templates.TemplateResponse(
+            "error.html", {"request": request, "error": f"Authorization failed: {error}"}
+        )
 
     if code:
         token_url = "https://open.tiktokapis.com/v1/oauth/token/"
@@ -136,13 +158,21 @@ async def tiktok_callback(request: Request):
             "client_secret": CLIENT_SECRET,
             "code": code,
             "grant_type": "authorization_code",
-            "redirect_uri": REDIRECT_URI,  # Use the original redirect URI
+            "redirect_uri": REDIRECT_URI,
         }
         response = requests.post(token_url, json=payload)
         try:
             response.raise_for_status()
-            return response.json()
+            token_data = response.json()
+            print(f"Token response: {token_data}")
+            return templates.TemplateResponse("success.html", {"request": request, "data": token_data})
         except requests.exceptions.RequestException as e:
-            return {"error": f"Failed to fetch token: {e.response.json()}"}
+            error_data = e.response.json() if e.response else {}
+            print(f"Token fetch error: {error_data}")
+            return templates.TemplateResponse(
+                "error.html", {"request": request, "error": f"Failed to fetch token: {error_data}"}
+            )
 
-    return {"error": "No authorization code provided"}
+    return templates.TemplateResponse(
+        "error.html", {"request": request, "error": "No authorization code provided"}
+    )
