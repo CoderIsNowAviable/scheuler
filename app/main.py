@@ -41,7 +41,10 @@ app.add_middleware(
     allow_origins=[
         "http://127.0.0.1:8000",  # Local development
         "http://localhost:8000",  # Local development
-        "https://scheduler-9v36.onrender.com",  # Production domain
+        "https://scheduler-9v36.onrender.com",
+        "https://scheduler-9v36.onrender.com/terms-and-conditions"
+        "https://scheduler-9v36.onrender.com/privacy-policy"
+        # Production domain
     ],
     allow_credentials=True,
     allow_methods=["*"],
