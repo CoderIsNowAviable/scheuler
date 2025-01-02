@@ -117,6 +117,20 @@ async def dashboard(request: Request):
 
 
 
+@app.get("/privacy-policy/tiktokCvwcy7TmgBroNQ5qZERcmWUXGj0jXbWl.txt")
+async def serve_tiktok_verification_file():
+    file_path = "static/tiktokCvwcy7TmgBroNQ5qZERcmWUXGj0jXbWl.txt"
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
+
+# Serve TikTok verification file at the terms-and-conditions path
+@app.get("/terms-and-conditions/tiktokxArJ8T0W2vPBu9uZTkrMHh0Ikd7Tgsyy.txt")
+async def serve_tiktok_verification_file_terms():
+    file_path = "static/tiktokxArJ8T0W2vPBu9uZTkrMHh0Ikd7Tgsyy.txt"
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
 
 
 # Route to serve TikTok verification file
@@ -126,6 +140,13 @@ async def serve_verification_file(filename: str):
     if os.path.exists(file_path):
         return FileResponse(file_path)
     return {"error": "File not found"}
+
+
+
+
+
+
+
 
 # TikTok Login URL
 @app.get("/login/tiktok")
