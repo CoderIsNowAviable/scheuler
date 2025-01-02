@@ -41,6 +41,7 @@ app.add_middleware(
     allow_origins=[
         "http://127.0.0.1:8000",  # Local development
         "http://localhost:8000",  # Local development
+        "https://scheduler-9v36.onrender.com"
         "https://scheduler-9v36.onrender.com",
         "https://scheduler-9v36.onrender.com/terms-and-conditions"
         "https://scheduler-9v36.onrender.com/privacy-policy"
@@ -142,7 +143,12 @@ async def serve_verification_file(filename: str):
     return {"error": "File not found"}
 
 
-
+@app.get("/tiktokCvwcy7TmgBroNQ5qZERcmWUXGj0jXbWl.txt")
+async def serve_tiktok_verification_file():
+    file_path = "static/tiktokCvwcy7TmgBroNQ5qZERcmWUXGj0jXbWl.txt"
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
 
 
 
