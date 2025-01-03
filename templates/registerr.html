@@ -21,7 +21,7 @@
                         <input type="email" id="email" name="email" placeholder="Enter an Email" autocomplete="off" required>
 
                         <label for="password">Password</label>
-                        <input type="password" id="password" name="password" placeholder="Create a password"autocomplete="off"  required>
+                        <input type="password" id="password" name="password" placeholder="Create a password" autocomplete="off"  required>
 
                         <div class="terms">
                             <input type="checkbox" id="terms" required>
@@ -92,14 +92,20 @@
             const response = await fetch("/users/signin", {
                 method: "POST",
                 body: formData,
+                redirect: "follow", // Allow handling of server-side redirects
             });
 
-            const result = await response.json();
-
-            if (response.ok) {
-                window.location.href = "/dashboard";  // Redirect to the dashboard on successful login
+            if (response.redirected) {
+                // If the response is a redirect (for pending users), follow the redirect
+                window.location.href = response.url;
             } else {
-                alert("Login failed: " + result.detail);  // Show error message
+                // Handle regular login success or failure
+                const result = await response.json();
+                if (response.ok) {
+                    window.location.href = "/dashboard";  // Redirect to the dashboard on successful login
+                } else {
+                    alert("Login failed: " + result.detail);  // Show error message
+                }
             }
         }
 

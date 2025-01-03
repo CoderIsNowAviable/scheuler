@@ -39,6 +39,7 @@ encoded_redirect_uri = quote(REDIRECT_URI, safe="")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "*",
         "http://127.0.0.1:8000",  # Local development
         "http://localhost:8000",  # Local development
         "https://scheduler-9v36.onrender.com"

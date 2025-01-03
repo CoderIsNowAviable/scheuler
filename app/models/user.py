@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -24,3 +25,7 @@ class PendingUser(Base):
     verification_code_expiry = Column(DateTime, nullable=True)
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="pending_users")
+    
+    def is_code_expired(self):
+        """Helper method to check if the verification code has expired"""
+        return self.verification_code_expiry < datetime.utcnow()

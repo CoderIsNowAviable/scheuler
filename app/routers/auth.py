@@ -38,18 +38,3 @@ async def verify_code(email: str, verification_code: str, db: Session = Depends(
     raise HTTPException(status_code=400, detail="Invalid verification code.")
 
 
-@router.post("/verify-code")
-async def verify_code(email: str, verification_code: str, db: Session = Depends(get_db)):
-    stored_code = get_verification_code_by_email(db, email)
-    if not stored_code:
-        raise HTTPException(status_code=400, detail="Verification code not found.")
-
-    if stored_code == verification_code:
-        # Clear the verification code after successful verification
-        clear_verification_code(db, email)
-        
-        # Generate JWT or access token (you could also use refresh tokens if needed)
-        token = create_access_token(data={"sub": email})
-        return {"access_token": token, "token_type": "bearer"}
-    
-    raise HTTPException(status_code=400, detail="Invalid verification code.")

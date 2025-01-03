@@ -10,7 +10,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def generate_verification_code():
-    return str(random.randint(10000, 99999))  # Generate a 6-digit code
+    verification_code = str(random.randint(10000, 99999))  # Generate a 5-digit code
+    expires_at = datetime.utcnow() + timedelta(minutes=5)  # Code expires in 5 minutes
+    return verification_code, expires_at
 
 def send_verification_email(user_email: str, verification_code: str):
     # Gmail SMTP configuration

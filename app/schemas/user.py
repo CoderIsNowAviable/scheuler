@@ -11,6 +11,7 @@ class UserBase(BaseModel):
 
 # Properties required for user creation (e.g., request payload)
 class UserCreate(BaseModel):
+    full_name: str
     email: str
     password: str
 
@@ -59,3 +60,6 @@ class SigninRequest(BaseModel):
 class VerifyCodeRequest(BaseModel):
     email: str
     verification_code: str
+    
+class ResendCodeRequest(BaseModel):
+    user_email: str
