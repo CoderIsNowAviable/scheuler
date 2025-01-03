@@ -22,9 +22,12 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     return encoded_jwt
 
 
-def get_email_from_token(token: str) -> str:
+
+def get_email_from_token(token: str):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload.get("sub")  # "sub" is the email in our case
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        return payload.get("sub")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=400, detail="Token has expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=400, detail="Invalid token")

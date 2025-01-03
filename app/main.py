@@ -124,6 +124,9 @@ async def register_page(request: Request, form: str = "signup"):
 async def terms_page(request: Request):
     return templates.TemplateResponse("forgot-password.html", {"request": request})
 
+
+
+
 @app.get("/authenticate", response_class=HTMLResponse)
 async def authenticate(request: Request, email: str, token: str):
     return templates.TemplateResponse("authenticate.html", {"request": request, "email": email, "token": token})

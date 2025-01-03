@@ -64,5 +64,7 @@ class VerifyCodeRequest(BaseModel):
 class ResendCodeRequest(BaseModel):
     user_email: str
     
-class ForgotPasswordRequest(BaseModel):
-    email: str
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr

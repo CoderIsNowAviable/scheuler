@@ -21,8 +21,8 @@ document.getElementById("forgot-password-form").addEventListener("submit", funct
         return;
     }
 
-    // Send reset request (This is where you'd integrate with your backend)
-    fetch("/users/forgot-password-reset", {
+    // Send reset request to the correct endpoint
+    fetch("/users/request-password-reset", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -31,11 +31,11 @@ document.getElementById("forgot-password-form").addEventListener("submit", funct
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            alert("A reset link has been sent to your email.");
+        if (data.message) {
+            alert(data.message);  // Display the message sent from the backend
             window.location.href = "/register?form=signin";  // Redirect to sign-in page
         } else {
-            emailError.textContent = data.message || "Error sending reset link.";
+            emailError.textContent = "Error sending reset link.";
         }
     })
     .catch(error => {
