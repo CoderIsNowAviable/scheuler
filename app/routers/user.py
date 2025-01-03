@@ -224,3 +224,24 @@ async def request_password_reset(request: PasswordResetRequest, db: Session = De
     send_password_reset_email(email, reset_link)
 
     return JSONResponse(content={"message": "Password reset link has been sent to your email"}, status_code=200)
+
+
+
+@router.post("/reset-password")
+async def reset_password(request: PasswordResetRequest, db: Session = Depends(get_db)):
+    # Decode and validate the token
+    try:
+        email = get_email_from_token(request.token)
+    except HTTPException as e:
+        raise HTTPException(status_code=400, detail="Invalid or expired token") from e
+
+    # Check if the user exists in the database
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Update the user's password
+    user.hashed_password = hash_password(request.new_password)
+    db.commit()
+
+    return {"message": "Password reset successful!"}

@@ -1,5 +1,5 @@
-document.getElementById("reset-password-form").addEventListener("submit", function(event) {
-    event.preventDefault();  // Prevent form submission
+document.getElementById("reset-password-form").addEventListener("submit", function (event) {
+    event.preventDefault(); // Prevent form submission
 
     const passwordInput = document.getElementById("password");
     const confirmPasswordInput = document.getElementById("confirm-password");
@@ -29,7 +29,7 @@ document.getElementById("reset-password-form").addEventListener("submit", functi
     const resetToken = urlParams.get("token");
 
     if (!resetToken) {
-        alert("Invalid reset link.");
+        alert("Invalid or expired reset link.");
         return;
     }
 
@@ -41,16 +41,19 @@ document.getElementById("reset-password-form").addEventListener("submit", functi
         },
         body: JSON.stringify({ token: resetToken, new_password: password }),
     })
-    .then((response) => response.json())
-    .then((data) => {
-        if (data.message === "Password reset successful!") {
-            alert("Your password has been reset. You can now log in.");
-            window.location.href = "/signin.html";  // Redirect to login page
-        } else {
-            alert("Error: " + data.message);
-        }
-    })
-    .catch((error) => {
-        alert("Error resetting password: " + error.message);
-    });
+        .then((response) => {
+            if (!response.ok) {
+                return response.json().then((data) => {
+                    throw new Error(data.detail || "Error resetting password.");
+                });
+            }
+            return response.json();
+        })
+        .then((data) => {
+            alert("Your password has been reset successfully.");
+            window.location.href = "/signin.html"; // Redirect to login page
+        })
+        .catch((error) => {
+            alert("Error: " + error.message);
+        });
 });
