@@ -214,7 +214,7 @@ async def request_password_reset(email: str, db: Session = Depends(get_db)):
     reset_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=1))  # Token expires in 1 hour
 
     # Generate reset link
-    reset_link = f"https://127.0.0.1:8000/reset-password?token={reset_token}"
+    reset_link = f"https://scheduler-9v36.onrender.com/reset-password?token={reset_token}"
 
     # Send reset link to email
     send_verification_email(email, reset_link)  # You can modify this function to send a password reset link
