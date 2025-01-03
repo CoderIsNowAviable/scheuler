@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Form, HTTPException, Depends, Request, status
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from sqlalchemy import func
@@ -14,10 +14,10 @@ from app.crud.user import (
 )
 from app.core.database import SessionLocal
 from app.models.user import PendingUser
-from app.utils.email_utils import generate_verification_code, send_password_reset_email, send_verification_email
+from app.utils.email_utils import generate_verification_code, send_verification_email
 from app.utils.jwt import create_access_token, get_email_from_token
 from app.utils.password import verify_password, hash_password
-from app.schemas.user import PasswordResetRequest, SigninRequest, UserCreate, VerifyCodeRequest, ResendCodeRequest
+from app.schemas.user import SigninRequest, UserCreate, VerifyCodeRequest, ResendCodeRequest
 from app.core.database import get_db
 from app.models import User
 import logging
@@ -200,48 +200,46 @@ def resend_verification_code(request: ResendCodeRequest, db: Session = Depends(g
         logging.error(f"Error during operation: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
     
-  
-  
-
-@router.post("/request-password-reset")
-async def request_password_reset(request: PasswordResetRequest, db: Session = Depends(get_db)):
-    email = request.email
-
-    # Check if the user exists in the database
-    user = db.query(User).filter(User.email == email).first()
     
+    
+    
+@router.post("/request-password-reset")
+async def request_password_reset(email: str, db: Session = Depends(get_db)):
+    # Check if the user exists
+    user = db.query(User).filter(User.email == email).first()
     if not user:
-        # If user not found, return an error
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Generate a password reset token
+    # Generate reset token
     reset_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=1))  # Token expires in 1 hour
 
-    # Generate the password reset link
+    # Generate reset link
     reset_link = f"https://scheduler-9v36.onrender.com/reset-password?token={reset_token}"
 
-    # Send the reset link to the user's email
-    send_password_reset_email(email, reset_link)
+    # Send reset link to email
+    send_verification_email(email, reset_link)  # You can modify this function to send a password reset link
 
-    return JSONResponse(content={"message": "Password reset link has been sent to your email"}, status_code=200)
-
+    return {"message": "Password reset link has been sent to your email"}
 
 
 @router.post("/reset-password")
-async def reset_password(request: PasswordResetRequest, db: Session = Depends(get_db)):
-    # Decode and validate the token
+async def reset_password(token: str, new_password: str, db: Session = Depends(get_db)):
+    # Decode and verify the reset token
     try:
-        email = get_email_from_token(request.token)
+        email = get_email_from_token(token)  # Use the get_email_from_token function from utils/jwt.py
     except HTTPException as e:
-        raise HTTPException(status_code=400, detail="Invalid or expired token") from e
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
 
-    # Check if the user exists in the database
+    # Get the user by email
     user = db.query(User).filter(User.email == email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    # Hash the new password
+    hashed_password = hash_password(new_password)
+
     # Update the user's password
-    user.hashed_password = hash_password(request.new_password)
+    user.hashed_password = hashed_password
     db.commit()
 
-    return {"message": "Password reset successful!"}
+    return {"message": "Password has been reset successfully!"}
