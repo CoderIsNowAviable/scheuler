@@ -112,10 +112,6 @@ async def terms_page(request: Request):
 
 
 
-
-
-
-
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request, form: str = "signup"):
     return templates.TemplateResponse("registerr.html", {"request": request, "form_type": form})
