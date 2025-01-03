@@ -237,3 +237,10 @@ async def reset_password(token: str, new_password: str, db: Session = Depends(ge
     db.commit()
 
     return {"message": "Password has been reset successfully!"}
+
+@router.get("/reset-password")
+async def get_reset_password_page(request: Request, token: str):
+    # Render the reset password page with the token
+    return templates.TemplateResponse("reset_password.html", {"request": request, "token": token})
+
+                                                
