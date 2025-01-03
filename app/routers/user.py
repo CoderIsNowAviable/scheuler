@@ -15,7 +15,7 @@ from app.crud.user import (
 from app.core.database import SessionLocal
 from app.models.user import PendingUser
 from app.utils.email_utils import generate_verification_code, send_verification_email
-from app.utils.jwt import create_access_token
+from app.utils.jwt import create_access_token, get_email_from_token
 from app.utils.password import verify_password, hash_password
 from app.schemas.user import SigninRequest, UserCreate, VerifyCodeRequest, ResendCodeRequest
 from app.core.database import get_db
@@ -199,3 +199,47 @@ def resend_verification_code(request: ResendCodeRequest, db: Session = Depends(g
     except Exception as e:
         logging.error(f"Error during operation: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
+    
+    
+    
+    
+@router.post("/request-password-reset")
+async def request_password_reset(email: str, db: Session = Depends(get_db)):
+    # Check if the user exists
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Generate reset token
+    reset_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=1))  # Token expires in 1 hour
+
+    # Generate reset link
+    reset_link = f"https://127.0.0.1:8000/reset-password?token={reset_token}"
+
+    # Send reset link to email
+    send_verification_email(email, reset_link)  # You can modify this function to send a password reset link
+
+    return {"message": "Password reset link has been sent to your email"}
+
+
+@router.post("/reset-password")
+async def reset_password(token: str, new_password: str, db: Session = Depends(get_db)):
+    # Decode and verify the reset token
+    try:
+        email = get_email_from_token(token)  # Use the get_email_from_token function from utils/jwt.py
+    except HTTPException as e:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+
+    # Get the user by email
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Hash the new password
+    hashed_password = hash_password(new_password)
+
+    # Update the user's password
+    user.hashed_password = hashed_password
+    db.commit()
+
+    return {"message": "Password has been reset successfully!"}

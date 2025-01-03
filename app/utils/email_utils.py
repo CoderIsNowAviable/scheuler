@@ -41,3 +41,33 @@ def send_verification_email(user_email: str, verification_code: str):
         print("Verification code sent successfully!")
     except Exception as e:
         print(f"Error sending email: {e}")
+        
+        
+
+def send_password_reset_email(user_email: str, reset_link: str):
+    # Gmail SMTP configuration
+    sender_email = os.getenv("EMAIL_SENDER")
+    sender_password = os.getenv("EMAIL_PASSWORD")
+    receiver_email = user_email
+    
+    # Email content for password reset
+    subject = "Password Reset Request"
+    body = f"Click the following link to reset your password: {reset_link}\nThe link will expire in 1 hour."
+
+    # Create email
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        # Connect to Gmail SMTP server
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, receiver_email, msg.as_string())
+        server.quit()
+        print("Password reset link sent successfully!")
+    except Exception as e:
+        print(f"Error sending email: {e}")
