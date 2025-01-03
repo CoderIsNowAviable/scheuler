@@ -50,7 +50,9 @@ document.addEventListener("DOMContentLoaded", () => {
   submitButton.addEventListener("click", () => {
     const email = emailField.value;
     const token = tokenField.value;
-    const verificationCode = Array.from(inputs).map((input) => input.value).join("");
+    const verificationCode = Array.from(inputs)
+      .map((input) => input.value)
+      .join("");
 
     if (!email) {
       alert("Email is missing. Please log in again.");
@@ -94,19 +96,20 @@ document.addEventListener("DOMContentLoaded", () => {
     fetch("/users/resend-verification-code", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",  // This ensures the server knows it's JSON
+        "Content-Type": "application/json", // This ensures the server knows it's JSON
       },
-      body: JSON.stringify({ user_email: email }),  // Correct request body
+      body: JSON.stringify({ user_email: email }), // Correct request body
     })
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          throw new Error("Failed to resend verification code");
-        }
-      })
+      .then((response) => response.json())
       .then((data) => {
-        alert(data.message || "New verification code has been sent to your email.");
+        // Log or display the server message
+        if (data.message === "Verification code is still valid.") {
+          alert("Verification code is still valid.");
+        } else if (data.message === "Verification code resent successfully") {
+          alert("A new verification code has been sent to your email.");
+        } else {
+          alert("An unexpected response was received.");
+        }
       })
       .catch((error) => {
         console.error("Error:", error);
