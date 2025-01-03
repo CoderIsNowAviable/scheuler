@@ -109,7 +109,7 @@ async def signin(email: str = Form(...), password: str = Form(...), db: Session 
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid password")
 
         access_token = create_access_token(data={"sub": email})
-        return RedirectResponse(url="/dashboard.html", status_code=302)
+        return RedirectResponse(url="/dashboard", status_code=302)
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
