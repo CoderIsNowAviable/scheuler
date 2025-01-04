@@ -52,7 +52,8 @@ document.getElementById("reset-password-form").addEventListener("submit", functi
         })
         .then((data) => {
             alert("Your password has been reset successfully.");
-            window.location.href = "/signin.html"; // Redirect to login page
+            //window.location.href = "/register?form=signin"; // Redirect to login page
+            window.close();
         })
         .catch((error) => {
             alert("Error: " + error.message);
