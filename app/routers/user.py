@@ -35,7 +35,7 @@ def get_db():
 logging.basicConfig(level=logging.DEBUG)
 logging.basicConfig()
 
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory="/templates")
 
 
 
