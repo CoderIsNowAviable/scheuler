@@ -210,7 +210,7 @@ async def request_password_reset(request: PasswordResetRequest, db: Session = De
         raise HTTPException(status_code=404, detail="User not found")
 
     reset_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=1))
-    reset_link = f"https://scheduler-9v36.onrender.com/users/reset-password?token={reset_token}"
+    reset_link = f"https://scheduler-9v36.onrender.com/reset-password?token={reset_token}"
 
     send_password_reset_email(email, reset_link)
     return {"message": "Password reset link has been sent to your email"}
