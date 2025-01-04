@@ -210,7 +210,7 @@ async def request_password_reset(request: PasswordResetRequest, db: Session = De
         raise HTTPException(status_code=404, detail="User not found")
 
     reset_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=1))
-    reset_link = f"https://scheduler-9v36.onrender.com/reset-password?token={reset_token}"
+    reset_link = f"https://scheduler-9v36.onrender.com/users/reset-password?token={reset_token}"
 
     send_password_reset_email(email, reset_link)
     return {"message": "Password reset link has been sent to your email"}
@@ -245,8 +245,11 @@ async def reset_password(token: str, new_password: str, db: Session = Depends(ge
 @router.get("/reset-password")
 async def get_reset_password_page(request: Request, token: str):
     try:
-        email = get_email_from_token(token)
+        email = get_email_from_token(token)  # This will extract the email from the token
     except HTTPException as e:
-        raise HTTPException(status_code=400, detail="Invalid or expired token")
-    
+        # Log and handle the case where the token is invalid or expired
+        logging.error(f"Invalid or expired token: {e}")
+        # Optionally, redirect to an error page or show a message
+        return templates.TemplateResponse("landingpage.html", {"request": request, "error_message": "Invalid or expired reset token."})
+
     return templates.TemplateResponse("reset-password.html", {"request": request, "token": token})
