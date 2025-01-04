@@ -32,6 +32,7 @@ document.getElementById("reset-password-form").addEventListener("submit", functi
         alert("Invalid or expired reset link.");
         return;
     }
+    console.log("Sending data:", JSON.stringify({ token: resetToken, new_password: password }));
 
     // Send password reset request to backend
     fetch("/users/reset-password", {

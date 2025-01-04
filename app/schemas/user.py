@@ -70,3 +70,6 @@ class PasswordResetRequest(BaseModel):
     email: EmailStr
     
     
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str

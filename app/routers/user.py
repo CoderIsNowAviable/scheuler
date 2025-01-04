@@ -17,7 +17,7 @@ from app.models.user import PendingUser
 from app.utils.email_utils import generate_verification_code, send_password_reset_email, send_verification_email
 from app.utils.jwt import create_access_token, get_email_from_token
 from app.utils.password import verify_password, hash_password
-from app.schemas.user import PasswordResetRequest, SigninRequest, UserCreate, VerifyCodeRequest, ResendCodeRequest
+from app.schemas.user import PasswordResetRequest, ResetPasswordRequest, SigninRequest, UserCreate, VerifyCodeRequest, ResendCodeRequest
 from app.core.database import get_db
 from app.models import User
 import logging
@@ -217,7 +217,10 @@ async def request_password_reset(request: PasswordResetRequest, db: Session = De
 
 
 @router.post("/reset-password")
-async def reset_password(token: str, new_password: str, db: Session = Depends(get_db)):
+async def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):
+    print(f"Received request: {request}")  # Log the request to check incoming data
+    token = request.token
+    new_password = request.new_password
     # Decode and verify the reset token
     try:
         email = get_email_from_token(token)  # Use the get_email_from_token function from utils/jwt.py
