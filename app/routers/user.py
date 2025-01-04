@@ -242,14 +242,4 @@ async def reset_password(token: str, new_password: str, db: Session = Depends(ge
 
 
 
-@router.get("/reset-password")
-async def get_reset_password_page(request: Request, token: str):
-    try:
-        email = get_email_from_token(token)  # This will extract the email from the token
-    except HTTPException as e:
-        # Log and handle the case where the token is invalid or expired
-        logging.error(f"Invalid or expired token: {e}")
-        # Optionally, redirect to an error page or show a message
-        return templates.TemplateResponse("landingpage.html", {"request": request, "error_message": "Invalid or expired reset token."})
 
-    return templates.TemplateResponse("reset-password.html", {"request": request, "token": token})

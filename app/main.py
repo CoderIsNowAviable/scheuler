@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Request, UploadFile, File
+import logging
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -10,6 +11,8 @@ from urllib.parse import quote
 import os
 import requests
 from dotenv import load_dotenv
+
+from app.utils.jwt import get_email_from_token
 
 # Initialize database models
 Base.metadata.create_all(bind=engine)
@@ -121,6 +124,17 @@ async def terms_page(request: Request):
     return templates.TemplateResponse("forgot-password.html", {"request": request})
 
 
+@app.get("/reset-password")
+async def get_reset_password_page(request: Request, token: str):
+    try:
+        email = get_email_from_token(token)  # Extract the email from the token
+    except HTTPException as e:
+        logging.error(f"Invalid or expired token: {e}")
+        return templates.TemplateResponse(
+            "landingpage.html", {"request": request, "error_message": "Invalid or expired reset token."}
+        )
+
+    return templates.TemplateResponse("reset-password.html", {"request": request, "token": token})
 
 
 @app.get("/authenticate", response_class=HTMLResponse)
