@@ -4,6 +4,28 @@ body {
   font-family: Coolvetica;
   background-color: white;
 }
+@font-face {
+  font-family: 'Coolvetica';
+  /* Removed the link  to coolvetica italic and renamed the files and updated the formats*/
+  src: url('../fonts/coolvetica-20250105T074502Z-001/coolvetica/coolvetica-rg.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Antinkodan';
+  src: url('../fonts/antinkodan-20250105T074502Z-001/antinkodan/Antinkodan.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Thunder HC';
+  src: url('../fonts/thunder-20250105T074544Z-001/thunder/Thunder-HC.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('../fonts/montserrat-20250105T074502Z-001/montserrat/Montserrat-Regular.woff2') format('woff2');
+}
 
 
 /* Header */
