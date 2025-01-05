@@ -5,16 +5,27 @@
   box-sizing: border-box;
 }
 
+/* added three font faces coolvetica, antinkodan and thunder hc */
 @font-face {
   font-family: 'Coolvetica';
-  src: url('/fonts/coolvetica-regular.woff2') format('woff2'),
-       url('/fonts/coolvetica-regular.woff') format('woff');
+  /* Removed the link  to coolvetica italic and renamed the files and updated the formats*/
+  src: url('/fonts/coolvetica-20250105T074502Z-001/coolvetica/coolvetica-rg.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'Antinkodan';
+  src: url('/fonts/antinkodan-20250105T074502Z-001/antinkodan/Antinkodan.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Thunder HC';
+  src: url('/fonts/thunder-20250105T074544Z-001/thunder/Thunder-HC.woff2') format('woff2');
+}
+
 body {
-  background: #fff url('/static//images/Overlays.png') no-repeat center center;
+  background: #fff url('../images/Overlays.png') no-repeat center center;
   background-size: 95%; /*img covers the entire screen*/
   background-position: center 0px; /*moves the img upward*/
   background-position: right 0px;
@@ -45,7 +56,7 @@ body {
   margin-left: 10px; /*this does the spacing inbetween those nav tabs*/
   color: black;
   font-size: 18px;
-  font-family: Coolvetica;
+  font-family: 'Coolvetica';
   text-decoration: none;
   transition: text-decoration 0.3s ease; /* Smooth transition */
 }
@@ -80,7 +91,7 @@ body {
 .hero .content h1 { /*targets the total text*/
   margin-right: 800px; /*moves the whole text to left*/
   font-size: 60px;
-  font-family: Coolvetica;
+  font-family: 'Coolvetica';
   font-weight: 100;
   line-height: 55px;
 }
@@ -108,7 +119,7 @@ body {
   margin-top: 50px;
   padding: 6px 6px;/*size of da box*/
   font-size: 28px;
-  font-family: Coolvetica;
+  font-family: 'Coolvetica';
   cursor: pointer; /*when you hover over button, cursor becomes a pointer*/
   transition: box-shadow 0.3s ease, transform 0.3s ease; /* Smooth transitions for both properties */
   text-decoration: none; /* Ensures the link looks like a button */
@@ -126,17 +137,19 @@ body {
   margin-left: 420px; 
   color: #555;
   font-size: 40px;
-  font-family: Antinkodan;
+  font-family: 'Antinkodan';
 }
 
 .hero .slogan { /*targets the slogan text*/
-  margin-top: 0px;
+  /* Moved the text 15px up because it was too low */
+  margin-top: -15px; 
   margin-left: 600px;
   margin-bottom: 0px;
   color: #000;
-  font-size: 45px;
+  font-size: 35px;
   font-weight: 100;
-  font-family: Thunder HC;
+  /* changed the font-family to coolvetica instead of thunder hc for better readablity */
+  font-family: 'Coolvetica';
 }
 
 /* Footer */
