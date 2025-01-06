@@ -115,20 +115,6 @@ input:hover{
     
 }
 
- #forget-pass{
-    text-decoration: none;
-    color: #000;
-    font-weight: 100px;
-    font-size: 16px;
-    font-family: Coolvetica;
-    margin-top: 30px; /*gap between each fill up form*/
-    display: block;
-}
-
-#forget-pass:hover{
-    text-decoration: underline;
-}
-
 .terms a { 
     color: #007bff;
     text-decoration: none;

@@ -1,148 +1,182 @@
-/* Header */
-header h1 {
-    font-size: 3rem;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 20px;
-    color: black;
-}
 
-/* Sections */
-main section {
-    margin-bottom: 40px;
-}
-
-main h2 {
-    font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 15px;
-    text-transform: uppercase;
-    color: black;
-}
-
-main p, main ul {
-    font-size: 1.1rem;
-    color: #333;
-}
-
-main ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-main ul li {
-    margin-bottom: 10px;
-}
-
-/* Form */
-.contact-form {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.contact-form label {
-    font-size: 1.1rem;
-    font-weight: bold;
-}
-
-.contact-form input, 
-.contact-form textarea {
-    width: 100%;
-    padding: 10px;
-    font-size: 1rem;
-    border: 1px solid black;
-    border-radius: 5px;
-    background: #f9f9f9;
-}
-
-.contact-form textarea {
-    resize: none;
-}
-
-.contact-form button {
-    width: 100%;
-    padding: 10px;
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: white;
-    background: black;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.contact-form button:hover {
-    background: #444;
-}
-
-/* Footer */
-footer {
-    text-align: center;
-    margin-top: 40px;
-    padding: 20px 0;
-    font-size: 0.9rem;
-    color: black;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    header h1 {
-        font-size: 2.5rem;
+/* added three font faces coolvetica, antinkodan and thunder hc */
+@font-face {
+    font-family: 'Coolvetica';
+    /* Removed the link  to coolvetica italic and renamed the files and updated the formats*/
+    src: url('../fonts/coolvetica-20250105T074502Z-001/coolvetica/coolvetica-rg.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: 'Antinkodan';
+    src: url('../fonts/antinkodan-20250105T074502Z-001/antinkodan/Antinkodan.woff2') format('woff2');
+  }
+  
+  @font-face {
+    font-family: 'Thunder HC';
+    src: url('../fonts/thunder-20250105T074544Z-001/thunder/Thunder-HC.woff2') format('woff2');
+  }
+  
+  @font-face {
+    font-family: 'Montserrat';
+    src: url('../fonts/montserrat-20250105T074502Z-001/montserrat/Montserrat-Regular.woff2') format('woff2');
+  }
+  
+  /* styles.css */
+  body {
+      margin: 0;
+      font-family: Coolvetica;
+      font-weight: 100;
+      background-color: #fff;
     }
-
-    main h2 {
-        font-size: 1.8rem;
+    
+    .container {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
     }
-
-    main p, main ul {
-        font-size: 1rem;
+    
+    .left-section {
+      margin-top: -60px;/*adds sapace on top of da page*/
+      flex: 1; 
+      padding: 80px; /*adds space inside the left section*/
+      flex-direction: column; /*align items vertically aka a column*/
+      justify-content: center;/*aligns items vertically too idk why?*/
     }
-
-    .contact-form label {
-        font-size: 1rem;
+    
+    .logo { /*targets the entire logo as a group*/
+      display: flex;
+      align-items: center;
+      margin-left: -40px;
     }
-
-    .contact-form input, 
-    .contact-form textarea {
-        font-size: 0.9rem;
+    
+    .logo-img { /*targets the logo img*/
+      width: 120px;
+      height: 120px;
     }
-
-    .contact-form button {
-        font-size: 1rem;
+    
+    .left-section h1 { /*targets the logo text*/
+      font-size: 45px;
+      margin-left: -20px;
+      color: #000;
     }
-}
-
-@media (max-width: 480px) {
-    header h1 {
-        font-size: 2rem;
+  
+    .left-section a,h1{
+      text-decoration: none;
     }
-
-    main h2 {
-        font-size: 1.5rem;
+    
+    .left-section h2 { /*targets the contact us*/
+      font-size: 75px;
+      font-weight: 100;
+      margin-top: 20px;
+      margin-bottom: -0px;
     }
-
-    main p, main ul {
-        font-size: 0.9rem;
+    
+    .left-section p { /*targets the description text*/
+      font-size: 18px;
     }
-
-    .contact-form label {
-        font-size: 0.9rem;
+    
+    .contact-info {
+      margin-top: 320px;
+      font-size: 16px;
+      color: #555;
+      line-height: 0.2;
     }
-
-    .contact-form input, 
-    .contact-form textarea {
-        font-size: 0.9rem;
+  
+    
+    
+    .right-section { 
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      position: relative;
+      margin-top: 60px;
     }
-
-    .contact-form button {
-        font-size: 1rem;
+    
+    .nav-bar {
+      position: absolute;
+      top: 20px;
+      right: 110px;
     }
-
-    footer {
-        font-size: 0.8rem;
+    
+    .nav-bar a {
+      margin-right: 15px;/*adds space inbetween links*/
+      text-decoration: none;
+      color: #000;
+      transition: all 0.3 ease;
     }
-}
+  
+    .nav-bar a:hover{
+      text-decoration: underline;
+    }
+    
+    .form-container { /*targets the form "container"*/
+      padding: 50px;
+      width: 400px;
+      height: 500px;
+    
+      border-radius: 12px;
+      background-color: #d9d9d9;
+      box-shadow: 22px 18px 0px #000;
+    }
+    
+    .form-container h3 { /*targets the getintouch*/
+      font-size: 55px;
+      margin-top: 10px;
+      margin-bottom: 0;
+    }
+    
+    .form-container p {
+      font-size: 16px;
+      color: #000;
+    }
+    
+    form input,
+    form textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      font-family: Montserrat;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      transition: all 0.3 ease;
+    }
+      
+    form button {
+      background-color: black;
+      color: white;
+      font-size: 16px;
+      font-family: Coolvetica, sans-serif;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 0px;
+      margin-bottom: 40px;
+      cursor: pointer;
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+    }
+    
+    form button:hover {
+      box-shadow: 7px 7px 0px #BEBEBE;
+      transform: translateY(-5px);
+    }
+    
+    .terms {
+      font-size: 12px;
+      color: #666;
+      margin-top: 60px;
+    }
+    
+    .terms a {
+      text-decoration: none;
+      color: #000;
+      transition: all 0.3 ease;
+    }
+  
+    .terms a:hover{
+      text-decoration: underline;
+    }
