@@ -34,23 +34,15 @@
 
                 <!-- Log In Form -->
                 <div class="form-content" id="login-form" style="display: {{ 'block' if form_type == 'signin' else 'none' }}">
-                    <h1>Howdy,<br>Welcome Back!</h1>
+                    <h2>Howdy,<br></h2><span class="message">Welcome Back!</span>
                     <form id="signin-form" method="POST">
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email" placeholder="Enter Your Email" autocomplete="off" required>
 
                         <label for="password">Password</label>
                         <input type="password" id="password" name="password" placeholder="Enter Your Password" autocomplete="off" required>
-
-                        <div class="remember-me">
-                            <input type="checkbox" id="remember">
-                            <label for="remember">Remember Me</label>
-                        </div>
-
-                        <a href="/forgot-password">
-                            <p>Forgot your Password?</p>
-                        </a>
-
+        
+                            <a href="/forgot-password" id="forget-pass"><p>Forgot your Password?</p></a>
                         <button type="submit" class="button">Log In</button>
                     </form>
                 </div>
@@ -58,7 +50,7 @@
 
             <!-- Info Section -->
             <div class="info-section">
-                <h2>Uncomplicate your<br>social media presence...</h2>
+                <h3>Uncomplicate your<br>social media presence...</h3>
                 <div class="graphics">
                     <div class="square white"></div>
                     <div class="square gray"></div>

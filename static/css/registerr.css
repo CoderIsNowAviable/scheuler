@@ -22,9 +22,6 @@
     src: url('../fonts/montserrat-20250105T074502Z-001/montserrat/Montserrat-Regular.woff2') format('woff2');
   }
   
-
-
-
 /* General styles */
 body {
     margin: 0;
@@ -54,12 +51,27 @@ body {
 h1 { /*targets the Hello There text*/
     margin-top: -30px;
     font-family: Coolvetica;
-    font-size: 10px;
-    font-weight: 100;
+    font-size: 75px;
+    font-weight: 500;
     margin-bottom: 10px;
     text-align: left;
 }
 
+h2 { /*targets the Hello There text*/
+    margin-top: -30px;
+    font-family: Coolvetica;
+    font-size: 75px;
+    font-weight: 500;
+    text-align: left;
+    margin-bottom: 10px;
+}
+
+.message { /*targets the Hello There text*/
+    margin-top: -50px;
+    font-family: Coolvetica;
+    font-size: 51px;
+    font-weight: 300;
+}
 
 label { /*targets the username, email, pass layout only*/
     font-weight: 100px;
@@ -101,6 +113,20 @@ input:hover{
     font-weight: normal; /* Reset font weight */
     margin-top: -0px;
     
+}
+
+ #forget-pass{
+    text-decoration: none;
+    color: #000;
+    font-weight: 100px;
+    font-size: 16px;
+    font-family: Coolvetica;
+    margin-top: 30px; /*gap between each fill up form*/
+    display: block;
+}
+
+#forget-pass:hover{
+    text-decoration: underline;
 }
 
 .terms a { 
@@ -159,7 +185,7 @@ input:hover{
     color: #ccc;
 }
 
-h2 { /*targets the info text*/
+h3 { /*targets the info text*/
     font-size: 40px;
     font-family: Coolvetica;
     font-weight: 100;
@@ -238,6 +264,7 @@ h2 { /*targets the info text*/
     margin: 0 10px;
     display: inline-block;
     transition: color 0.3s ease;
+    font-family: Montserrat;
 }
 
 .form-toggle-links a:hover {
@@ -256,6 +283,7 @@ h2 { /*targets the info text*/
     margin: 7px;
     font-size: 12px;
     transition: text-decoration 0.3s ease;
+    font-family: Montserrat;
 }
 
 .footer-links a:hover {
