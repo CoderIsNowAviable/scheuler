@@ -1,18 +1,19 @@
 import logging
-from fastapi import FastAPI, HTTPException, Request, UploadFile, File
+from fastapi import Cookie, FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.core.database import engine, Base, SessionLocal
 from app.routers.user import router as user_router
 from app.routers.auth import router as auth_router
+from app.routers.pages import router as pages_router
 from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import quote
 import os
 import requests
 from dotenv import load_dotenv
 
-from app.utils.jwt import get_email_from_token
+from app.utils.jwt import get_email_from_token, verify_access_token
 
 # Initialize database models
 Base.metadata.create_all(bind=engine)
@@ -63,6 +64,8 @@ templates = Jinja2Templates(directory="templates")
 # Include routers
 app.include_router(user_router, prefix="/users", tags=["users"])
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(pages_router, prefix="/pages", tags=["pages"])
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -70,48 +73,24 @@ async def startup_event():
     print(f"REDIRECT_URI: {REDIRECT_URI}")
 
 # Routes for frontend
-@app.get("/")
-async def root(request: Request):
-    """
-    Serve the root page, and also handle TikTok verification if the correct file is requested.
-    """
-    verification_filename = "tiktok1mlPqbmkhePwn452hhO3qnADJdhqrsNB.txt"  # Your verification file name
-    file_path = os.path.join("static", verification_filename)
-
-    # If the verification file is requested, return it directly
-    if request.query_params.get("verify") == "true" and os.path.exists(file_path):
-        return FileResponse(file_path)
-    
-    # Otherwise, render the regular landing page or other content
-    return templates.TemplateResponse("landingpage.html", {"request": request})
-
-
-
+@app.get("/", response_class=HTMLResponse)
+async def landing_page(request: Request, access_token: str = Cookie(None)):
+    # Check if the user already has a valid token (cookie)
+    if access_token:
+        try:
+            # Verify the token (you can implement your token verification function here)
+            user = verify_access_token(access_token)  # This function verifies the token
+            # If the token is valid, redirect to the dashboard
+            return RedirectResponse(url="/users/dashboard", status_code=302)
+        except HTTPException:
+            # If the token is invalid or expired, redirect to login page
+            return RedirectResponse(url="/register?form=signin", status_code=302)
+    else:
+        # If there's no token, render the landing page
+        return templates.TemplateResponse("landingpage.html", {"request": request})
 
 
-@app.get("/features", response_class=HTMLResponse)
-async def features_page(request: Request):
-    return templates.TemplateResponse("features.html", {"request": request})
 
-@app.get("/about", response_class=HTMLResponse)
-async def about_page(request: Request):
-    return templates.TemplateResponse("about.html", {"request": request})
-
-@app.get("/contact", response_class=HTMLResponse)
-async def contact_page(request: Request):
-    return templates.TemplateResponse("contact.html", {"request": request})
-
-@app.get("/help", response_class=HTMLResponse)
-async def help_page(request: Request):
-    return templates.TemplateResponse("help.html", {"request": request})
-
-@app.get("/privacy-policy", response_class=HTMLResponse)
-async def privacy_policy_page(request: Request):
-    return templates.TemplateResponse("privacy-policy.html", {"request": request})
-
-@app.get("/terms-and-conditions", response_class=HTMLResponse)
-async def terms_page(request: Request):
-    return templates.TemplateResponse("terms-and-conditions.html", {"request": request})
 
 
 
@@ -140,12 +119,6 @@ async def get_reset_password_page(request: Request, token: str):
 @app.get("/authenticate", response_class=HTMLResponse)
 async def authenticate(request: Request, email: str, token: str):
     return templates.TemplateResponse("authenticate.html", {"request": request, "email": email, "token": token})
-
-@app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request):
-    return templates.TemplateResponse("dashboard.html", {"request": request})
-
-
 
 
 @app.get("/privacy-policy/tiktokCvwcy7TmgBroNQ5qZERcmWUXGj0jXbWl.txt")
