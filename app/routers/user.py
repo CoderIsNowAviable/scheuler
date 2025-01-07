@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.models.user import PendingUser, User
-from app.schemas.user import PasswordResetRequest, ResetPasswordRequest, VerifyCodeRequest
+from app.schemas.user import PasswordResetRequest, ResendCodeRequest, ResetPasswordRequest, VerifyCodeRequest
 from app.utils.email_utils import generate_verification_code, send_password_reset_email, send_verification_email
 from app.utils.jwt import create_access_token, verify_access_token, get_email_from_token
 from app.utils.password import verify_password, hash_password
@@ -136,6 +136,61 @@ async def reset_password(request: ResetPasswordRequest, db: Session = Depends(ge
     db.commit()
 
     return {"message": "Password has been reset successfully!"}
+
+
+
+
+@router.post("/resend-verification-code")
+def resend_verification_code(request: ResendCodeRequest, db: Session = Depends(get_db)):
+    logging.info(f"Received request with email: {request.user_email}")
+    user_email = request.user_email
+
+    try:
+        # Find the pending user by email
+        pending_user = db.query(PendingUser).filter(PendingUser.email == user_email).first()
+
+        if pending_user:
+            # Check if the verification code has expired
+            if pending_user.is_code_expired():
+                # Generate a new verification code and expiration time
+                verification_code, expires_at = generate_verification_code()
+
+                # Ensure that verification_code is a string and expires_at is a datetime object
+                if isinstance(verification_code, tuple):
+                    verification_code = verification_code[0]  # Extract the code if it's a tuple
+
+                # Update the pending user's verification code and expiry time
+                update_params = {
+                    'verification_code': verification_code,
+                    'verification_code_expiry': expires_at,
+                    'pending_users_id': pending_user.id  # Use the pending user's ID
+                }
+
+                # Log the parameters to debug
+                logging.info(f"Update parameters: {update_params}")
+
+                # Update the pending user in the database
+                db.query(PendingUser).filter(PendingUser.id == update_params['pending_users_id']).update({
+                    PendingUser.verification_code: update_params['verification_code'],
+                    PendingUser.verification_code_expiry: update_params['verification_code_expiry']
+                })
+                db.commit()
+
+                logging.info(f"Verification code resent to {user_email}, code: {verification_code}, expires at: {expires_at}")
+
+                # Send the verification email
+                send_verification_email(user_email, verification_code)
+
+                return {"message": "Verification code resent successfully"}
+            else:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Verification code is still valid.")
+        else:
+            raise HTTPException(status_code=404, detail="User not found")
+
+    except Exception as e:
+        logging.error(f"Error during operation: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    
 
 @router.get("/dashboard")
 async def dashboard(request: Request, token: str = Cookie(None)):

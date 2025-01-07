@@ -27,8 +27,6 @@
     font-family: 'Montserrat';
     src: url('../fonts/montserrat-20250105T074502Z-001/montserrat/Montserrat-Regular.woff2') format('woff2');
   }
-  
-
 
 body {
     display: flex;
@@ -46,14 +44,14 @@ body {
     background-color: #d9d9d9;
     border-radius: 10px;
     box-shadow: 22px 22px 0px #000;
-    box-shadow: 22px 22px 2px #2d2d2d;
 }
 
 h1 {
     font-size: 32px;
     font-weight: 500;
     font-family: Coolvetica, sans-serif;
-    margin-bottom: 50px;
+    margin-top: 25px;
+    margin-bottom: 0px;
 }
 
 h2 {
@@ -61,6 +59,7 @@ h2 {
     font-size: 40px;
     font-family: Coolvetica, sans-serif;
     margin-bottom: 40px;
+    font-weight: bold;
 }
 
 .code-inputs {
@@ -104,8 +103,8 @@ h2 {
     font-size: 22px;
     font-family: Coolvetica, sans-serif;
     border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
+    padding: 7px 14px;
+    border-radius: 0px;
     margin-bottom: 40px;
     cursor: pointer;
     transition: box-shadow 0.3s ease, transform 0.3s ease;
@@ -120,20 +119,28 @@ h2 {
 .note {
     font-size: 14px;
     font-family: Montserrat, sans-serif;
-    color: #333;
-    margin-top: 20px;
+    color: #000;
+    margin-top: 80px;
 }
 
-.resend {
-    font-weight: 100;
-    font-size: 17px;
-    font-family: Coolvetica, sans-serif;
+#resend-code-btn {
+    font-size: 13px;
+    font-family: Montserrat;
+    font-weight: 1000;
+    background-color: transparent;
+    border: none;
+    color: black;
     cursor: pointer;
+    text-decoration: none;
+    transition: all 0.4 ease;
 }
 
-.resend:hover {
+#resend-code-btn:hover {
     text-decoration: underline;
 }
+
+
+
 @media only screen and (max-width: 432px)
 {
     body {
@@ -184,19 +191,15 @@ h2 {
         margin-top: 10px;
         color: #000;
     }
-    .resend{
-        font-size:12px;
+    #resend-code-btn{
+        font-size:8px;
         font-family: Montserrat;
         cursor: pointer;
     }
-
     .submit-btn:hover {
         box-shadow: 7px 7px 0px #BEBEBE;
         transform: translateY(-5px);
     }    
-    .resend:hover {
-        text-decoration: underline;
-    }
     .code-box:hover{
         transform: translateY(0);
         box-shadow: none;

@@ -1,28 +1,14 @@
-/* added three font faces coolvetica, antinkodan and thunder hc */
+/* General styles */
 @font-face {
     font-family: 'Coolvetica';
-    /* Removed the link  to coolvetica italic and renamed the files and updated the formats*/
-    src: url('../fonts/coolvetica-20250105T074502Z-001/coolvetica/coolvetica-rg.woff2') format('woff2');
-    font-weight: normal;
-    font-style: normal;
-  }
-  
-  @font-face {
-    font-family: 'Antinkodan';
-    src: url('../fonts/antinkodan-20250105T074502Z-001/antinkodan/Antinkodan.woff2') format('woff2');
-  }
-  
-  @font-face {
-    font-family: 'Thunder HC';
-    src: url('../fonts/thunder-20250105T074544Z-001/thunder/Thunder-HC.woff2') format('woff2');
-  }
+    src: url('../Fonts/coolvetica/coolvetica-rg.woff2');
+}
 
-  @font-face {
+@font-face {
     font-family: 'Montserrat';
-    src: url('../fonts/montserrat-20250105T074502Z-001/montserrat/Montserrat-Regular.woff2') format('woff2');
-  }
-  
-/* General styles */
+    src: url('../Fonts/montserrat/Montserrat-Regular.ttf');
+}
+
 body {
     margin: 0;
     display: flex;
@@ -30,6 +16,7 @@ body {
     align-items: center;
     height: 100vh;
     background-color: #f0f0f0;
+    transition: all 0.2s ease;
 }
 
 .container { /*the entire form box*/
@@ -50,33 +37,19 @@ body {
 
 h1 { /*targets the Hello There text*/
     margin-top: -30px;
-    font-family: Coolvetica;
+    font-family: 'Coolvetica';
     font-size: 75px;
     font-weight: 500;
     margin-bottom: 10px;
     text-align: left;
+    /* "" solid blue; */
 }
 
-h2 { /*targets the Hello There text*/
-    margin-top: -30px;
-    font-family: Coolvetica;
-    font-size: 75px;
-    font-weight: 500;
-    text-align: left;
-    margin-bottom: 10px;
-}
-
-.message { /*targets the Hello There text*/
-    margin-top: -50px;
-    font-family: Coolvetica;
-    font-size: 51px;
-    font-weight: 300;
-}
 
 label { /*targets the username, email, pass layout only*/
     font-weight: 100px;
     font-size: 16px;
-    font-family: Coolvetica;
+    font-family: 'Coolvetica';
     margin-top: 10px; /*gap between each fill up form*/
     display: block;
 }
@@ -125,14 +98,19 @@ input:hover{
 }
 
 .button { /*targets the call to action btn*/
-    margin: 20px auto 40px auto;
+    /* margin: 20px auto 40px auto;
+    margin-top: 45px; */
+    /* margin-left: 120px; */
+
+    /* !changed the margin and display to cetner the button */
+    display: flex;
+    margin: auto;
     margin-top: 45px;
-    margin-left: 120px;
     padding: 5px 10px;
     background-color: black;
     color: white;
     font-size: 18px;
-    font-family: Coolvetica, sans-serif;
+    font-family: 'Coolvetica', sans-serif;
     border: none;
     border-radius: 0px;
     cursor: pointer;
@@ -143,11 +121,6 @@ input:hover{
     box-shadow: 7px 7px 0px #BEBEBE;
     transform: translateY(-5px);
 }
-
-
-
-
-
 
 .info-section { /*controls the right side*/
     background-color: black;
@@ -171,12 +144,28 @@ input:hover{
     color: #ccc;
 }
 
-h3 { /*targets the info text*/
+h2 { /* targets the Howdy text */
+    margin-top: -30px;
+    font-family: 'Coolvetica';
+    font-size: 75px;
+    font-weight: 500;
+    text-align: left;
+    margin-bottom: 10px;
+}
+
+h3 { /* targets the info text */
     font-size: 40px;
-    font-family: Coolvetica;
+    font-family: 'Coolvetica';
     font-weight: 100;
     margin: 0;
     margin-top: -30px;
+}
+
+.message { /* targets the Hello There text */
+    margin-top: -50px;
+    font-family: 'Coolvetica';
+    font-size: 51px;
+    font-weight: 300;
 }
 
 .graphics { /*controls the position of shape*/
@@ -242,15 +231,16 @@ h3 { /*targets the info text*/
     text-align: center;
     font-size: 14px;
     color: white;
+    /* border: 5px solid orange; */
 }
 
 .form-toggle-links a {
+    font-family: 'Montserrat';
     color: white;
     text-decoration: none;
     margin: 0 10px;
     display: inline-block;
     transition: color 0.3s ease;
-    font-family: Montserrat;
 }
 
 .form-toggle-links a:hover {
@@ -264,18 +254,17 @@ h3 { /*targets the info text*/
 }
 
 .footer-links a {
+    font-family: 'Montserrat';
     color: white;
     text-decoration: none;
     margin: 7px;
     font-size: 12px;
     transition: text-decoration 0.3s ease;
-    font-family: Montserrat;
 }
 
 .footer-links a:hover {
     text-decoration: underline;
 }
-
 
 input {
     width: 100%;
@@ -299,8 +288,6 @@ label {
     display: block;
 }
 
-
-
 .form-content {
     display: none;
 }
@@ -312,4 +299,97 @@ label {
 }
 #login-form {
     display: none;
+}
+
+#forget-pass{
+    font-family: 'Montserrat';
+    text-decoration: none;
+    border: none;
+    font-size: 13px;
+    color: black;
+    font-weight: bold;
+}
+
+/* *DONE: Make mobile responsive */
+@media only screen and (max-width: 820px)
+{
+    .form-section {
+        padding: 0;
+    }
+    .container {
+        width: 90vw;
+        position: relative;
+    }
+    h1, h2 {
+        font-size: 60px;
+        margin: 0px;
+        margin-top: -10px;
+    }
+    .info-section {
+        visibility: hidden;
+        width: 0;
+        margin: 0;
+        padding: 0;   
+    }
+    .form-content{
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 80%;
+        margin-left: 10%;
+        margin-top: 10%;
+        margin-right: 10%;
+    }
+    input {
+        width: 90%;
+    }
+    .form-toggle-links {
+        visibility: visible;
+        display: flex;
+        justify-content: center;
+        position: absolute;
+        left: 0;
+        width: 80%;
+        margin-left: 10%;
+        bottom: 5%;
+        
+    }
+    .form-toggle-links a {
+        color: black;
+    }
+    .form-toggle-links a:hover {
+        color: black;
+    }
+    .form-toggle-links a:focus {
+        color: black;
+        text-decoration: underline;
+    }
+    .footer-links {
+        visibility: visible;
+        display: flex;
+        position: absolute;
+        left: 0;
+        width: 80%;
+        justify-content: center;
+        gap: 10px;
+        margin-left: 10%;
+        bottom: 4.5%;
+    }
+    .footer-links a {
+        color: black;
+    }
+    .footer-links a:hover {
+        color: black;
+        text-decoration: none;
+    }
+    .footer-links a:focus {
+        color: black;
+        text-decoration: underline;
+    }
+    .form-content {
+        position: absolute;
+    }
+    .form-section {
+        width: 100%;
+    }
 }
