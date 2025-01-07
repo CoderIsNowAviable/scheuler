@@ -1,12 +1,12 @@
 /* General styles */
 @font-face {
     font-family: 'Coolvetica';
-    src: url('../Fonts/coolvetica/coolvetica-rg.woff2');
+    src: url('../fonts/coolvetica/coolvetica-rg.woff2');
 }
 
 @font-face {
     font-family: 'Montserrat';
-    src: url('../Fonts/montserrat/Montserrat-Regular.ttf');
+    src: url('../fonts/montserrat/Montserrat-Regular.ttf');
 }
 
 body {
