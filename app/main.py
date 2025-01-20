@@ -1,5 +1,5 @@
 import logging
-from fastapi import Cookie, FastAPI, HTTPException, Request, UploadFile, File
+from fastapi import Cookie, Depends, FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -46,9 +46,8 @@ app.add_middleware(
         "*",
         "http://127.0.0.1:8000",  # Local development
         "http://localhost:8000",  # Local development
-        "https://scheduler-9v36.onrender.com"
         "https://scheduler-9v36.onrender.com",
-        "https://scheduler-9v36.onrender.com/terms-and-conditions"
+        "https://scheduler-9v36.onrender.com/terms-and-conditions",
         "https://scheduler-9v36.onrender.com/privacy-policy"
         # Production domain
     ],
@@ -72,25 +71,26 @@ async def startup_event():
     print(f"CLIENT_KEY: {CLIENT_KEY}")
     print(f"REDIRECT_URI: {REDIRECT_URI}")
 
-# Routes for frontend
 @app.get("/", response_class=HTMLResponse)
-async def landing_page(request: Request, access_token: str = Cookie(None)):
-    # Check if the user already has a valid token (cookie)
-    if access_token:
+async def landing_page(request: Request, token: str = Cookie(None)):
+    # Log the cookie value to check if the token is being sent
+    print(f"Cookie Token: {token}")  # This will appear in your server logs
+
+    if token:
         try:
             # Verify the token (you can implement your token verification function here)
-            user = verify_access_token(access_token)  # This function verifies the token
-            # If the token is valid, redirect to the dashboard
-            return RedirectResponse(url="/users/dashboard", status_code=302)
+            verify_access_token(token)  # This function verifies the token
+            # If the token is valid, redirect to the dashboard with token in URL
+            print(f"Redirecting to dashboard with token: {token}")  # Debug log
+            return RedirectResponse(url=f"/dashboard?token={token}", status_code=302)
         except HTTPException:
             # If the token is invalid or expired, redirect to login page
+            print("Token is invalid or expired.")
             return RedirectResponse(url="/register?form=signin", status_code=302)
     else:
         # If there's no token, render the landing page
+        print("No token found in cookie.")  # Debug log
         return templates.TemplateResponse("landingpage.html", {"request": request})
-
-
-
 
 
 
@@ -120,6 +120,35 @@ async def get_reset_password_page(request: Request, token: str):
 async def authenticate(request: Request, email: str, token: str):
     return templates.TemplateResponse("authenticate.html", {"request": request, "email": email, "token": token})
 
+
+@app.get("/dashboard")
+async def dashboard(request: Request, token: str = None, db: requests.Session = Depends(get_db)):
+    if not token:
+        raise HTTPException(status_code=401, detail="Token is missing")
+
+    try:
+        # Verify the token
+        user_data = verify_access_token(token)
+
+        # Render the dashboard.html template with user data
+        return templates.TemplateResponse("dashboard.html", {"request": request, "user_data": user_data})
+
+    except HTTPException:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+
+
+
+
+
+
+@app.get("/tiktokBqCp0CjXfV1QtT9rl09qvRrnXgzDlmgK.txt")
+async def serve_root_verification_file():
+    # Specify the TikTok verification file path
+    file_path = "static/tiktokBqCp0CjXfV1QtT9rl09qvRrnXgzDlmgK.txt"
+    if os.path.exists(file_path):
+        return FileResponse(file_path)  # Serve the file if it exists
+    return {"error": "File not found"}
 
 @app.get("/privacy-policy/tiktokCvwcy7TmgBroNQ5qZERcmWUXGj0jXbWl.txt")
 async def serve_tiktok_verification_file():

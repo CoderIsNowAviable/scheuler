@@ -1,10 +1,11 @@
 from datetime import timedelta
+from urllib import response
 from fastapi import APIRouter, Form, HTTPException, Depends, Request, Response, status, Cookie
 from fastapi.responses import HTMLResponse, RedirectResponse
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.models.user import PendingUser, User
 from app.schemas.user import PasswordResetRequest, ResendCodeRequest, ResetPasswordRequest, VerifyCodeRequest
+from app.utils.cookies import set_access_token_cookie
 from app.utils.email_utils import generate_verification_code, send_password_reset_email, send_verification_email
 from app.utils.jwt import create_access_token, verify_access_token, get_email_from_token
 from app.utils.password import verify_password, hash_password
@@ -14,6 +15,7 @@ import logging
 router = APIRouter()
 
 logging.basicConfig(level=logging.DEBUG)
+
 
 @router.post("/signup")
 async def signup(
@@ -69,10 +71,15 @@ async def signin(response: Response, email: str = Form(...), password: str = For
         if not verify_password(password, user.hashed_password):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid password")
 
-    access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=1))
-    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=False, samesite="Strict", path="../utils/cookies.py")
-    
-    return RedirectResponse(f"/users/dashboard", status_code=302)
+    # Generate a 24-hour JWT token
+    access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=24))
+
+    # Optionally, store token in cookie
+    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
+
+    # Redirect to dashboard with token in the URL
+    return RedirectResponse(url=f"/dashboard?token={access_token}", status_code=302)
+
 
 
 
@@ -102,8 +109,12 @@ async def verify_code(request: VerifyCodeRequest, db: Session = Depends(get_db))
 
     db.delete(pending_user)
     db.commit()
+    
+        # Generate a 24-hour JWT token
+    access_token = create_access_token(data={"sub": request.email}, expires_delta=timedelta(hours=24))
+    set_access_token_cookie(response, access_token)
 
-    return {"message": "Verification successful!"}
+    return RedirectResponse(url="/dashboard", status_code=302)
 
 @router.post("/request-password-reset")
 async def request_password_reset(request: PasswordResetRequest, db: Session = Depends(get_db)):
@@ -192,16 +203,6 @@ def resend_verification_code(request: ResendCodeRequest, db: Session = Depends(g
         raise HTTPException(status_code=500, detail="Internal Server Error")
     
 
-@router.get("/dashboard")
-async def dashboard(request: Request, token: str = Cookie(None)):
-    if not token:
-        raise HTTPException(status_code=401, detail="Token is missing")
-
-    try:
-        user_data = verify_access_token(token)
-        return {"message": f"Welcome, {user_data['sub']}"}
-    except HTTPException:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
 @router.get("/logout")
