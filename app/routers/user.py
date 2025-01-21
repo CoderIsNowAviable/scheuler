@@ -7,7 +7,7 @@ from app.models.user import PendingUser, User
 from app.schemas.user import PasswordResetRequest, ResendCodeRequest, ResetPasswordRequest, VerifyCodeRequest
 from app.utils.cookies import set_access_token_cookie
 from app.utils.email_utils import generate_verification_code, send_password_reset_email, send_verification_email
-from app.utils.jwt import create_access_token, verify_access_token, get_email_from_token
+from app.utils.jwt import create_access_token, verify_access_token, get_email_from_token, create_access_token_for_dashboard
 from app.utils.password import verify_password, hash_password
 from app.core.database import get_db
 import logging
@@ -51,7 +51,9 @@ async def signup(
         send_verification_email(email, verification_code)
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to save user: {str(e)}")
+        logging.error(f"Error during signup: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred during registration. Please try again.")
+
 
     access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=1))
 
@@ -72,7 +74,7 @@ async def signin(response: Response, email: str = Form(...), password: str = For
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid password")
 
     # Generate a 24-hour JWT token
-    access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=24))
+    access_token = create_access_token_for_dashboard(data={"sub": email}, expires_delta=timedelta(hours=24))
 
     # Optionally, store token in cookie
     response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
@@ -208,4 +210,4 @@ def resend_verification_code(request: ResendCodeRequest, db: Session = Depends(g
 @router.get("/logout")
 async def logout(response: Response):
     response.delete_cookie("access_token")
-    return {"message": "Logged out successfully"}
+    return RedirectResponse(url="/register?form=signin", status_code=302)

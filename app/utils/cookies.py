@@ -12,7 +12,7 @@ def set_access_token_cookie(response: Response, access_token: str):
         value=access_token,
         httponly=True,
         max_age=24 * 60 * 60,  # 24 hours
-        secure=False,  # Set to True in production when using HTTPS
+        secure=True,  # Set to True in production when using HTTPS
         samesite="Lax",  # Adjust based on cross-site requirements
         path="/"  # Cookie will be accessible across the application
     )

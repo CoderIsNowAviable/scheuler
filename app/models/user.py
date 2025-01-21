@@ -12,6 +12,7 @@ class User(Base):
     hashed_password = Column(String(255))
     is_verified = Column(Boolean, default=False)
     verification_code = Column(String(5))
+    profile_photo_url = Column(String, default=None)
     pending_users = relationship("PendingUser", back_populates="owner")
 
 class PendingUser(Base):

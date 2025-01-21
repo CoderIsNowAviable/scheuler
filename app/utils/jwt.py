@@ -10,7 +10,7 @@ load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM =  os.getenv("ALGORITHM")
-
+ACCESS_TOKEN_EXPIRE_MINUTES = 1440 
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
     if expires_delta:
@@ -34,16 +34,18 @@ def get_email_from_token(token: str):
         raise HTTPException(status_code=400, detail="Invalid token")
     
     
-def create_access_token_for_dashboard(data: dict):
+def create_access_token_for_dashboard(data: dict, expires_delta: timedelta = None):
     """
     Generates a JWT access token for the dashboard with a default expiration time of 1440 minutes (24 hours).
     """
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=1440)  # Default 24 hours expiration time
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
-
 
 def verify_access_token(token: str):
     try:

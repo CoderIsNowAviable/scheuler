@@ -1,7 +1,5 @@
-/* added three font faces coolvetica, antinkodan and thunder hc */
 @font-face {
   font-family: 'Coolvetica';
-  /* Removed the link  to coolvetica italic and renamed the files and updated the formats*/
   src: url('../fonts/coolvetica-20250105T074502Z-001/coolvetica/coolvetica-rg.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
@@ -23,80 +21,91 @@
 }
 
 body {
-    margin: 0;
-    font-family: Coolvetica;
-    background-color: white;
-    display: 100vh;
+  margin: 0;
+  font-family: Coolvetica;
+  background-color: white;
+  padding: 0px 20px;
 }
 
+/* Header */
 header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    background-color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0px;
+  position: relative;
 }
 
 header .logo { /*targets the scheulder text*/
-    display: flex;
-    align-items: center;
-    font-size: 50px;
-    font-weight: 500;
-
+  display: flex;
+  align-items: center;
+  font-size: 45px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 0;
 }
 
 header .logo .logo-icon { /*targets the scheduler icon*/
-    width: 120px;
-    height: 120px;
-    margin-right: -20px;
+  width: 100px;
+  height: auto;
+  margin-top: 0;
+  margin-right: -20px;
 }
 
 
 /* Navigation Bar */
 .nav-container {
-    display: flex;
-    text-align: left;
-    align-items: center; /* Aligns all child elements (menu and links) vertically */
-    background: #d9d9d9;
-    border-radius: 8px;
-    padding: 8px 20px;
-    box-shadow: 14px 8px 0px #000;
+  display: flex;
+  position: absolute;
+  text-align: left;
+  align-items: center; /* Aligns all child elements (menu and links) vertically */
+  background: #d9d9d9;
+  border-radius: 8px;
+  padding: 8px 20px;
+  margin-top: 160px;
+  margin-left: 30px;
+  margin-bottom: 0px;
+  transition: all 0.3s ease;
+  box-shadow: 10px 7px 0px black;
+}
+
+.nav-container:hover{
+  transform: translate(6px);
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.241);
 }
 
 .nav-container nav {
-    display: flex;
-    gap: 20px; /*gap between the elements in nav*/
-  }
+  display: flex;
+  gap: 20px; /*gap between the elements in nav*/
+}
   
 /* Ensure the nav links and button are vertically aligned */
 .nav-container a {
-    text-decoration: none;
-    font-size: 18px;
-    font-weight: 100;
-    color: black;
-    transition: all 0.3s ease;
-    line-height: 1; /* Ensures consistent spacing */
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: 100;
+  color: black;
+  transition: all 0.3s ease;
+  line-height: 1; /* Ensures consistent spacing */
 }
-  
 .nav-container a:hover {
-    text-decoration: underline;
-  }
-  
+  text-decoration: underline;
+}
 .nav-container a.active {
-    text-decoration: underline;
-  }
+  text-decoration: underline;
+}
 
 
 /* Hamburger Menu Button */
 .menu-toggle {
-    display: block; /* Always visible */
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    margin-right: 20px;
-    transition: transform 0.3s ease; /* Corrected transition */
-    align-self: center; /* Ensures the button aligns with the nav links */
+  display: block; /* Always visible */
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  margin-right: 20px;
+  transition: transform 0.3s ease; /* Corrected transition */
+  align-self: center; /* Ensures the button aligns with the nav links */
   }
   
 .menu-toggle:hover {
@@ -106,235 +115,318 @@ header .logo .logo-icon { /*targets the scheduler icon*/
   
 /* Profile Card */
 .profile-card { 
-    display: flex;
-    align-items: center;
-    background: #d9d9d9;
-    padding: 8px 20px;
-    border-radius: 14px;
-    box-shadow: 18px 12px 0px black;
-    position: relative;
-    margin-top: 0;
-    margin-right: 20px;
+  display: flex;
+  align-items: center;
+  background: #d9d9d9;
+  padding: 5px 5px; 
+  border-radius: 12px;
+  position: relative;
+  margin-top: 60px;
+  margin-right: 40px;
+  box-shadow: 10px 7px 0px black;
+  transition: all 0.3s ease;
 } 
 
-.profile-card .profile-img { /*targets the profile img*/
-    width: 40px;
-    height: 40px;
-    border-radius: 100%;
-    margin-right: 10px;
-  }
+.profile-card:hover{
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.241);
+  transform: translateY(-5px); /* Moves the profile section slightly up */
+}
+
+.profile-img { /*targets the profile img*/
+  width: 42px;
+  height: 42px;
+  border-radius: 100%;
+  margin-right: 20px;
+  margin-left: 10px;
+}
   
 
-.profile-card .profile-info {
-    display: flex;
-    flex-direction: column;
-    margin-right: 0.5rem;
-  }
+.profile-card .profile-info { /*this makes sure the card and the info are displayed in a well manner*/
+  display: flex;
+  flex-direction: column;
+  margin-right: 0.5rem;
+}
 
-.profile-card .profile-name { /*targets the user name*/
-    font-weight: 100;
-    font-size: 20px;
-    text-align: center;
-    margin-bottom: 0px;
-  }
+.profile-name { /*targets the user name*/
+  font-weight: 100;
+  font-size: 25px;
+  text-align: center;
+  margin-bottom: 0px;
+}
 
-.profile-card .profile-email { /*targets the email*/
-    font-size: 10px;
-    font-family: Montserrat;
-  }
+.profile-email { /*targets the email*/
+  font-size: 8px;
+  font-family: Montserrat;
+  cursor: pointer;
+}
 
-.profile-card .profile-toggle { /*targets the switch account button*/
-    background: none;
-    border: none;
-    font-size: 30px;
-    cursor: pointer;
-  }
-    
+
+.profile-toggle { /*targets the switch account button*/
+  background: none;
+  border: none;
+  font-size: 30px;
+  cursor: pointer;
+  margin-right: 0;
+  transition: all 0.3s ease;
+}
+
+.profile-toggle:hover{
+  transform: scale(1.2);
+}
+
+
+.profile-options {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #f4f4f4;
+  list-style: none;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-options li {
+  margin: 5px 0;
+}
+
+.profile-options a {
+  text-decoration: none;
+  color: black;
+  font-size: 14px;
+}
+
 main {
     display: flex;
     justify-content: space-between;
     padding: 20px;
 }
-.profile-card {
-  position: relative;
-}
 
-.profile-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 10px;
-  display: none;
-  flex-direction: column;
-}
-
-.profile-menu a,
-.profile-menu button {
-  text-align: left;
-  padding: 8px 12px;
-  color: #333;
-  text-decoration: none;
-  border: none;
-  background: none;
-  cursor: pointer;
-}
-
-.profile-menu a:hover,
-.profile-menu button:hover {
-  background-color: #f0f0f0;
-}
-
-.profile-menu.hidden {
-  display: none;
-}
-
-.profile-menu.visible {
+/* Upload Section */
+.upload-section { /*targets the entire section*/
+  margin-top: 50px;
+  align-items: center;
   display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 20px;
+  background: #d9d9d9;
+  width: 550px;
+  max-height: 600px;
+  border-radius: 10px;
+  margin-left: 30px;
+  margin-bottom: 30px;
+  transition: all 0.5s ease;
 }
 
-
-/*targets both the upload and the schedule section*/
-.upload-section,
-.schedule-section {
-    align-items: center;
-    display: flex;
-    overflow: hidden;
-    padding: 25px;
-    background: #d9d9d9;
-    width: 1000px;
-    height: 500px;
-    border-radius: 10px;
-    margin-bottom: 20px;
+.upload-section:hover{
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.241);
+  transform: translateY(-5px);
 }
 
 .upload-box { /*targets the "upload" box*/
-    text-align: center;
-    border: 2px dashed #6a6a6a;
-    padding: 180px;
-    border-radius: 10px;
-  }
-
-.upload-box button {
-        margin-top: 10px;
-        padding: 10px 20px;
-        background-color: #000;
-        color: #fff;
-        border: none;
-        cursor: pointer;
-        border-radius: 5px;
-    }
+  text-align: center;
+  border: 2px dashed #6a6a6a;
+  padding: 160px;
+  border-radius: 10px;
+}
 
 .upload-box p { /*drag or drop a file text*/
-    font-family: Montserrat;
-    margin-bottom: 50px;
+  font-family: Montserrat;
+  margin-bottom: 50px;
 }
 
 .upload-box button { /*select button*/
-    background: #000;
-    border: none;
-    padding: 0.5rem 1rem;
-    color: #fff;
-    border-radius: 5px;
-    font-family: Coolvetica;
-    font-weight: 100;
-    font-size: 18px;
+  background: #000;
+  color: #fff;
+  border: none;
+  margin-left: 0px;
+  margin-top: 0px;
+  padding: 7px 12px;/*size of da box*/
+  font-size: 18px;
+  font-family: Coolvetica;
+  cursor: pointer; /*when you hover over button, cursor becomes a pointer*/
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  text-decoration: none; /* Ensures the link looks like a button */
+  display: inline-block; /* Ensures correct button styling for <a> */
+}
+
+.upload-box button:hover{
+  box-shadow: 7px 7px 0px #BEBEBE; /* Grey box shadow under the button */
+  transform: translateY(-5px); /* Moves the button slightly up */
+}
+
+.upload-text {
+  font-size: 65px;
+  font-weight: 100;
+  margin-top: -10px;
+  margin-bottom: 10px;
 }
 
 /* Uploaded Images Container */
 .img-wrapper {
-    display: inline-block;
-    text-align: center;
-    margin: 10px;
+  display: inline-block;
+  text-align: center;
 }
 
 .uploaded-img {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 5px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.img-wrapper p {
-    margin-top: 5px;
-    font-size: 12px;
-    color: #555;
-    word-break: break-word;
+  width: 80px;
+  max-width: 80px;
+  object-fit: cover;
+  border-radius: 5px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 
-.account-card{ /*targets the account card*/
-    display: flex;
-    align-items: center;
-    background: #bebebe;
-    padding: 8px 20px;
-    border-radius: 14px;
-    box-shadow: 18px 12px 0px black;
-    position: relative;
-    margin-top: 0;
-    margin-left: 300px;
-    margin-right: 120px;
-    margin-bottom: 30px;
+/* Schedule Section */
+.schedule-section { 
+  display: flex;
+  overflow: hidden;
+  padding: 20px;
+  justify-content: space-between;
+  background: #d9d9d9;
+  width: 500px;
+  max-height: 555px;
+  border-radius: 10px;
+  margin-top: 40px;
+  margin-right: 60px;
+  transition: all 0.4s ease;
 }
 
-.account-card img { /*targets the acc img*/
-    width: 40px;
-    height: 40px;
-    border-radius: 100%;
-    margin-right: 10px;
+.schedule-section:hover{
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.241);
+  transform: translateY(-5px);
 }
 
-.account-card .account-info {
-    display: flex;
-    flex-direction: column;
-    margin-right: 0.5rem;
-  }
-
-.account-card .account-name{
-    font-weight: 100;
-    font-size: 20px;
-    text-align: center;
-    margin-bottom: 0px;
+/* Account Card */
+.account-card { 
+  display: flex;
+  position: relative;
+  align-items: center;
+  background: #d9d9d9;
+  padding: 6px 10px; 
+  margin-top: 5px;
+  margin-left: 20px;
+  margin-right: 550px;
+  margin-bottom: 5px;
+  border-radius: 14px;
+  box-shadow: 0px 0px 2px black;
+  transition: all 0.3s ease; /* Smooth transitions for both properties */
 }
 
+.account-card:hover{
+  transform: translateY(-2px); /* Moves the account section slightly up */
+}
+ 
+.account-img { /*targets the account img*/
+  width: 45px;
+  height: 45px;
+  border-radius: 100%;
+  margin-right: 20px;
+}
+
+.account-card .account-info .account-toggle { /*this makes sure the card and the info are displayed in a well manner*/
+  display: flex;
+  margin-right: 0.5rem;
+}
+
+.account-name { /*targets the user name*/
+  font-weight: 100;
+  font-size: 20px;
+  cursor: pointer;
+  margin-bottom: 0px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.account-toggle { /*targets the switch account button*/
+  background: none;
+  border: none;
+  font-size: 30px;
+  cursor: pointer;
+  margin-top: 5px;
+  margin-right: 0px;
+  transition: all 0.3s ease;
+}
+
+.account-toggle:hover{
+  transform: scale(1.2);
+}
+
+.schedule-text { /*targets the schedule text*/
+  font-size: 70px;
+  font-weight: 100;
+  margin-left: 50px;
+  margin-top: 0px;
+  margin-bottom: 20px;
+}
+
+.schedule-form { /*targets the input form*/
+  margin-right: -300px;
+}
 
 .schedule-form label { /*targets the input labels*/
-    display: block;
-    font-weight: 100;
-    margin-bottom: 10px;
-    margin-left: 300px;
+  display: flex;
+  font-weight: 100;
+  margin-bottom: 10px;
+  margin-left: 40px;
 }
 
 .schedule-form input,
 .schedule-form textarea { /*targets the input area*/
-    width: 300px;
-    padding: 10px;
-    margin-bottom: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-family: Montserrat;
-    margin-left: 300px;
+  width: 320px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-family: Montserrat;
+  margin-bottom: 10px;
+  margin-left: 40px;
+  display: flex;
 }
 
-.schedule-form button {
-    margin-left: 300px;
-    font-family: Coolvetica;
-    font-size: 20px;
-    background: #000;
-    color: #fff;
-    border: none;
-    padding: 7px 8px;/*size of da box*/
-    cursor: pointer; /*when you hover over button, cursor becomes a pointer*/
-    transition: box-shadow 0.3s ease, transform 0.3s ease; /* Smooth transitions for both properties */
-    text-decoration: none; /* Ensures the link looks like a button */
-    display: inline-block; /* Ensures correct button styling for <a> */
+
+.schedule-form .cta{
+  background: #000;
+  color: #fff;
+  border: none;
+  margin-left: 40px;
+  margin-top: 15px;
+  margin-bottom: 0;
+  padding: 7px 10px;/*size of da box*/
+  font-size: 18px;
+  font-family: Coolvetica;
+  cursor: pointer; /*when you hover over button, cursor becomes a pointer*/
+  transition: box-shadow 0.3s ease, transform 0.3s ease; /* Smooth transitions for both properties */
+  text-decoration: none; /* Ensures the link looks like a button */
+  display: inline-block; /* Ensures correct button styling for <a> */
 }
   
-.schedule-form button:hover{
-    box-shadow: 7px 7px 0px #BEBEBE; /* Grey box shadow under the button */
-    transform: translateY(-5px); /* Moves the button slightly up */
+
+.schedule-form .cta:hover{
+  box-shadow: 7px 7px 0px #BEBEBE; /* Grey box shadow under the button */
+  transform: translateY(-5px); /* Moves the button slightly up */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .menu-toggle {
+      display: block;
+  }
+
+  .nav-container nav {
+      display: none;
+  }
+
+  .nav-container.open nav {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: 60px;
+      left: 0;
+      background: #fff;
+      width: 100%;
+      padding: 10px 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
 }

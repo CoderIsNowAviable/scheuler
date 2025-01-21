@@ -4,6 +4,7 @@ from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSON
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.core.database import engine, Base, SessionLocal
+from app.models.user import User
 from app.routers.user import router as user_router
 from app.routers.auth import router as auth_router
 from app.routers.pages import router as pages_router
@@ -12,6 +13,7 @@ from urllib.parse import quote
 import os
 import requests
 from dotenv import load_dotenv
+from app.utils.random_profile_generator import generate_random_profile_photo
 
 from app.utils.jwt import get_email_from_token, verify_access_token
 
@@ -121,21 +123,49 @@ async def authenticate(request: Request, email: str, token: str):
     return templates.TemplateResponse("authenticate.html", {"request": request, "email": email, "token": token})
 
 
-@app.get("/dashboard")
-async def dashboard(request: Request, token: str = None, db: requests.Session = Depends(get_db)):
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard(
+    request: Request, 
+    token: str = Cookie(None),  # Access token from the cookie
+    db: requests.Session = Depends(get_db)
+):
     if not token:
-        raise HTTPException(status_code=401, detail="Token is missing")
+        raise HTTPException(status_code=401, detail="Token is missing or expired")
 
     try:
-        # Verify the token
-        user_data = verify_access_token(token)
+        # Decode the token to get the user information
+        user_data = verify_access_token(token)  # Assuming this function decodes the token and returns a dictionary
+        
+        email = user_data.get("sub")  # 'sub' field should hold the email address
+        if not email:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
 
-        # Render the dashboard.html template with user data
-        return templates.TemplateResponse("dashboard.html", {"request": request, "user_data": user_data})
+        # Fetch the user from the database using email
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
 
-    except HTTPException:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
+        # Now we have the user data; extract the username and email
+        username = user.username
+        email = user.email
 
+        # Generate or retrieve the profile photo URL
+        profile_photo_url = generate_random_profile_photo(user, db)
+
+        return templates.TemplateResponse(
+            "dashboard.html", 
+            {
+                "request": request,
+                "username": username,
+                "email": email,
+                "profile_photo_url": profile_photo_url,
+            }
+        )
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="An unexpected error occurred")
 
 
 @app.get("/privacy-policy", response_class=HTMLResponse)
