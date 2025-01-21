@@ -68,3 +68,59 @@ function handleBulkFileUpload(files) {
 
     uploadBox.style.border = "none";
 }
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Fetch user details from the backend API
+    fetch("/api/user")
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Failed to fetch user data.");
+            }
+            return response.json();
+        })
+        .then((user) => {
+            // Update the profile card with user data
+            const profileName = document.querySelector(".profile-name");
+            const profileEmail = document.querySelector(".profile-email");
+            const profileImg = document.querySelector(".profile-img");
+
+            profileName.textContent = user.name || "Anonymous";
+            profileEmail.textContent = user.email || "email@example.com";
+            if (user.profilePicture) {
+                profileImg.src = user.profilePicture;
+            }
+        })
+        .catch((error) => {
+            console.error("Error loading user data:", error);
+        });
+
+    // Handle profile menu toggle
+    const profileToggle = document.querySelector(".profile-toggle");
+    const profileMenu = document.querySelector(".profile-menu");
+
+    profileToggle.addEventListener("click", () => {
+        profileMenu.classList.toggle("visible");
+        profileMenu.classList.toggle("hidden");
+    });
+
+    // Handle logout
+    const logoutButton = document.getElementById("logout-button");
+    logoutButton.addEventListener("click", () => {
+        fetch("/api/logout", { method: "POST" })
+            .then((response) => {
+                if (response.ok) {
+                    // Redirect to login page
+                    window.location.href = "/login";
+                } else {
+                    console.error("Logout failed.");
+                }
+            });
+    });
+
+    // Help link (can be routed to a help page)
+    const helpLink = document.getElementById("help-link");
+    helpLink.addEventListener("click", () => {
+        alert("Redirecting to Help...");
+    });
+});

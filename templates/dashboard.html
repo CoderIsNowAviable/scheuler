@@ -21,55 +21,46 @@
             <a href="#">Help</a>
         </nav>
     </div>
-  
     <div class="profile-card">
-        <img src="/images/ada.jpg" alt="Profile Picture" class="profile-img">
+        <img src="/images/default-profile.jpg" alt="Profile Picture" class="profile-img">
         <div class="profile-info">
-          <span class="profile-name">raze.</span>
-          <small class="profile-email">raze69ft@gmail.com</small>
+            <span class="profile-name">Loading...</span>
+            <small class="profile-email">Loading...</small>
         </div>
         <button class="profile-toggle">▾</button>
-      </div>
+        <div class="profile-menu hidden">
+            <a href="#" id="help-link">Help</a>
+            <button id="logout-button">Logout</button>
+        </div>
+    </div>
 </header>
 
-    <!-- Main Content Section -->
-    <main>
-        <!-- File Upload Section -->
-        <section class="upload-section">
-            <div class="upload-box">
-                <p>drag or drop a file to upload.</p>
-                <button>Select</button>
+ <!-- Main Content Section -->
+<main>
+    <section class="upload-section">
+        <div class="upload-box">
+            <p>drag or drop a file to upload.</p>
+            <button>Select</button>
+        </div>
+    </section>
+
+    <section class="schedule-section">
+        <div class="schedule-form">
+            <div class="account-card">
+                <img src="/images/batman.jpg" alt="Profile Picture" class="profile-img">
+                <div class="account-info">
+                  <span class="account-name">raze.</span>
+                </div>
             </div>
-            <div class="upload-text">Upload your Image.</div>
-        </section>
-
-<!-- Scheduling Section -->
-<section class="schedule-section">
-    <div class="schedule-form">
-        <div class="account-card">
-            <img src="/images/ada.jpg" alt="Account">
-            <span class="profile-name">@razeforeal</span>
+            <label for="title">Title</label>
+            <input type="text" id="title" placeholder="Enter title">
+            <label for="description">Description</label>
+            <textarea id="description" placeholder="Write a description"></textarea>
+            <label for="tags">Tags</label>
+            <input type="text" id="tags" placeholder="Add tags">
+            <button>Schedule</button>
         </div>
-        <div class="schedule-text">Schedule<BR>&nbsp;&nbsp;your post.</div>
-        <label for="title">Title</label>
-        <input type="text" id="title" placeholder="Enter title">
-        <label for="description">Description</label>
-        <textarea id="description" placeholder="Write a description"></textarea>
-        <label for="tags">Tags</label>
-        <input type="text" id="tags" placeholder="Add tags">
-        <button>Schedule</button>
-    </div>
-
-    <div class="date-time-picker">
-        <div class="tabs">
-            <button class="active">Date</button>
-            <button>Time</button>
-        </div>
-        <input type="date" class="picker-input">
-        <input type="time" class="picker-input hidden">
-        <button class="done-btn">Done</button>
-    </div>
-</section>
+    </section>
 </main>
 <script src="/static/js/dashboard.js"></script>
 </body>

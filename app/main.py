@@ -138,7 +138,13 @@ async def dashboard(request: Request, token: str = None, db: requests.Session = 
 
 
 
+@app.get("/privacy-policy", response_class=HTMLResponse)
+async def privacy_policy_page(request: Request):
+    return templates.TemplateResponse("privacy-policy.html", {"request": request})
 
+@app.get("/terms-and-conditions", response_class=HTMLResponse)
+async def terms_page(request: Request):
+    return templates.TemplateResponse("terms-and-conditions.html", {"request": request})
 
 
 
