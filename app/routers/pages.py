@@ -28,10 +28,4 @@ async def contact_page(request: Request):
 async def help_page(request: Request):
     return templates.TemplateResponse("help.html", {"request": request})
 
-@router.get("/privacy-policy", response_class=HTMLResponse)
-async def privacy_policy_page(request: Request):
-    return templates.TemplateResponse("privacy-policy.html", {"request": request})
 
-@router.get("/terms-and-conditions", response_class=HTMLResponse)
-async def terms_page(request: Request):
-    return templates.TemplateResponse("terms-and-conditions.html", {"request": request})

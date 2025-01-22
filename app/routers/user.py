@@ -1,13 +1,12 @@
 from datetime import timedelta
-from urllib import response
 from fastapi import APIRouter, Form, HTTPException, Depends, Request, Response, status, Cookie
 from fastapi.responses import HTMLResponse, RedirectResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.models.user import PendingUser, User
 from app.schemas.user import PasswordResetRequest, ResendCodeRequest, ResetPasswordRequest, VerifyCodeRequest
-from app.utils.cookies import set_access_token_cookie
 from app.utils.email_utils import generate_verification_code, send_password_reset_email, send_verification_email
-from app.utils.jwt import create_access_token, verify_access_token, get_email_from_token, create_access_token_for_dashboard
+from app.utils.jwt import create_access_token, verify_access_token, get_email_from_token
 from app.utils.password import verify_password, hash_password
 from app.core.database import get_db
 import logging
@@ -16,7 +15,6 @@ router = APIRouter()
 
 logging.basicConfig(level=logging.DEBUG)
 
-
 @router.post("/signup")
 async def signup(
     full_name: str = Form(...),
@@ -24,11 +22,12 @@ async def signup(
     password: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    existing_user = db.query(User).filter(User.email == email).first()
-    pending_user = db.query(PendingUser).filter(PendingUser.email == email).first()
-    if existing_user or pending_user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-
+  # Check if user already exists
+    if db.query(User).filter(User.email == email).first():
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    if db.query(PendingUser).filter(PendingUser.email == email).first():
+        raise HTTPException(status_code=400, detail="Pending verification already exists for this email")
     hashed_password = hash_password(password)
 
     verification_code, expires_at = generate_verification_code()
@@ -51,9 +50,7 @@ async def signup(
         send_verification_email(email, verification_code)
     except Exception as e:
         db.rollback()
-        logging.error(f"Error during signup: {str(e)}")
-        raise HTTPException(status_code=500, detail="An error occurred during registration. Please try again.")
-
+        raise HTTPException(status_code=500, detail=f"Failed to save user: {str(e)}")
 
     access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=1))
 
@@ -74,13 +71,14 @@ async def signin(response: Response, email: str = Form(...), password: str = For
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid password")
 
     # Generate a 24-hour JWT token
-    access_token = create_access_token_for_dashboard(data={"sub": email}, expires_delta=timedelta(hours=24))
+    access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=24))
 
     # Optionally, store token in cookie
     response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
 
     # Redirect to dashboard with token in the URL
     return RedirectResponse(url=f"/dashboard?token={access_token}", status_code=302)
+
 
 
 
@@ -104,19 +102,15 @@ async def verify_code(request: VerifyCodeRequest, db: Session = Depends(get_db))
         full_name=pending_user.full_name,
         email=pending_user.email,
         hashed_password=pending_user.hashed_password,
-        is_verified=True,
+        is_verified=True
     )
     db.add(new_user)
     db.commit()
 
     db.delete(pending_user)
     db.commit()
-    
-        # Generate a 24-hour JWT token
-    access_token = create_access_token(data={"sub": request.email}, expires_delta=timedelta(hours=24))
-    set_access_token_cookie(response, access_token)
 
-    return RedirectResponse(url="/dashboard", status_code=302)
+    return {"message": "Verification successful!"}
 
 @router.post("/request-password-reset")
 async def request_password_reset(request: PasswordResetRequest, db: Session = Depends(get_db)):
@@ -210,4 +204,4 @@ def resend_verification_code(request: ResendCodeRequest, db: Session = Depends(g
 @router.get("/logout")
 async def logout(response: Response):
     response.delete_cookie("access_token")
-    return RedirectResponse(url="/register?form=signin", status_code=302)
+    return {"message": "Logged out successfully"}

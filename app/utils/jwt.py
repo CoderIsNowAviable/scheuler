@@ -50,8 +50,8 @@ def create_access_token_for_dashboard(data: dict, expires_delta: timedelta = Non
 def verify_access_token(token: str):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        if datetime.utcfromtimestamp(payload['exp']) < datetime.utcnow():
-            raise HTTPException(status_code=401, detail="Token expired")
         return payload
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Token is invalid")
