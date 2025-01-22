@@ -84,7 +84,7 @@ async def signin(response: Response, email: str = Form(...), password: str = For
 
 
 @router.post("/verify-code")
-async def verify_code(request: VerifyCodeRequest, response: Response, db: Session = Depends(get_db)):
+async def verify_code(request: VerifyCodeRequest, db: Session = Depends(get_db)):
     email = request.email
     verification_code = request.verification_code
 
@@ -114,8 +114,6 @@ async def verify_code(request: VerifyCodeRequest, response: Response, db: Sessio
     access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=24))
 
     # Optionally, store the token in a cookie for later use
-    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
-
     # Redirect the user to the dashboard with the access token in the URL
     return RedirectResponse(url=f"/dashboard?token={access_token}", status_code=302)
 

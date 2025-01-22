@@ -122,21 +122,6 @@ async def get_reset_password_page(request: Request, token: str):
 async def authenticate(request: Request, email: str, token: str):
     return templates.TemplateResponse("authenticate.html", {"request": request, "email": email, "token": token})
 
-@app.get("/dashboard")
-async def dashboard(request: Request, token: str = None, db: requests.Session = Depends(get_db)):
-    if not token:
-        raise HTTPException(status_code=401, detail="Token is missing")
-
-    try:
-        # Verify the token
-        user_data = verify_access_token(token)
-
-        # Render the dashboard.html template with user data
-        return templates.TemplateResponse("dashboard.html", {"request": request, "user_data": user_data})
-
-    except HTTPException:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-
 
 @app.get("/privacy-policy", response_class=HTMLResponse)
 async def privacy_policy_page(request: Request):
