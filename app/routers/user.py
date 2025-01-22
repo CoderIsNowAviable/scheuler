@@ -64,7 +64,7 @@ async def signin(response: Response, email: str = Form(...), password: str = For
     if pending_user:
         access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=1))
         response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
-        return RedirectResponse(url=f"/authenticate?email={email}", status_code=302)
+        return RedirectResponse(url=f"/authenticate?email={email}&token={access_token}", status_code=302)
 
     if user:
         if not verify_password(password, user.hashed_password):
@@ -84,7 +84,7 @@ async def signin(response: Response, email: str = Form(...), password: str = For
 
 
 @router.post("/verify-code")
-async def verify_code(request: VerifyCodeRequest, db: Session = Depends(get_db)):
+async def verify_code(request: VerifyCodeRequest, response: Response, db: Session = Depends(get_db)):
     email = request.email
     verification_code = request.verification_code
 
@@ -110,7 +110,15 @@ async def verify_code(request: VerifyCodeRequest, db: Session = Depends(get_db))
     db.delete(pending_user)
     db.commit()
 
-    return {"message": "Verification successful!"}
+        # Generate an access token after successful verification
+    access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=24))
+
+    # Optionally, store the token in a cookie for later use
+    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
+
+    # Redirect the user to the dashboard with the access token in the URL
+    return RedirectResponse(url=f"/dashboard?token={access_token}", status_code=302)
+
 
 @router.post("/request-password-reset")
 async def request_password_reset(request: PasswordResetRequest, db: Session = Depends(get_db)):
