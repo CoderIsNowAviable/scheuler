@@ -145,11 +145,15 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
             raise HTTPException(status_code=404, detail="User not found")
 
         # Generate a random profile photo or fetch one from user data
+        # Handle profile photo URL
         if user.profile_photo_url:
-            profile_photo_url = f"/static/profile_photos/{user.profile_photo_url}"
+            if user.profile_photo_url.startswith("http"):
+                profile_photo_url = user.profile_photo_url  # Full URL
+            else:
+                profile_photo_url = f"/static/profile_photos/{user.profile_photo_url}"  # Local path
         else:
-            # Use a default profile photo
-            profile_photo_url = generate_random_profile_photo(user, db)  # Replace with actual logic if necessary
+            # Use a default profile photo or generate one
+            profile_photo_url = generate_random_profile_photo(user, db)  
         username = user.full_name # Assuming `name` is the column in your `User` table
 
         # Pass the data to the template for rendering
