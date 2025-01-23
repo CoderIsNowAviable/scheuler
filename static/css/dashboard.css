@@ -39,6 +39,7 @@ header {
 header .logo { /*targets the scheulder text*/
   display: flex;
   align-items: center;
+  color: #333;
   font-size: 45px;
   font-weight: 500;
   cursor: pointer;
@@ -46,7 +47,7 @@ header .logo { /*targets the scheulder text*/
 }
 
 header .logo .logo-icon { /*targets the scheduler icon*/
-  width: 100px;
+  width: 120px;
   height: auto;
   margin-top: 0;
   margin-right: -20px;
@@ -124,12 +125,19 @@ header .logo .logo-icon { /*targets the scheduler icon*/
   margin-top: 60px;
   margin-right: 40px;
   box-shadow: 10px 7px 0px black;
-  transition: all 0.3s ease;
+  transition: all 0.4s ease;
 } 
 
 .profile-card:hover{
   box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.241);
-  transform: translateY(-5px); /* Moves the profile section slightly up */
+  transform: translateY(-7px); /* Moves the profile section slightly up */
+}
+
+.notif-img{
+  width: 16px;
+  height: auto;
+  margin-left: 5px;
+  transition: all 0.4s ease;
 }
 
 .profile-img { /*targets the profile img*/
@@ -138,9 +146,9 @@ header .logo .logo-icon { /*targets the scheduler icon*/
   border-radius: 100%;
   margin-right: 20px;
   margin-left: 10px;
+  transition: all 0.4s ease;
 }
   
-
 .profile-card .profile-info { /*this makes sure the card and the info are displayed in a well manner*/
   display: flex;
   flex-direction: column;
@@ -167,13 +175,20 @@ header .logo .logo-icon { /*targets the scheduler icon*/
   font-size: 30px;
   cursor: pointer;
   margin-right: 0;
-  transition: all 0.3s ease;
+  transition: all 0.4s ease;
+  margin-left: -10px;
 }
 
+.profile-img:hover{
+  transform:scale(1.2);
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.800);
+}
 .profile-toggle:hover{
   transform: scale(1.2);
 }
-
+.notif-img:hover{
+  transform: scale(1.2);
+}
 
 .profile-options {
   display: none;
@@ -189,11 +204,9 @@ header .logo .logo-icon { /*targets the scheduler icon*/
 .profile-options.visible {
   display: block;
 }
-
 .profile-options li {
   margin: 5px 0;
 }
-
 .profile-options a {
   text-decoration: none;
   color: black;
@@ -295,6 +308,7 @@ main {
   margin-top: 40px;
   margin-right: 60px;
   transition: all 0.4s ease;
+  box-shadow: -32px -20px 0px black;
 }
 
 .schedule-section:hover{
@@ -315,11 +329,12 @@ main {
   margin-bottom: 5px;
   border-radius: 14px;
   box-shadow: 0px 0px 2px black;
-  transition: all 0.3s ease; /* Smooth transitions for both properties */
+  transition: all 0.4s ease; /* Smooth transitions for both properties */
 }
 
 .account-card:hover{
-  transform: translateY(-2px); /* Moves the account section slightly up */
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.241);
+  transform: translateY(-5px); /* Moves the account section slightly up */
 }
  
 .account-img { /*targets the account img*/
@@ -327,6 +342,7 @@ main {
   height: 45px;
   border-radius: 100%;
   margin-right: 20px;
+  transition: all 0.4s ease;
 }
 
 .account-card .account-info .account-toggle { /*this makes sure the card and the info are displayed in a well manner*/
@@ -356,6 +372,14 @@ main {
 .account-toggle:hover{
   transform: scale(1.2);
 }
+.account-img:hover{
+  transform:scale(1.2);
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.500);
+}
+.account-toggle:hover{
+  transform: scale(1.2);
+}
+
 
 .schedule-text { /*targets the schedule text*/
   font-size: 70px;
@@ -363,6 +387,7 @@ main {
   margin-left: 50px;
   margin-top: 0px;
   margin-bottom: 20px;
+  line-height: 0.9;
 }
 
 .schedule-form { /*targets the input form*/
@@ -411,25 +436,30 @@ main {
   transform: translateY(-5px); /* Moves the button slightly up */
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .menu-toggle {
-      display: block;
-  }
-
-  .nav-container nav {
-      display: none;
-  }
-
-  .nav-container.open nav {
-      display: flex;
-      flex-direction: column;
-      position: absolute;
-      top: 60px;
-      left: 0;
-      background: #fff;
-      width: 100%;
-      padding: 10px 20px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
+/* Footer */
+.footer {
+  text-align: center;
+  margin-top: 40px;
+  margin-left: 95px;
+  color:#333
 }
+
+.footer p{
+  text-align: center;
+  margin-top: -50px;
+  margin-right: 80px;
+}
+.footer a {
+  margin: 2px;
+  text-decoration: none;
+  color: #000;
+  font-size: 14px;
+  font-family: Coolvetica;
+  font-weight: 100;
+  transition: text-decoration 0.3s ease;
+}
+
+.footer a:hover{
+  text-decoration: underline; /* Underline on hover */
+}
+
