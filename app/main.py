@@ -3,8 +3,9 @@ from fastapi import Cookie, Depends, FastAPI, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from app.core.database import engine, Base, SessionLocal
+from app.core.database import engine, Base, SessionLocal,get_db
 from app.models.user import User
+from sqlalchemy.orm import Session
 from app.routers.user import router as user_router
 from app.routers.auth import router as auth_router
 from app.routers.pages import router as pages_router
@@ -123,17 +124,36 @@ async def authenticate(request: Request, email: str, token: str):
     return templates.TemplateResponse("authenticate.html", {"request": request, "email": email, "token": token})
 
 
+
 @app.get("/dashboard")
-async def dashboard(request: Request, token: str = None, db: requests.Session = Depends(get_db)):
+async def dashboard(request: Request, token: str = None, db: Session = Depends(get_db)):
     if not token:
         raise HTTPException(status_code=401, detail="Token is missing")
 
     try:
-        # Verify the token
+        # Decode the JWT token to get the email (or other user info)
         user_data = verify_access_token(token)
 
-        # Render the dashboard.html template with user data
-        return templates.TemplateResponse("dashboard.html", {"request": request, "user_data": user_data})
+        # Extract email from token
+        email = user_data.get("sub")
+
+        # Retrieve the user profile from the database using the email
+        user = db.query(User).filter(User.email == email).first()
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Generate a random profile photo or fetch one from user data
+        profile_photo_url = generate_random_profile_photo(user, db)  # Replace with actual logic if necessary
+        username = user.full_name # Assuming `name` is the column in your `User` table
+
+        # Pass the data to the template for rendering
+        return templates.TemplateResponse("dashboard.html", {
+            "request": request,
+            "username": username,
+            "email": email,
+            "profile_photo_url": profile_photo_url
+        })
 
     except HTTPException:
         raise HTTPException(status_code=401, detail="Invalid or expired token")

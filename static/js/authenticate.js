@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
           e.target.value = "";
         } else if (index > 0) {
           inputs[index - 1].focus();
+          inputs[index - 1].value = "";
         }
         e.preventDefault();
       }
@@ -63,19 +64,43 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Please enter a valid 5-digit code.");
       return;
     }
-
     fetch("/users/verify-code", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ email, verification_code: verificationCode }),
+      body: JSON.stringify({
+        email: email.trim(),
+        verification_code: verificationCode.trim(),
+      }),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        // Log the response content-type and status
+        console.log("Response status:", response.status);
+        console.log(
+          "Response Content-Type:",
+          response.headers.get("Content-Type")
+        );
+
+        // Check if the response is not JSON (e.g., it's HTML)
+        if (response.headers.get("Content-Type").includes("text/html")) {
+          throw new Error("Received HTML instead of JSON.");
+        }
+
+        if (!response.ok) {
+          return response.json().then((data) => {
+            throw new Error(data.detail || "An error occurred");
+          });
+        }
+
+        return response.json(); // Parse JSON response
+      })
       .then((data) => {
+        // Check if verification was successful
         if (data.message === "Verification successful!") {
-          window.location.href = "/dashboard";
+          // Redirect to the dashboard with the token in the URL
+          window.location.href = `/dashboard?token=${data.access_token}`;
         } else {
           alert("Error verifying code: " + data.detail);
         }

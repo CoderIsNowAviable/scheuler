@@ -70,52 +70,21 @@ async def signin(response: Response, email: str = Form(...), password: str = For
         if not verify_password(password, user.hashed_password):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid password")
 
-    # Generate a 24-hour JWT token
-    access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=24))
+        # Generate a 24-hour JWT token
+        access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=24))
 
-    # Optionally, store token in cookie
-    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
+        # Optionally, store token in cookie
+        response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
 
-    # Redirect to dashboard with token in the URL
-    return RedirectResponse(url=f"/dashboard?token={access_token}", status_code=302)
+        # Redirect to dashboard with token in the URL
+        return RedirectResponse(url=f"/dashboard?token={access_token}", status_code=302)
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
 
 
 
 
-@router.post("/verify-code")
-async def verify_code(request: VerifyCodeRequest, db: Session = Depends(get_db)):
-    email = request.email
-    verification_code = request.verification_code
-
-    pending_user = db.query(PendingUser).filter(PendingUser.email == email).first()
-    if not pending_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-
-    if pending_user.is_code_expired():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Verification code has expired")
-
-    if pending_user.verification_code != verification_code:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid verification code")
-
-    new_user = User(
-        full_name=pending_user.full_name,
-        email=pending_user.email,
-        hashed_password=pending_user.hashed_password,
-        is_verified=True
-    )
-    db.add(new_user)
-    db.commit()
-
-    db.delete(pending_user)
-    db.commit()
-
-        # Generate an access token after successful verification
-    access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=24))
-
-    # Optionally, store the token in a cookie for later use
-    # Redirect the user to the dashboard with the access token in the URL
-    return RedirectResponse(url=f"/dashboard?token={access_token}", status_code=302)
 
 
 @router.post("/request-password-reset")

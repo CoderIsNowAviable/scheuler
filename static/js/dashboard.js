@@ -1,116 +1,125 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const email = urlParams.get("email");
-  const token = urlParams.get("token");
+// Select DOM elements
+const uploadBox = document.querySelector(".upload-box");
+const uploadText = document.querySelector(".upload-text");
+const selectButton = uploadBox.querySelector("button");
 
-  if (email && token) {
-    localStorage.setItem("email", email);
-    localStorage.setItem("token", token);
-  }
+// Handle file selection via button
+selectButton.addEventListener("click", () => {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+    fileInput.multiple = true; // Allow multiple file selection
+    fileInput.addEventListener("change", (event) => {
+        handleBulkFileUpload(event.target.files);
+    });
+    fileInput.click();
+});
 
-  const inputs = document.querySelectorAll(".code-box");
-  const submitButton = document.querySelector(".submit-btn");
-  const emailField = document.getElementById("emailField");
-  const tokenField = document.getElementById("tokenField");
+// Handle drag-and-drop events
+uploadBox.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    uploadBox.classList.add("drag-over");
+});
 
-  emailField.value = email || "";
-  tokenField.value = token || "";
+uploadBox.addEventListener("dragleave", () => {
+    uploadBox.classList.remove("drag-over");
+});
 
-  inputs.forEach((input, index) => {
-    input.addEventListener("input", (e) => {
-      if (!/^\d$/.test(e.target.value)) {
-        e.target.value = "";
+uploadBox.addEventListener("drop", (event) => {
+    event.preventDefault();
+    uploadBox.classList.remove("drag-over");
+    const files = Array.from(event.dataTransfer.files);
+    if (files.length > 0) handleBulkFileUpload(files);
+});
+
+// Function to handle bulk file upload
+function handleBulkFileUpload(files) {
+    const validFiles = Array.from(files).filter(file => file.type.startsWith("image/"));
+
+    if (validFiles.length === 0) {
+        alert("Please upload valid image files.");
         return;
-      }
-      if (index < inputs.length - 1 && e.target.value) {
-        inputs[index + 1].focus();
-      }
+    }
+
+    // Clear previous previews
+    uploadBox.innerHTML = "";
+
+    // Display each uploaded image
+    validFiles.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const imgWrapper = document.createElement("div");
+            imgWrapper.classList.add("img-wrapper");
+
+            const img = document.createElement("img");
+            img.src = reader.result;
+            img.alt = file.name;
+            img.classList.add("uploaded-img");
+
+            const imgName = document.createElement("p");
+            imgName.textContent = file.name;
+
+            imgWrapper.appendChild(img);
+            imgWrapper.appendChild(imgName);
+            uploadBox.appendChild(imgWrapper);
+        };
+        reader.readAsDataURL(file);
     });
 
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Backspace") {
-        if (e.target.value) {
-          e.target.value = "";
-        } else if (index > 0) {
-          inputs[index - 1].focus();
-        }
-        e.preventDefault();
-      }
+    uploadBox.style.border = "none";
+}
 
-      if (e.key === "ArrowLeft" && index > 0) {
-        inputs[index - 1].focus();
-      }
 
-      if (e.key === "ArrowRight" && index < inputs.length - 1) {
-        inputs[index + 1].focus();
-      }
+document.addEventListener("DOMContentLoaded", () => {
+    // Fetch user details from the backend API
+    fetch("/api/user")
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Failed to fetch user data.");
+            }
+            return response.json();
+        })
+        .then((user) => {
+            // Update the profile card with user data
+            const profileName = document.querySelector(".profile-name");
+            const profileEmail = document.querySelector(".profile-email");
+            const profileImg = document.querySelector(".profile-img");
+
+            profileName.textContent = user.name || "Anonymous";
+            profileEmail.textContent = user.email || "Anonymous@example.com";
+            if (user.profilePicture) {
+                profileImg.src = user.profilePicture;
+            }
+        })
+        .catch((error) => {
+            console.error("Error loading user data:", error);
+        });
+
+    // Handle profile menu toggle
+    const profileToggle = document.querySelector(".profile-toggle");
+    const profileMenu = document.querySelector(".profile-options");
+
+    profileToggle.addEventListener("click", () => {
+        profileMenu.classList.toggle("visible");
     });
-  });
 
-  submitButton.addEventListener("click", () => {
-    const email = emailField.value;
-    const token = tokenField.value;
-    const verificationCode = Array.from(inputs).map((input) => input.value).join("");
+    // Handle logout
+    const logoutButton = document.getElementById("logout-button");
+    logoutButton.addEventListener("click", () => {
+        fetch("/api/logout", { method: "POST" })
+            .then((response) => {
+                if (response.ok) {
+                    // Redirect to login page
+                    window.location.href = "/";
+                } else {
+                    console.error("Logout failed.");
+                }
+            });
+    });
 
-    if (!email) {
-      alert("Email is missing. Please log in again.");
-      return;
-    }
-
-    if (verificationCode.length !== 5) {
-      alert("Please enter a valid 5-digit code.");
-      return;
-    }
-
-    fetch("/users/verify-code", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ email, verification_code: verificationCode }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.message === "Verification successful!") {
-          window.location.href = "/dashboard";
-        } else {
-          alert("Error verifying code: " + data.detail);
-        }
-      })
-      .catch((error) => {
-        alert("Error verifying code: " + error.message);
-      });
-  });
-
-  document.getElementById("resend-code-btn").addEventListener("click", () => {
-    const email = localStorage.getItem("email");
-
-    if (!email) {
-      alert("Email not found. Please try signing in again.");
-      return;
-    }
-
-    fetch("/users/resend-verification-code", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",  // This ensures the server knows it's JSON
-      },
-      body: JSON.stringify({ user_email: email }),  // Correct request body
-    })
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          throw new Error("Failed to resend verification code");
-        }
-      })
-      .then((data) => {
-        alert(data.message || "New verification code has been sent to your email.");
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        alert("An error occurred while resending the verification code.");
-      });
-  });
+    // Help link (can be routed to a help page)
+    const helpLink = document.getElementById("help-link");
+    helpLink.addEventListener("click", () => {
+        alert("Redirecting to Help...");
+    });
 });
