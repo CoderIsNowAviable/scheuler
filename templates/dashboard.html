@@ -31,13 +31,12 @@
         <button class="profile-toggle">▾</button>
         <ul class="profile-options">
             <li><a href="#">Change Profile</a></li>
-            <li><a href="#">Bind to Tik Tok</a></li>
             <li><a href="#">Help</a></li>
             <li><a href="/users/logout">Logout</a></li>
         </ul>
     </div>
 </header>
-
+ <!-- Main Content Section -->
 <main>
     <section class="upload-section">
         <div class="upload-text">Upload your Image.</div>
@@ -46,6 +45,7 @@
             <button>Select</button>
         </div>
     </section>
+     <!-- Scheduling Section -->
     <section class="schedule-section">
         <div class="schedule-form">
             <div class="account-card">
@@ -56,16 +56,28 @@
                 <button class="account-toggle">▾</button>
             </div>
             <div class="schedule-text">Schedule<BR>&nbsp;&nbsp;your post.</div>
+            
             <label for="title">Title</label>
             <input type="text" id="title" placeholder="Enter title">
             <label for="description">Description</label>
             <textarea id="description" placeholder="Write a description"></textarea>
             <label for="tags">Tags</label>
             <input type="text" id="tags" placeholder="Add tags">
+            
             <button class="cta">Schedule</button>
+
+            <div class="footer">
+            <a href="contact.html">Contact</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms-and-conditions.html">Terms</a>
+            </div>
         </div>
     </section>
 </main>
+
+    <footer class="footer">
+    <p>2025 @Scheduler All Rights Reserved.</p>
+</footer>
 <script src="/static/js/dashboard.js"></script>
 </body>
 </html>
