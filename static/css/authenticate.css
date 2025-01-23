@@ -45,6 +45,12 @@ body {
     background-color: #d9d9d9;
     border-radius: 10px;
     box-shadow: 22px 22px 0px #000;
+    transition: all 0.4s ease;
+}
+
+.verification-container:hover{
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.241);
+    transform: translateY(-5px);
 }
 
 h1 {
@@ -122,14 +128,16 @@ h2 {
     margin-top: 30px;
 }
 
-.resend {
+.resend-code-btn {
     font-weight: 100;
-    font-size: 17px;
+    font-size: 16px;
     font-family: Coolvetica, sans-serif;
     cursor: pointer;
+    text-decoration: none;
+    border:none;
 }
 
-.resend:hover {
+.resend-code-btn:hover {
     text-decoration: underline;
 }
 
