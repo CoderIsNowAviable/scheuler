@@ -16,7 +16,6 @@ body {
     align-items: center;
     height: 100vh;
     background-color: #f0f0f0;
-    transition: all 0.2s ease;
 }
 
 .container { /*the entire form box*/
@@ -25,7 +24,8 @@ body {
     height: 600px;
     overflow: hidden;
     border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);    
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    color: black;
 }
 
 .form-section { /*controls the left side box*/
@@ -45,6 +45,14 @@ h1 { /*targets the Hello There text*/
     /* "" solid blue; */
 }
 
+.logo{
+    width: 160px;
+    height: auto;
+    position:absolute;
+    display: flex;
+    right: 735px;
+    top: 75px;
+}
 
 label { /*targets the username, email, pass layout only*/
     font-weight: 100px;
@@ -81,7 +89,7 @@ input:hover{
     cursor: pointer;
 }
 
-.terms label, .remember-me label { /*targets the textt*/
+.terms label, .remember-me label { /*targets the text*/
     font-size: 14px;
     font-weight: normal; /* Reset font weight */
     margin-top: -0px;
