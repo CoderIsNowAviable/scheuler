@@ -84,6 +84,42 @@ async def signin(response: Response, email: str = Form(...), password: str = For
 
 
 
+@router.post("/verify-code")
+async def verify_code(request: VerifyCodeRequest, db: Session = Depends(get_db)):
+    logging.info(f"Request received: {request}")
+    print(f"Request data: {request}")  # Log request
+
+    email = request.email
+    verification_code = request.verification_code
+
+    pending_user = db.query(PendingUser).filter(PendingUser.email == email).first()
+    if not pending_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    if pending_user.is_code_expired():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Verification code has expired")
+
+    if pending_user.verification_code != verification_code:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid verification code")
+
+    new_user = User(
+        full_name=pending_user.full_name,
+        email=pending_user.email,
+        hashed_password=pending_user.hashed_password,
+        is_verified=True
+    )
+    db.add(new_user)
+    db.commit()
+
+    db.delete(pending_user)
+    db.commit()
+
+    # Generate an access token after successful verification
+    access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=24))
+    logging.info(f"Verification successful, token generated: {access_token}")
+
+    # Return the access token in the response body
+    return {"message": "Verification successful!", "access_token": access_token}
 
 
 
