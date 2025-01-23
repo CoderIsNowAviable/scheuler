@@ -136,15 +136,20 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
 
         # Extract email from token
         email = user_data.get("sub")
-
+        if not email:
+            raise HTTPException(status_code=401, detail="Token is invalid or missing email")
+        
         # Retrieve the user profile from the database using the email
         user = db.query(User).filter(User.email == email).first()
-
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Generate a random profile photo or fetch one from user data
-        profile_photo_url = generate_random_profile_photo(user, db)  # Replace with actual logic if necessary
+        if user.profile_photo_url:
+            profile_photo_url = f"/static/profile_photos/{user.profile_photo}"
+        else:
+            # Use a default profile photo
+            profile_photo_url = generate_random_profile_photo(user, db)  # Replace with actual logic if necessary
         username = user.full_name # Assuming `name` is the column in your `User` table
 
         # Pass the data to the template for rendering
