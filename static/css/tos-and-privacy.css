@@ -46,12 +46,14 @@ header .logo { /*targets the scheulder text*/
   font-size: 45px;
   font-weight: bold;
   margin-bottom: -60px;
+  cursor: pointer;
 }
 
-header .logo .logo-icon { /*targets the logo icon*/
+.logo-icon { /*targets the logo icon*/
   width: 120px;
   height: 120px;
   margin-right: -20px;
+  cursor: pointer;
 }
 
 
@@ -111,7 +113,12 @@ p{
   background-color: #d9d9d9; /* Gray background for the boxes */
   padding: 30px 30px;/* Adds padding inside the boxes */
   border-radius: 8px; /* Rounds the corners of the boxes */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.241); /* Subtle blurry shadow */
+  transition: all 0.4s ease;
+}
+
+.box:hover{
+  transform: translate(6px);
 }
 
 .box h2 {
@@ -158,4 +165,79 @@ p{
 .box a:hover{
   text-decoration: underline;
   transition: all 0.3s ease;
+}
+
+
+  /*footer*/
+  .box p {
+    font-size: 14px; /* Sets font size for paragraph text */
+    margin-top: 40px; /* Adds space above the paragraph */
+    font-family: Montserrat;
+    font-weight: 500;
+    margin-bottom: -20px;
+  }
+  
+  .box a {
+    color: #000; /* Sets a blue color for links */
+    text-decoration: none; /* Removes underline from links */
+    font-weight: bold;
+  }
+
+  .box a:hover{
+    text-decoration: underline;
+    transition: all 0.3s ease;
+  }
+
+  
+/* Responsive Design for Mobile Screens */
+@media (max-width: 768px) {
+  /* Adjust content layout */
+  .content {
+    flex-direction: column; /* Stack left and right panels vertically */
+    padding: 10px 20px; /* Adjust padding for smaller screens */
+  }
+
+  /* Make left and right panels full width */
+  .left-panel, .right-panel {
+    margin-top: -65px;
+    flex: none; /* Remove equal width distribution */
+    width: 100%; /* Make panels take full width */
+  }
+
+  /* Adjust box spacing for smaller screens */
+  .box {
+    padding: 20px; /* Reduce padding inside boxes */
+  }
+
+  /* Font size adjustments for better readability */
+  h1 {
+    font-size: 40px; /* Scale down heading size */
+  }
+  p {
+    font-size: 18px; /* Scale down paragraph size */
+  }
+  .box h2 {
+    font-size: 50px; /* Adjust box heading size */
+  }
+
+  /* Navigation adjustments (optional) */
+  nav {
+    margin-top: 45px;
+    margin-left: 10px;
+    margin-bottom: 0px;
+    display: flex;
+  }
+  nav a {
+    margin: 10px 2; /* Add spacing between links */
+  }
+
+  /* Logo adjustments (optional) */
+  .logo {
+    font-size: 35px; /* Scale down logo text size */
+    margin-bottom: 20px;
+  }
+  .logo-icon {
+    width: 80px; /* Scale down logo icon */
+    height: 80px;
+  }
 }
