@@ -146,7 +146,7 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
 
         # Generate a random profile photo or fetch one from user data
         if user.profile_photo_url:
-            profile_photo_url = f"/static/profile_photos/{user.profile_photo}"
+            profile_photo_url = f"/static/profile_photos/{user.profile_photo_url}"
         else:
             # Use a default profile photo
             profile_photo_url = generate_random_profile_photo(user, db)  # Replace with actual logic if necessary
