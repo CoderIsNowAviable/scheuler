@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scheduler</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="static/css/dashboard.css">
 </head>
 <body>
 <header>
@@ -22,7 +22,7 @@
         </nav>
     </div>
     <div class="profile-card">
-        <img src="/static/images/notification-alert-icon.png" class="notif-img">
+        <img src="static/images/notification-alert-icon.png" class="notif-img">
         <img src="{{ profile_photo_url }}" alt="Profile Picture" class="profile-img">
         <div class="profile-info">
             <span class="profile-name">{{ username }}</span>
@@ -48,13 +48,22 @@
      <!-- Scheduling Section -->
     <section class="schedule-section">
         <div class="schedule-form">
-            <div class="account-card">
-                <img src="/static/images/batman.jpg" alt="Profile Picture" class="account-img">
-                <div class="account-info">
-                    <span class="account-name">@razeforeal</span>
+            <div id="account-section">
+                <!-- Before state: Add account -->
+                <div class="account-card add-account">
+                  <button id="bind-account-btn">+ Add TikTok Account</button>
                 </div>
-                <button class="account-toggle">▾</button>
+              
+                <!-- After state: Bound account -->
+                <div class="account-card bound-account hidden">
+                  <img src="/static/images/batman.jpg" alt="Profile Picture" class="account-img" />
+                  <div class="account-info">
+                    <span class="account-name">@razeforeal</span>
+                  </div>
+                  <button class="account-toggle">▾</button>
+                </div>
             </div>
+
             <div class="schedule-text">Schedule<BR>&nbsp;&nbsp;your post.</div>
             
             <label for="title">Title</label>
