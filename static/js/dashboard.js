@@ -1,185 +1,124 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // Utility Functions
-  const fetchUserData = () => {
-    fetch("/api/user")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to fetch user data.");
-        }
-        return response.json();
-      })
-      .then((user) => updateProfileCard(user))
-      .catch((error) => console.error("Error loading user data:", error));
-  };
+document.addEventListener("DOMContentLoaded", function () {
+  const profileToggle = document.querySelector(".profile-toggle");
+  const profileMenu = document.querySelector(".profile-options");
+  const switchProfileBtn = document.getElementById("switch-profile-btn");
+  const profilePhotoInput = document.getElementById("profile-photo-input");
+  const profileImg = document.querySelector(".profile-img");
+  const profileEmail = document.getElementById("profile-email")?.value;
+  const links = document.querySelectorAll("a[data-link]");
+  const mainContent = document.getElementById("main-content");
+  const formData = new FormData();
+  const file = profilePhotoInput?.files[0];
 
-  const updateProfileCard = (user) => {
-    const profileName = document.querySelector(".profile-name");
-    const profileEmail = document.querySelector(".profile-email");
-    const profileImg = document.querySelector(".profile-img");
+  // Profile menu toggle
+  profileToggle?.addEventListener("click", () => {
+    profileMenu?.classList.toggle("visible");
+  });
 
-    profileName.textContent = user.name || "Anonymous";
-    profileEmail.textContent = user.email || "Anonymous@example.com";
-    if (user.profilePicture) {
-      profileImg.src = user.profilePicture;
-    }
-  };
+  // Switch Profile button click - triggers file input
+  switchProfileBtn?.addEventListener("click", () => {
+    profilePhotoInput?.click(); // Trigger the hidden file input
+  });
 
-  const toggleDropdown = (dropdown, visibleClass, leaveAnimation) => {
-    dropdown.classList.toggle(visibleClass);
-    dropdown.addEventListener("mouseleave", () => {
-      dropdown.style.animation = leaveAnimation;
-      setTimeout(() => {
-        dropdown.classList.remove(visibleClass);
-        dropdown.style.animation = "";
-      }, 300); // Match animation duration
-    });
-  };
-  
-  const handleProfilePhotoUpload = (file) => {
+  // Handle file input change (when a user selects a file)
+  profilePhotoInput?.addEventListener("change", async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const email = profileEmail;
     const formData = new FormData();
-    formData.append("profile_photo", file);
+    if (file) {
+      formData.append("profile_photo", file);
+      formData.append("email", email);
+    }
 
-    fetch("/upload-profile-photo", {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          const profileImg = document.getElementById("profile-img");
-          profileImg.src = data.newPhotoUrl;
-          alert("Profile photo updated successfully!");
-        } else {
-          alert("Error updating profile photo.");
-        }
-      })
-      .catch((error) => {
-        console.error("Error uploading photo:", error);
-        alert("Error uploading photo.");
+    // Send the request to upload the profile photo
+    try {
+      const response = await fetch("/upload-profile-photo", {
+        method: "POST",
+        body: formData,
       });
-  };
+      const result = await response.json();
+      if (result.success) {
+        // Update the profile image on the page
+        profileImg.src = result.newPhotoUrl;
+        alert("Profile photo updated successfully!");
+      } else {
+        alert("Failed to upload profile photo.");
+      }
+    } catch (error) {
+      console.error("Error uploading profile photo:", error);
+      alert("Error uploading profile photo.");
+    }
+  });
 
-  const handleFileUpload = (files, uploadBox) => {
-    const validFiles = Array.from(files).filter((file) =>
-      file.type.startsWith("image/")
-    );
-
-    if (validFiles.length === 0) {
-      alert("Please upload valid image files.");
+  // Function to load sections dynamically
+  async function loadSection(section) {
+    console.log(`Loading section: ${section}`);
+    if (!mainContent) {
+      console.error("Main content element is missing!");
       return;
     }
 
-    // Clear previous previews
-    uploadBox.innerHTML = "";
+    // Update active link
+    links.forEach((link) => link.classList.remove("active"));
+    const activeLink = document.querySelector(`a[data-link="${section}"]`);
+    activeLink?.classList.add("active");
 
-    // Display each uploaded image
-    validFiles.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const imgWrapper = document.createElement("div");
-        imgWrapper.classList.add("img-wrapper");
+    try {
+      const response = await fetch(`/dashboard/${section}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const html = await response.text();
+      mainContent.innerHTML = html;
+      console.log(`Loaded content for section: ${section}`);
 
-        const img = document.createElement("img");
-        img.src = reader.result;
-        img.alt = file.name;
-        img.classList.add("uploaded-img");
+      // Dynamically import section-specific JS
+      if (section === "schedule") {
+        const { initializeSchedule } = await import(`/static/js/schedule.js`);
+        initializeSchedule();
+      } else if (section === "calendar") {
+        initializeCalendar(); // Initialize calendar directly
+      }
+    } catch (error) {
+      console.error("Error loading section:", error);
+      mainContent.innerHTML = `<p>Error loading section: ${section}</p>`;
+    }
+  }
 
-        const imgName = document.createElement("p");
-        imgName.textContent = file.name;
+  // Function to initialize the calendar
+  function initializeCalendar() {
+    const calendarEl = document.getElementById("calendar");
+    if (calendarEl && typeof FullCalendar !== "undefined") {
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        schedulerLicenseKey: "GPL-My-Project-Is-Open-Source",
+        initialView: "timeGridWeek",
+        height: "auto",
+        scrollTime: "09:00:00",
+        headerToolbar: {
+          left: "prev,next today",
+          center: "title",
+          right: "dayGridMonth,timeGridWeek,timeGridDay",
+        },
+        events: "/api/events", // Replace with your dynamic API endpoint
+      });
+      calendar.render();
+      console.log("Calendar initialized");
+    } else {
+      console.error("FullCalendar is not defined or #calendar element is missing");
+    }
+  }
 
-        imgWrapper.appendChild(img);
-        imgWrapper.appendChild(imgName);
-        uploadBox.appendChild(imgWrapper);
-      };
-      reader.readAsDataURL(file);
+  // Initial load
+  loadSection("schedule");
+
+  // Navigation
+  links.forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      const section = link.getAttribute("data-link");
+      loadSection(section);
     });
-
-    uploadBox.style.border = "none";
-  };
-
-  // Handle Profile Menu Toggle
-  const profileToggle = document.querySelector(".profile-toggle");
-  const profileMenu = document.querySelector(".profile-options");
-
-  profileToggle?.addEventListener("click", () => {
-    toggleDropdown(profileMenu, "visible", "slideUp 0.3s ease");
   });
-
-  // Handle Profile Photo Upload
-  const switchProfileBtn = document.getElementById("switch-profile-btn");
-  const profilePhotoInput = document.getElementById("profile-photo-input");
-
-  switchProfileBtn?.addEventListener("click", () => {
-    profilePhotoInput.click();
-  });
-
-  profilePhotoInput?.addEventListener("change", (event) => {
-    const file = event.target.files[0];
-    if (file) handleProfilePhotoUpload(file);
-  });
-
-  // Handle Logout
-  const logoutButton = document.getElementById("logout-button");
-  logoutButton?.addEventListener("click", () => {
-    fetch("/api/logout", { method: "POST" })
-      .then((response) => {
-        if (response.ok) {
-          window.location.href = "/";
-        } else {
-          console.error("Logout failed.");
-        }
-      })
-      .catch((error) => console.error("Error logging out:", error));
-  });
-
-  // Handle Help Link
-  const helpLink = document.getElementById("help-link");
-  helpLink?.addEventListener("click", () => {
-    alert("Redirecting to Help...");
-  });
-
-  // Handle Image Upload
-  const uploadBox = document.querySelector(".upload-box");
-  const selectButton = document.getElementById("select-photo-btn");
-
-  // Drag-and-drop functionality
-  uploadBox?.addEventListener("dragover", (event) => {
-    event.preventDefault();
-    uploadBox.classList.add("drag-over");
-  });
-
-  uploadBox?.addEventListener("dragleave", () => {
-    uploadBox.classList.remove("drag-over");
-  });
-
-  uploadBox?.addEventListener("drop", (event) => {
-    event.preventDefault();
-    uploadBox.classList.remove("drag-over");
-    handleFileUpload(event.dataTransfer.files, uploadBox);
-  });
-
-  // File selection via button click
-  selectButton?.addEventListener("click", () => {
-    const fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.accept = "image/*";
-    fileInput.multiple = true;
-    fileInput.addEventListener("change", (event) => {
-      handleFileUpload(event.target.files, uploadBox);
-    });
-    fileInput.click();
-  });
-
-  // Handle Add TikTok Account
-  const bindAccountBtn = document.getElementById("bind-account-btn");
-  const addAccountCard = document.querySelector(".add-account");
-  const boundAccountCard = document.querySelector(".bound-account");
-
-  bindAccountBtn?.addEventListener("click", () => {
-    addAccountCard.classList.add("hidden");
-    boundAccountCard.classList.remove("hidden");
-  });
-
-  // Fetch and update user details on page load
-  fetchUserData();
 });

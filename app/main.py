@@ -1,5 +1,7 @@
+from datetime import datetime
 import logging
-from fastapi import Cookie, Depends, FastAPI, HTTPException, Request, UploadFile, File
+import shutil
+from fastapi import Cookie, Depends, FastAPI, Form, HTTPException, Request, UploadFile, File
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -62,7 +64,7 @@ app.add_middleware(
 # Static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
-
+PROFILE_PHOTO_DIR = "static/profile_photos"
 # Include routers
 app.include_router(user_router, prefix="/users", tags=["users"])
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
@@ -150,7 +152,7 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
             if user.profile_photo_url.startswith("http"):
                 profile_photo_url = user.profile_photo_url  # Full URL
             else:
-                profile_photo_url = f"/static/profile_photos/{user.profile_photo_url}"  # Local path
+                profile_photo_url = f"{user.profile_photo_url}"  # Local path
         else:
             # Use a default profile photo or generate one
             profile_photo_url = generate_random_profile_photo(user, db)  
@@ -182,36 +184,40 @@ async def load_section(request: Request, section: str):
         return HTMLResponse(content="Section Not Found", status_code=404)
     
     
-# @app.post("/upload-profile-photo")
-# async def upload_profile_photo(profile_photo: UploadFile = File(...), db: Session = Depends(get_db)):
-#     try:
-#         # Generate a unique filename based on the current timestamp and file extension
-#         file_extension = profile_photo.filename.split('.')[-1]
-#         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-#         new_filename = f"profile_{timestamp}.{file_extension}"
-#         file_path = os.path.join(PROFILE_PHOTO_DIR, new_filename)
+@app.post("/upload-profile-photo")
+async def upload_profile_photo(
+    email: str = Form(...), 
+    profile_photo: UploadFile = File(...), 
+    db: Session = Depends(get_db)
+):
+    try:
+        # Generate a unique filename for the uploaded profile photo
+        file_extension = profile_photo.filename.split('.')[-1]
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        new_filename = f"profile_{timestamp}.{file_extension}"
+        file_path = os.path.join(PROFILE_PHOTO_DIR, new_filename)
 
-#         # Save the uploaded file to the server
-#         with open(file_path, "wb") as f:
-#             shutil.copyfileobj(profile_photo.file, f)
+        # Save the uploaded photo to the specified directory
+        with open(file_path, "wb") as f:
+            shutil.copyfileobj(profile_photo.file, f)
 
-#         # Retrieve the user's email from session or token
-#         email = "user@example.com"  # Replace with actual user email retrieval logic
+        # Fetch the user from the database using the email
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
 
-#         # Fetch the user from the database
-#         user = db.query(User).filter(User.email == email).first()
-#         if not user:
-#             raise HTTPException(status_code=404, detail="User not found")
+        # Update the user's profile photo URL in the database
+        user.profile_photo_url = f"/static/profile_photos/{new_filename}"
+        db.commit()
 
-#         # Update the user's profile photo URL in the database
-#         user.profile_photo_url = f"/static/profile_photos/{new_filename}"
-#         db.commit()
+        # Return a success response with the new profile photo URL
+        return JSONResponse(content={"success": True, "newPhotoUrl": f"/static/profile_photos/{new_filename}"})
 
-#         return JSONResponse(content={"success": True, "newPhotoUrl": f"/static/profile_photos/{new_filename}"})
-    
-#     except Exception as e:
-#         print(f"Error: {e}")
-#         raise HTTPException(status_code=500, detail="Error uploading profile photo")
+    except Exception as e:
+        # Log the error and raise an HTTPException
+        logging.error(f"Error uploading profile photo: {e}")
+        raise HTTPException(status_code=500, detail="Error uploading profile photo")
+
 
 @app.get("/calender", response_class=HTMLResponse)
 async def calender_page(request: Request):

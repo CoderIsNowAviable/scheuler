@@ -1,0 +1,28 @@
+      /* Calendar container styling */
+      #calendar-container {
+        padding: 20px;
+        margin: 20px auto 0 auto;
+        background: #f4f4f4;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        max-width: 10000px; /* Set a max width for better alignment */
+        overflow-x: auto; /* Enable horizontal scrolling */
+      }
+
+      /* Calendar styling */
+      #calendar {
+        height: 64vh;
+        overflow-y: auto; /* Enable vertical scrolling */
+        scroll-behavior: smooth;
+      }
+
+      /* Mobile responsiveness */
+      @media (max-width: 768px) {
+        #calendar-container {
+          padding: 10px;
+          margin: 10px auto;
+        }
+        #calendar {
+          font-size: 14px;
+        }
+      }
