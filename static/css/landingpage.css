@@ -48,6 +48,7 @@ body {
 .navbar .logo img {  /*for the logo */
   height: 120px;
   cursor: pointer;
+  margin-top: 15px;
 }
 
 .navbar nav a { /*nav niggas*/
@@ -114,7 +115,7 @@ body {
   color: #fff;
   border: none;
   margin-left: 300px;
-  margin-top: 50px;
+  margin-top: 20px;
   padding: 6px 6px;/*size of da box*/
   font-size: 28px;
   font-family: 'Coolvetica';
@@ -131,7 +132,7 @@ body {
 
 .hero .for-free { /*targets the accent text*/
   display: block;
-  margin-top: -20px;
+  margin-top: -18px;
   margin-left: 420px; 
   color: #555;
   font-size: 40px;
@@ -141,13 +142,13 @@ body {
 .hero .slogan { /*targets the slogan text*/
   /* Moved the text 15px up because it was too low */
   margin-top: -15px; 
-  margin-left: 600px;
+  margin-left: 650px;
   margin-bottom: 0px;
   color: #000;
-  font-size: 35px;
+  font-size: 50px;
   font-weight: 100;
   /* changed the font-family to coolvetica instead of thunder hc for better readablity */
-  font-family: 'Coolvetica';
+  font-family: 'Thunder HC';
 }
 
 /* Footer */
@@ -299,21 +300,3 @@ body {
     font-size: 16px;
     padding: 8px 15px;
   }
-
-
-
- 
-  .hero .slogan {
-    font-size: 20px;
-    margin-top: 150px;
-  }
-
-  .footer {
-    font-size: 10px;
-    margin-top: 160px;
-  }
-
-  .footer a {
-    font-size: 10px;
-  }
-}
