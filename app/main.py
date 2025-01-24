@@ -167,7 +167,9 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
     except HTTPException:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-
+@app.get("/calender", response_class=HTMLResponse)
+async def calender_page(request: Request):
+    return templates.TemplateResponse("calender.html", {"request": request})
 
 @app.get("/privacy-policy", response_class=HTMLResponse)
 async def privacy_policy_page(request: Request):
