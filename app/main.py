@@ -166,6 +166,52 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
 
     except HTTPException:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    
+@app.get("/dashboard/{section}", response_class=HTMLResponse)
+async def load_section(request: Request, section: str):
+    """
+    Load dynamic content based on the section parameter.
+    """
+    if section == "schedule":
+        return templates.TemplateResponse("schedule.html", {"request": request})
+    elif section == "calendar":
+        # Render the calendar section (replace with actual calendar logic)
+        return templates.TemplateResponse("calendar.html", {"request": request })
+    else:
+        return HTMLResponse(content="Section Not Found", status_code=404)
+    
+    
+# @app.post("/upload-profile-photo")
+# async def upload_profile_photo(profile_photo: UploadFile = File(...), db: Session = Depends(get_db)):
+#     try:
+#         # Generate a unique filename based on the current timestamp and file extension
+#         file_extension = profile_photo.filename.split('.')[-1]
+#         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+#         new_filename = f"profile_{timestamp}.{file_extension}"
+#         file_path = os.path.join(PROFILE_PHOTO_DIR, new_filename)
+
+#         # Save the uploaded file to the server
+#         with open(file_path, "wb") as f:
+#             shutil.copyfileobj(profile_photo.file, f)
+
+#         # Retrieve the user's email from session or token
+#         email = "user@example.com"  # Replace with actual user email retrieval logic
+
+#         # Fetch the user from the database
+#         user = db.query(User).filter(User.email == email).first()
+#         if not user:
+#             raise HTTPException(status_code=404, detail="User not found")
+
+#         # Update the user's profile photo URL in the database
+#         user.profile_photo_url = f"/static/profile_photos/{new_filename}"
+#         db.commit()
+
+#         return JSONResponse(content={"success": True, "newPhotoUrl": f"/static/profile_photos/{new_filename}"})
+    
+#     except Exception as e:
+#         print(f"Error: {e}")
+#         raise HTTPException(status_code=500, detail="Error uploading profile photo")
 
 @app.get("/calender", response_class=HTMLResponse)
 async def calender_page(request: Request):
