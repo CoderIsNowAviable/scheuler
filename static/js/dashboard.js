@@ -1,3 +1,17 @@
+// Handle binding account
+   const bindAccountBtn = document.getElementById("bind-account-btn");
+   const addAccountCard = document.querySelector(".add-account");
+   const boundAccountCard = document.querySelector(".bound-account");
+
+   // When the "Add Account" button is clicked
+   bindAccountBtn.addEventListener("click", () => {
+       // Hide the "Add Account" card
+       addAccountCard.classList.add("hidden");
+
+       // Show the bound account card
+       boundAccountCard.classList.remove("hidden");
+   });
+
 // Select DOM elements
 const uploadBox = document.querySelector(".upload-box");
 const uploadText = document.querySelector(".upload-text");
@@ -94,7 +108,8 @@ document.addEventListener("DOMContentLoaded", () => {
         .catch((error) => {
             console.error("Error loading user data:", error);
         });
-
+    
+    
     // Handle profile menu toggle
     const profileToggle = document.querySelector(".profile-toggle");
     const profileMenu = document.querySelector(".profile-options");
@@ -102,6 +117,15 @@ document.addEventListener("DOMContentLoaded", () => {
     profileToggle.addEventListener("click", () => {
         profileMenu.classList.toggle("visible");
     });
+
+// Hide the dropdown with an animation when the mouse leaves
+    profileMenu.addEventListener("mouseleave", () => {
+        profileMenu.style.animation = "slideUp 0.3s ease"; // Play the slide-up animation
+            setTimeout(() => {
+    profileMenu.classList.remove("visible"); // Remove the visible class after the animation
+        profileMenu.style.animation = ""; // Reset the animation style
+    }, 300); // Match the duration of the slideUp animation
+  });
 
     // Handle logout
     const logoutButton = document.getElementById("logout-button");
