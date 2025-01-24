@@ -1,3 +1,17 @@
+// Handle binding account
+   const bindAccountBtn = document.getElementById("bind-account-btn");
+   const addAccountCard = document.querySelector(".add-account");
+   const boundAccountCard = document.querySelector(".bound-account");
+
+   // When the "Add Account" button is clicked
+   bindAccountBtn.addEventListener("click", () => {
+       // Hide the "Add Account" card
+       addAccountCard.classList.add("hidden");
+
+       // Show the bound account card
+       boundAccountCard.classList.remove("hidden");
+   });
+
 // Select DOM elements
 const uploadBox = document.querySelector(".upload-box");
 const uploadText = document.querySelector(".upload-text");
