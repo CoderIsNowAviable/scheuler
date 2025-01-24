@@ -9,49 +9,13 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.2.0/fullcalendar.min.css" rel="stylesheet">
 
     <!-- Custom CSS (ensure this path is correct) -->
-    <link rel="stylesheet" href="/static/css/dashboard.css" />
   </head>
   <body>
-    <!-- Header and other content -->
-    <header>
-      <div class="logo">
-        <img src="/static/images/Logo.png" alt="Logo" class="logo-icon" />
-        <span>Scheduler</span>
-      </div>
-      <div class="nav-container">
-        <button class="menu-toggle">☰</button>
-        <nav>
-          <a href="index.html" class="active">Dashboard</a>
-          <a href="calendar.html" id="calendar-menu">Calendar</a>
-          <a href="#">Activity</a>
-          <a href="#">Help</a>
-        </nav>
-      </div>
-      <div class="profile-card">
-        <img src="/static/images/notification-alert-icon.png" class="notif-img" />
-        <img src="{{ profile_photo_url }}" alt="Profile Picture" class="profile-img" />
-        <div class="profile-info">
-          <span class="profile-name">{{ username }}</span>
-          <small class="profile-email">{{ email }}</small>
-        </div>
-        <button class="profile-toggle">▾</button>
-        <ul class="profile-options">
-          <li><a href="#">Change Profile</a></li>
-          <li><a href="#">Help</a></li>
-          <li><a href="/users/logout">Logout</a></li>
-        </ul>
-      </div>
-    </header>
-
     <main>
       <section class="calendar-section">
         <div id="calendar"></div>
       </section>
     </main>
-
-    <footer class="footer">
-      <p>2025 @Scheduler All Rights Reserved.</p>
-    </footer>
 
     <!-- jQuery JS (Important to load before FullCalendar) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
