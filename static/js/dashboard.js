@@ -1,58 +1,72 @@
-// Handle binding account
-   const bindAccountBtn = document.getElementById("bind-account-btn");
-   const addAccountCard = document.querySelector(".add-account");
-   const boundAccountCard = document.querySelector(".bound-account");
+document.addEventListener("DOMContentLoaded", () => {
+  // Utility Functions
+  const fetchUserData = () => {
+    fetch("/api/user")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data.");
+        }
+        return response.json();
+      })
+      .then((user) => updateProfileCard(user))
+      .catch((error) => console.error("Error loading user data:", error));
+  };
 
-   // When the "Add Account" button is clicked
-   bindAccountBtn.addEventListener("click", () => {
-       // Hide the "Add Account" card
-       addAccountCard.classList.add("hidden");
+  const updateProfileCard = (user) => {
+    const profileName = document.querySelector(".profile-name");
+    const profileEmail = document.querySelector(".profile-email");
+    const profileImg = document.querySelector(".profile-img");
 
-       // Show the bound account card
-       boundAccountCard.classList.remove("hidden");
-   });
+    profileName.textContent = user.name || "Anonymous";
+    profileEmail.textContent = user.email || "Anonymous@example.com";
+    if (user.profilePicture) {
+      profileImg.src = user.profilePicture;
+    }
+  };
 
-// Select DOM elements
-const uploadBox = document.querySelector(".upload-box");
-const uploadText = document.querySelector(".upload-text");
-const selectButton = uploadBox.querySelector("button");
-
-// Handle file selection via button
-selectButton.addEventListener("click", () => {
-    const fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.accept = "image/*";
-    fileInput.multiple = true; // Allow multiple file selection
-    fileInput.addEventListener("change", (event) => {
-        handleBulkFileUpload(event.target.files);
+  const toggleDropdown = (dropdown, visibleClass, leaveAnimation) => {
+    dropdown.classList.toggle(visibleClass);
+    dropdown.addEventListener("mouseleave", () => {
+      dropdown.style.animation = leaveAnimation;
+      setTimeout(() => {
+        dropdown.classList.remove(visibleClass);
+        dropdown.style.animation = "";
+      }, 300); // Match animation duration
     });
-    fileInput.click();
-});
+  };
+  
+  const handleProfilePhotoUpload = (file) => {
+    const formData = new FormData();
+    formData.append("profile_photo", file);
 
-// Handle drag-and-drop events
-uploadBox.addEventListener("dragover", (event) => {
-    event.preventDefault();
-    uploadBox.classList.add("drag-over");
-});
+    fetch("/upload-profile-photo", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          const profileImg = document.getElementById("profile-img");
+          profileImg.src = data.newPhotoUrl;
+          alert("Profile photo updated successfully!");
+        } else {
+          alert("Error updating profile photo.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error uploading photo:", error);
+        alert("Error uploading photo.");
+      });
+  };
 
-uploadBox.addEventListener("dragleave", () => {
-    uploadBox.classList.remove("drag-over");
-});
-
-uploadBox.addEventListener("drop", (event) => {
-    event.preventDefault();
-    uploadBox.classList.remove("drag-over");
-    const files = Array.from(event.dataTransfer.files);
-    if (files.length > 0) handleBulkFileUpload(files);
-});
-
-// Function to handle bulk file upload
-function handleBulkFileUpload(files) {
-    const validFiles = Array.from(files).filter(file => file.type.startsWith("image/"));
+  const handleFileUpload = (files, uploadBox) => {
+    const validFiles = Array.from(files).filter((file) =>
+      file.type.startsWith("image/")
+    );
 
     if (validFiles.length === 0) {
-        alert("Please upload valid image files.");
-        return;
+      alert("Please upload valid image files.");
+      return;
     }
 
     // Clear previous previews
@@ -60,90 +74,112 @@ function handleBulkFileUpload(files) {
 
     // Display each uploaded image
     validFiles.forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const imgWrapper = document.createElement("div");
-            imgWrapper.classList.add("img-wrapper");
+      const reader = new FileReader();
+      reader.onload = () => {
+        const imgWrapper = document.createElement("div");
+        imgWrapper.classList.add("img-wrapper");
 
-            const img = document.createElement("img");
-            img.src = reader.result;
-            img.alt = file.name;
-            img.classList.add("uploaded-img");
+        const img = document.createElement("img");
+        img.src = reader.result;
+        img.alt = file.name;
+        img.classList.add("uploaded-img");
 
-            const imgName = document.createElement("p");
-            imgName.textContent = file.name;
+        const imgName = document.createElement("p");
+        imgName.textContent = file.name;
 
-            imgWrapper.appendChild(img);
-            imgWrapper.appendChild(imgName);
-            uploadBox.appendChild(imgWrapper);
-        };
-        reader.readAsDataURL(file);
+        imgWrapper.appendChild(img);
+        imgWrapper.appendChild(imgName);
+        uploadBox.appendChild(imgWrapper);
+      };
+      reader.readAsDataURL(file);
     });
 
     uploadBox.style.border = "none";
-}
+  };
 
+  // Handle Profile Menu Toggle
+  const profileToggle = document.querySelector(".profile-toggle");
+  const profileMenu = document.querySelector(".profile-options");
 
-document.addEventListener("DOMContentLoaded", () => {
-    // Fetch user details from the backend API
-    fetch("/api/user")
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error("Failed to fetch user data.");
-            }
-            return response.json();
-        })
-        .then((user) => {
-            // Update the profile card with user data
-            const profileName = document.querySelector(".profile-name");
-            const profileEmail = document.querySelector(".profile-email");
-            const profileImg = document.querySelector(".profile-img");
-
-            profileName.textContent = user.name || "Anonymous";
-            profileEmail.textContent = user.email || "Anonymous@example.com";
-            if (user.profilePicture) {
-                profileImg.src = user.profilePicture;
-            }
-        })
-        .catch((error) => {
-            console.error("Error loading user data:", error);
-        });
-    
-    
-    // Handle profile menu toggle
-    const profileToggle = document.querySelector(".profile-toggle");
-    const profileMenu = document.querySelector(".profile-options");
-
-    profileToggle.addEventListener("click", () => {
-        profileMenu.classList.toggle("visible");
-    });
-
-// Hide the dropdown with an animation when the mouse leaves
-    profileMenu.addEventListener("mouseleave", () => {
-        profileMenu.style.animation = "slideUp 0.3s ease"; // Play the slide-up animation
-            setTimeout(() => {
-    profileMenu.classList.remove("visible"); // Remove the visible class after the animation
-        profileMenu.style.animation = ""; // Reset the animation style
-    }, 300); // Match the duration of the slideUp animation
+  profileToggle?.addEventListener("click", () => {
+    toggleDropdown(profileMenu, "visible", "slideUp 0.3s ease");
   });
 
-    // Handle logout
-    const logoutButton = document.getElementById("logout-button");
-    logoutButton.addEventListener("click", () => {
-        fetch("/api/logout", { method: "POST" })
-            .then((response) => {
-                if (response.ok) {
-                    // Redirect to login page
-                    window.location.href = "/";
-                } else {
-                    console.error("Logout failed.");
-                }
-            });
-    });
+  // Handle Profile Photo Upload
+  const switchProfileBtn = document.getElementById("switch-profile-btn");
+  const profilePhotoInput = document.getElementById("profile-photo-input");
 
-    // Help link (can be routed to a help page)
-    const helpLink = document.getElementById("help-link");
-    helpLink.addEventListener("click", () => {
-        alert("Redirecting to Help...");
+  switchProfileBtn?.addEventListener("click", () => {
+    profilePhotoInput.click();
+  });
+
+  profilePhotoInput?.addEventListener("change", (event) => {
+    const file = event.target.files[0];
+    if (file) handleProfilePhotoUpload(file);
+  });
+
+  // Handle Logout
+  const logoutButton = document.getElementById("logout-button");
+  logoutButton?.addEventListener("click", () => {
+    fetch("/api/logout", { method: "POST" })
+      .then((response) => {
+        if (response.ok) {
+          window.location.href = "/";
+        } else {
+          console.error("Logout failed.");
+        }
+      })
+      .catch((error) => console.error("Error logging out:", error));
+  });
+
+  // Handle Help Link
+  const helpLink = document.getElementById("help-link");
+  helpLink?.addEventListener("click", () => {
+    alert("Redirecting to Help...");
+  });
+
+  // Handle Image Upload
+  const uploadBox = document.querySelector(".upload-box");
+  const selectButton = document.getElementById("select-photo-btn");
+
+  // Drag-and-drop functionality
+  uploadBox?.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    uploadBox.classList.add("drag-over");
+  });
+
+  uploadBox?.addEventListener("dragleave", () => {
+    uploadBox.classList.remove("drag-over");
+  });
+
+  uploadBox?.addEventListener("drop", (event) => {
+    event.preventDefault();
+    uploadBox.classList.remove("drag-over");
+    handleFileUpload(event.dataTransfer.files, uploadBox);
+  });
+
+  // File selection via button click
+  selectButton?.addEventListener("click", () => {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+    fileInput.multiple = true;
+    fileInput.addEventListener("change", (event) => {
+      handleFileUpload(event.target.files, uploadBox);
     });
+    fileInput.click();
+  });
+
+  // Handle Add TikTok Account
+  const bindAccountBtn = document.getElementById("bind-account-btn");
+  const addAccountCard = document.querySelector(".add-account");
+  const boundAccountCard = document.querySelector(".bound-account");
+
+  bindAccountBtn?.addEventListener("click", () => {
+    addAccountCard.classList.add("hidden");
+    boundAccountCard.classList.remove("hidden");
+  });
+
+  // Fetch and update user details on page load
+  fetchUserData();
 });

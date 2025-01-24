@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calendar</title>
+
+    <!-- FullCalendar v5 CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.11.0/main.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <main id="main-content">
+      <div id="calendar-page">
+        <div id="calendar-container">
+          <div id="calendar"></div>
+          <!-- Calendar will be rendered here -->
+        </div>
+      </div>
+    </main>
+
+    <!-- jQuery (required for FullCalendar v5) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <!-- FullCalendar v5 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.11.0/main.min.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const links = document.querySelectorAll("a[data-link]");
+        const mainContent = document.getElementById("main-content");
+
+        // Set initial section to "schedule"
+        loadSection("schedule");
+
+        // Handle section switching
+        links.forEach((link) => {
+          link.addEventListener("click", (event) => {
+            event.preventDefault();
+            const section = link.getAttribute("data-link");
+            loadSection(section);
+          });
+        });
+
+        function loadSection(section) {
+          // Highlight the active link
+          links.forEach((link) => link.classList.remove("active"));
+          const activeLink = document.querySelector(
+            `a[data-link="${section}"]`
+          );
+          if (activeLink) activeLink.classList.add("active");
+
+          // Fetch the content of the section
+          fetch(`/dashboard/${section}`)
+            .then((response) => response.text())
+            .then((html) => {
+              mainContent.innerHTML = html;
+              // Initialize FullCalendar only for the calendar page
+              if (section === "calendar") {
+                initializeCalendar();
+              }
+            })
+            .catch((error) => console.error("Error loading section:", error));
+        }
+
+        function initializeCalendar() {
+          const calendarEl = document.getElementById("calendar");
+          if (calendarEl && typeof FullCalendar !== "undefined") {
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+              schedulerLicenseKey: "GPL-My-Project-Is-Open-Source",
+              initialView: "dayGridMonth", // Default to monthly view
+              height: "80vh", // Dynamic height for calendar itself (80% of viewport height)
+              aspectRatio: 1.5, // Adjust the aspect ratio (optional, modify based on your needs)
+              headerToolbar: {
+                left: "prev,next today",
+                center: "title",
+                right: "dayGridMonth,resourceTimelineDay,resourceTimelineWeek",
+              },
+              events: [
+                {
+                  id: "1",
+                  resourceId: "a",
+                  title: "Meeting",
+                  start: "2025-01-25T10:00:00",
+                  end: "2025-01-25T12:00:00",
+                },
+              ],
+            });
+            calendar.render();
+          } else {
+            console.error(
+              "FullCalendar is not defined or calendar element is missing"
+            );
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
