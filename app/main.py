@@ -75,6 +75,24 @@ app.include_router(pages_router, prefix="/pages", tags=["pages"])
 async def startup_event():
     print(f"CLIENT_KEY: {CLIENT_KEY}")
     print(f"REDIRECT_URI: {REDIRECT_URI}")
+    
+    
+    
+# Serve the HTML verification file for domain/app verification
+@app.get("/google123456789.html")  # Change the filename to your actual file
+async def serve_verification_file():
+    file_path = "static/google123456789.html"  # Ensure this file is placed in the `static` folder
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
+
+@app.get("/tiktokBqCp0CjXfV1QtT9rl09qvRrnXgzDlmgK.txt")
+async def serve_root_verification_file():
+    # Specify the TikTok verification file path
+    file_path = "static/tiktokBqCp0CjXfV1QtT9rl09qvRrnXgzDlmgK.txt"
+    if os.path.exists(file_path):
+        return FileResponse(file_path)  # Serve the file if it exists
+    return {"error": "File not found"}
 
 @app.get("/", response_class=HTMLResponse)
 async def landing_page(request: Request, token: str = Cookie(None)):
@@ -233,13 +251,7 @@ async def terms_page(request: Request):
 
 
 
-@app.get("/tiktokBqCp0CjXfV1QtT9rl09qvRrnXgzDlmgK.txt")
-async def serve_root_verification_file():
-    # Specify the TikTok verification file path
-    file_path = "static/tiktokBqCp0CjXfV1QtT9rl09qvRrnXgzDlmgK.txt"
-    if os.path.exists(file_path):
-        return FileResponse(file_path)  # Serve the file if it exists
-    return {"error": "File not found"}
+
 
 @app.get("/privacy-policy/tiktokCvwcy7TmgBroNQ5qZERcmWUXGj0jXbWl.txt")
 async def serve_tiktok_verification_file():
