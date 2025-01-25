@@ -241,6 +241,9 @@ async def upload_profile_photo(
 async def calender_page(request: Request):
     return templates.TemplateResponse("calender.html", {"request": request})
 
+
+
+
 @app.get("/privacy-policy", response_class=HTMLResponse)
 async def privacy_policy_page(request: Request):
     return templates.TemplateResponse("privacy-policy.html", {"request": request})
