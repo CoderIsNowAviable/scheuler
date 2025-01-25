@@ -79,7 +79,7 @@ async def startup_event():
     
     
 # Serve the HTML verification file for domain/app verification
-@app.get("/google123456789.html")  # Change the filename to your actual file
+@app.get("/googleb524bf271b1d073d.html")  # Change the filename to your actual file
 async def serve_verification_file():
     file_path = "static/google123456789.html"  # Ensure this file is placed in the `static` folder
     if os.path.exists(file_path):
