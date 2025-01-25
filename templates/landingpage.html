@@ -3,36 +3,42 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Landing Page</title>
-    <link rel="stylesheet" href="/static/css/landingpage.css"/>
+    <meta name="description" content="Effortless scheduling and workflow optimization for your social media content." />
+    <meta name="keywords" content="scheduler, social media, content workflow, scheduling, social media management" />
+    <meta name="author" content="Your Company Name" />
+    <meta property="og:title" content="Streamline Your Content Workflow" />
+    <meta property="og:description" content="Effortless scheduling and workflow optimization for your social media content." />
+    <meta property="og:url" content="https://scheduler-9v36.onrender.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/static/images/og-image.png" />
+    <link rel="icon" href="/static/images/favicon.ico" type="image/x-icon" />
+    <title>Streamline Your Content Workflow</title>
+    <link rel="stylesheet" href="/static/css/landingpage.css" />
   </head>
   <body>
     <!-- Navbar -->
     <header class="navbar">
       <div class="logo">
-        <a href="/"><img src="/static/images/Logo.png" /></a>
+        <a href="/" title="Home">
+          <img src="/static/images/Logo.png" alt="Scheduler Logo" />
+        </a>
       </div>
       <nav>
-        <a href="/pages/about">About</a>
-        <a href="/register?form=signin">Log In</a>
-        <a href="/register?form=signup" class="btn-signup">Sign Up</a>
+        <a href="/pages/about" title="Learn more about us">About</a>
+        <a href="/register?form=signin" title="Log in to your account">Log In</a>
+        <a href="/register?form=signup" class="btn-signup" title="Create a new account">Sign Up</a>
       </nav>
     </header>
 
     <!-- Main Content -->
     <main class="hero">
       <div class="content">
-        <h1><span class="thin">Stream</span></h1>
-        <!--Stream text-->
-        <h1><span class="bold">Lining your</span></h1>
-        <!--rest of da text-->
-        <h1><span class="thick">content workflow.</span></h1>
-        <!--rest of da text II-->
-        <!-- used generated-test-register.html instead of register.html because it was not functioning properly -->
-        <a href="/register?form=signup" class="btn-get-started"
-          >Get Started</a
-        >
-        <!--Call to action-->
+        <h1>
+          <span class="thin">Stream</span>
+          <span class="bold">lining your</span>
+          <span class="thick">content workflow.</span>
+        </h1>
+        <a href="/register?form=signup" class="btn-get-started" title="Sign up for free">Get Started</a>
         <span class="for-free">for Free.</span>
       </div>
       <div class="slogan">
@@ -42,9 +48,9 @@
 
     <!-- Footer -->
     <footer class="footer">
-      <a href="/privacy-policy">Privacy Policy</a>
-      <a href="/terms-and-conditions">Terms of Service</a>
-      <a href="/pages/contact">Contact Us</a>
+      <a href="/privacy-policy" title="Read our privacy policy">Privacy Policy</a>
+      <a href="/terms-and-conditions" title="Read our terms and conditions">Terms of Service</a>
+      <a href="/pages/contact" title="Get in touch with us">Contact Us</a>
     </footer>
   </body>
 </html>
