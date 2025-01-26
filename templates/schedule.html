@@ -31,6 +31,9 @@
         <textarea id="description" placeholder="Write a description"></textarea>
         <label for="tags">Tags</label>
         <input type="text" id="tags" placeholder="Add tags">
+        <input type="datetime-local" id="end-time" name="end-time" required><br><br>
+        <!-- Hidden start time (will be dynamically set to the current time) -->
+        <input type="hidden" id="start-time" name="start-time">
         <button class="cta">Schedule</button>
 
         <div class="footer">
