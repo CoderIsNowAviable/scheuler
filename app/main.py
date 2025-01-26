@@ -87,12 +87,7 @@ async def serve_verification_file():
         return FileResponse(file_path)
     return {"error": "File not found"}
 
-@app.get("/sitemap.xml")
-async def get_sitemap():
-    file_path = "static/sitemap.xml"  # Path to your sitemap in the static folder
-    if os.path.exists(file_path):
-        return FileResponse(file_path)
-    return {"error": "Sitemap not found"}
+
 
 
 @app.get("/tiktokBqCp0CjXfV1QtT9rl09qvRrnXgzDlmgK.txt")
@@ -411,3 +406,21 @@ async def tiktok_callback(request: Request):
     return templates.TemplateResponse(
         "error.html", {"request": request, "error": "No authorization code provided"}
     )
+    
+    
+    
+    
+@app.get("/sitemap.xml")
+async def get_sitemap():
+    file_path = "static/sitemap.xml"  # Path to your sitemap in the static folder
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "Sitemap not found"}
+
+
+@app.get("/robots.txt")
+async def get_robots_txt():
+    file_path = "static/robots.txt"  # Ensure the path matches your project structure
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "robots.txt not found"}
