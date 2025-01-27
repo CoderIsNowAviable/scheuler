@@ -254,6 +254,12 @@ main {
     justify-content: space-between;
     padding: 20px;
 }
+#main-content {
+  flex: 1; /* Takes up remaining space */
+  margin-top: 20px; /* Adds gap between header and main */
+  padding: 20px; /* Optional padding inside main content */
+}
+
 
 /* Upload Section */
 .upload-section { /*targets the entire section*/
