@@ -104,91 +104,71 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function initializeCalendar() {
     const calendarEl = document.getElementById("calendar");
-
+  
     if (calendarEl && typeof FullCalendar !== "undefined") {
       const calendar = new FullCalendar.Calendar(calendarEl, {
         schedulerLicenseKey: "GPL-My-Project-Is-Open-Source",
-        initialView: "timeGridWeek", // Default to week view
+        initialView: "timeGridWeek", // Default view
         height: "auto",
-        scrollTime: "21:00:00", // Scroll to 9 PM (21:00:00)
+        scrollTime: "21:00:00", // Default scroll to 9 PM
         headerToolbar: {
-          left: "prev,next today",
-          center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay",
+          left: "prev,next today", // Keep navigation buttons
+          center: "title", // Keep the title in the center
+          right: "", // Remove default view buttons
         },
         events: async function (fetchInfo, successCallback, failureCallback) {
           try {
             const response = await fetch("/api/events");
             const data = await response.json();
-
+  
             // Map events properly
             const events = data.map((event) => ({
               title: event.title,
-              start: event.start || event.end, // Use 'start' if available
-              end: event.end, // Use the 'end' field
+              start: event.start || event.end,
+              end: event.end,
               extendedProps: {
                 description: event.description,
                 tags: event.tags,
                 file_location: event.file_location,
               },
             }));
-
+  
             successCallback(events);
           } catch (error) {
             console.error("Failed to fetch events:", error);
             failureCallback(error);
           }
         },
-        eventContent: function (info) {
-          // Customize event rendering
-          const tags = info.event.extendedProps.tags || "";
-          const description = info.event.extendedProps.description || "";
-          const image = info.event.extendedProps.file_location
-            ? `<img src="${info.event.extendedProps.file_location}" alt="Event Image" style="width: 50px; height: 50px; margin-right: 10px;">`
-            : "";
-
-          return {
-            html: `
-              <div class="fc-event-content">
-                ${image}
-                <strong>${info.event.title}</strong><br>
-                <small>${description}</small><br>
-                <span class="event-tags">${tags}</span>
-              </div>
-            `,
-          };
-        },
-        displayEventTime: false, // Hide time to keep it cleaner
-
-        // Scroll to the first event after the view is rendered
-        viewDidMount: function (info) {
-          setTimeout(() => {
-            const events = calendar.getEvents();
-            if (events.length > 0) {
-              const firstEvent = events.sort((a, b) => a.start - b.start)[0];
-              calendar.scrollToTime(firstEvent.start);
-            }
-          }, 500); // Small delay to ensure rendering completion
-        },
-
-        // Scroll to the first event when the view is changed (dates changed)
-        datesSet: function (info) {
-          setTimeout(() => {
-            const events = calendar.getEvents();
-            if (events.length > 0) {
-              const firstEvent = events.sort((a, b) => a.start - b.start)[0];
-              calendar.scrollToTime(firstEvent.start);
-            }
-          }, 500); // Small delay to ensure rendering completion
-        },
       });
-
+  
+      // Render the calendar
       calendar.render();
-      console.log("Calendar initialized");
+  
+      // Add a custom dropdown for switching views
+      const dropdown = document.createElement("select");
+      dropdown.id = "view-switcher";
+      dropdown.innerHTML = `
+        <option value="dayGridMonth">Month</option>
+        <option value="timeGridWeek">Week</option>
+        <option value="timeGridDay">Day</option>
+      `;
+      dropdown.addEventListener("change", function () {
+        const selectedView = this.value;
+        calendar.changeView(selectedView); // Switch the calendar view
+      });
+  
+      // Append the dropdown to the toolbar
+      const toolbarCenter = calendarEl.querySelector(".fc-toolbar-chunk:nth-child(2)");
+      if (toolbarCenter) {
+        toolbarCenter.appendChild(dropdown);
+      }
+  
+      console.log("Calendar initialized with view dropdown");
     } else {
       console.error("FullCalendar is not defined or #calendar element is missing");
     }
   }
+  
 
   // Get the active page from localStorage on page load
   const activePage = localStorage.getItem("activePage");
