@@ -107,7 +107,6 @@ p{
   font-size: 25px;
 }
 
-
 .box { /* Targets the Content Boxes */
   align-items: center;
   background-color: #d9d9d9; /* Gray background for the boxes */
@@ -146,8 +145,6 @@ p{
   margin-bottom: 15px; /* Adds space between list items */
 }
 
-
-/*footer*/
 .box p {
   font-size: 14px; /* Sets font size for paragraph text */
   margin-top: 40px; /* Adds space above the paragraph */
@@ -168,7 +165,7 @@ p{
 }
 
 
-  /*footer*/
+/*footer*/
   .box p {
     font-size: 14px; /* Sets font size for paragraph text */
     margin-top: 40px; /* Adds space above the paragraph */
@@ -188,13 +185,25 @@ p{
     transition: all 0.3s ease;
   }
 
-  
+  .footer {
+    text-align: center;
+    margin-top: 12px;
+  }
+
+  .footer p{
+    color: #333;
+    font-family: Coolvetica;
+    font-size: 14px;
+  }
+
 /* Responsive Design for Mobile Screens */
 @media (max-width: 768px) {
   /* Adjust content layout */
   .content {
+    display: flex;
     flex-direction: column; /* Stack left and right panels vertically */
     padding: 10px 20px; /* Adjust padding for smaller screens */
+    gap: 100px
   }
 
   /* Make left and right panels full width */
@@ -202,33 +211,37 @@ p{
     margin-top: -65px;
     flex: none; /* Remove equal width distribution */
     width: 100%; /* Make panels take full width */
+    gap: 20px
   }
 
   /* Adjust box spacing for smaller screens */
   .box {
     padding: 20px; /* Reduce padding inside boxes */
   }
+  
+
+  nav{
+    padding: 16px 0px;
+    margin-top: 45px;
+    margin-left: 10px;
+    margin-bottom: 0px;
+    display: flex;
+  }
+
+  nav a {
+    margin: 10px 2; /* Add spacing between links */
+  }
 
   /* Font size adjustments for better readability */
   h1 {
     font-size: 40px; /* Scale down heading size */
+    margin-top: 8px;
   }
   p {
     font-size: 18px; /* Scale down paragraph size */
   }
   .box h2 {
     font-size: 50px; /* Adjust box heading size */
-  }
-
-  /* Navigation adjustments (optional) */
-  nav {
-    margin-top: 45px;
-    margin-left: 10px;
-    margin-bottom: 0px;
-    display: flex;
-  }
-  nav a {
-    margin: 10px 2; /* Add spacing between links */
   }
 
   /* Logo adjustments (optional) */
