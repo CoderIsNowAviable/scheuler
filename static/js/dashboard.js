@@ -7,50 +7,52 @@ document.addEventListener("DOMContentLoaded", function () {
   const profileEmail = document.getElementById("profile-email")?.value;
   const links = document.querySelectorAll("a[data-link]");
   const mainContent = document.getElementById("main-content");
-  const formData = new FormData();
-  const file = profilePhotoInput?.files[0];
 
   // Profile menu toggle
-  profileToggle?.addEventListener("click", () => {
-    profileMenu?.classList.toggle("visible");
-  });
+  if (profileToggle && profileMenu) {
+    profileToggle.addEventListener("click", () => {
+      profileMenu.classList.toggle("visible");
+    });
+  }
 
   // Switch Profile button click - triggers file input
-  switchProfileBtn?.addEventListener("click", () => {
-    profilePhotoInput?.click(); // Trigger the hidden file input
-  });
+  if (switchProfileBtn && profilePhotoInput) {
+    switchProfileBtn.addEventListener("click", () => {
+      profilePhotoInput.click(); // Trigger the hidden file input
+    });
+  }
 
   // Handle file input change (when a user selects a file)
-  profilePhotoInput?.addEventListener("change", async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+  if (profilePhotoInput) {
+    profilePhotoInput.addEventListener("change", async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
 
-    const email = profileEmail;
-    const formData = new FormData();
-    if (file) {
+      const email = profileEmail;
+      const formData = new FormData();
       formData.append("profile_photo", file);
       formData.append("email", email);
-    }
 
-    // Send the request to upload the profile photo
-    try {
-      const response = await fetch("/upload-profile-photo", {
-        method: "POST",
-        body: formData,
-      });
-      const result = await response.json();
-      if (result.success) {
-        // Update the profile image on the page
-        profileImg.src = result.newPhotoUrl;
-        alert("Profile photo updated successfully!");
-      } else {
-        alert("Failed to upload profile photo.");
+      // Send the request to upload the profile photo
+      try {
+        const response = await fetch("/upload-profile-photo", {
+          method: "POST",
+          body: formData,
+        });
+        const result = await response.json();
+        if (result.success) {
+          // Update the profile image on the page
+          profileImg.src = result.newPhotoUrl;
+          alert("Profile photo updated successfully!");
+        } else {
+          alert("Failed to upload profile photo.");
+        }
+      } catch (error) {
+        console.error("Error uploading profile photo:", error);
+        alert("Error uploading profile photo.");
       }
-    } catch (error) {
-      console.error("Error uploading profile photo:", error);
-      alert("Error uploading profile photo.");
-    }
-  });
+    });
+  }
 
   // Function to load sections dynamically
   async function loadSection(section) {
@@ -63,18 +65,26 @@ document.addEventListener("DOMContentLoaded", function () {
     // Update active link
     links.forEach((link) => link.classList.remove("active"));
     const activeLink = document.querySelector(`a[data-link="${section}"]`);
-    activeLink?.classList.add("active");
+    if (activeLink) {
+      activeLink.classList.add("active");
+    }
 
     try {
+      // Log request URL for debugging
+      console.log(`Fetching content for: /dashboard/${section}`);
       const response = await fetch(`/dashboard/${section}`);
+
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
+
       const html = await response.text();
+      console.log("Fetched HTML:", html); // Log the fetched HTML content
+
       mainContent.innerHTML = html;
       console.log(`Loaded content for section: ${section}`);
 
-      // Dynamically import section-specific JS
+      // Initialize section-specific JS
       if (section === "schedule") {
         const { initializeSchedule } = await import(`/static/js/schedule.js`);
         initializeSchedule();
@@ -83,26 +93,96 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     } catch (error) {
       console.error("Error loading section:", error);
-      mainContent.innerHTML = `<p>Error loading section: ${section}</p>`;
+      mainContent.innerHTML = `<p>Error loading section: ${section}. Please try again later.</p>`;
     }
   }
 
-  // Function to initialize the calendar
+  function initializeSchedule() {
+    console.log("Schedule section initialized");
+    // Add specific logic for the schedule section here
+  }
+
   function initializeCalendar() {
     const calendarEl = document.getElementById("calendar");
+
     if (calendarEl && typeof FullCalendar !== "undefined") {
       const calendar = new FullCalendar.Calendar(calendarEl, {
         schedulerLicenseKey: "GPL-My-Project-Is-Open-Source",
-        initialView: "timeGridWeek",
+        initialView: "timeGridWeek", // Default to week view
         height: "auto",
-        scrollTime: "09:00:00",
+        scrollTime: "21:00:00", // Scroll to 9 PM (21:00:00)
         headerToolbar: {
           left: "prev,next today",
           center: "title",
           right: "dayGridMonth,timeGridWeek,timeGridDay",
         },
-        events: "/api/events", // Replace with your dynamic API endpoint
+        events: async function (fetchInfo, successCallback, failureCallback) {
+          try {
+            const response = await fetch("/api/events");
+            const data = await response.json();
+
+            // Map events properly
+            const events = data.map((event) => ({
+              title: event.title,
+              start: event.start || event.end, // Use 'start' if available
+              end: event.end, // Use the 'end' field
+              extendedProps: {
+                description: event.description,
+                tags: event.tags,
+                file_location: event.file_location,
+              },
+            }));
+
+            successCallback(events);
+          } catch (error) {
+            console.error("Failed to fetch events:", error);
+            failureCallback(error);
+          }
+        },
+        eventContent: function (info) {
+          // Customize event rendering
+          const tags = info.event.extendedProps.tags || "";
+          const description = info.event.extendedProps.description || "";
+          const image = info.event.extendedProps.file_location
+            ? `<img src="${info.event.extendedProps.file_location}" alt="Event Image" style="width: 50px; height: 50px; margin-right: 10px;">`
+            : "";
+
+          return {
+            html: `
+              <div class="fc-event-content">
+                ${image}
+                <strong>${info.event.title}</strong><br>
+                <small>${description}</small><br>
+                <span class="event-tags">${tags}</span>
+              </div>
+            `,
+          };
+        },
+        displayEventTime: false, // Hide time to keep it cleaner
+
+        // Scroll to the first event after the view is rendered
+        viewDidMount: function (info) {
+          setTimeout(() => {
+            const events = calendar.getEvents();
+            if (events.length > 0) {
+              const firstEvent = events.sort((a, b) => a.start - b.start)[0];
+              calendar.scrollToTime(firstEvent.start);
+            }
+          }, 500); // Small delay to ensure rendering completion
+        },
+
+        // Scroll to the first event when the view is changed (dates changed)
+        datesSet: function (info) {
+          setTimeout(() => {
+            const events = calendar.getEvents();
+            if (events.length > 0) {
+              const firstEvent = events.sort((a, b) => a.start - b.start)[0];
+              calendar.scrollToTime(firstEvent.start);
+            }
+          }, 500); // Small delay to ensure rendering completion
+        },
       });
+
       calendar.render();
       console.log("Calendar initialized");
     } else {
@@ -110,8 +190,15 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Initial load
-  loadSection("schedule");
+  // Get the active page from localStorage on page load
+  const activePage = localStorage.getItem("activePage");
+
+  // If there's an active page stored, load that section, otherwise default to 'schedule'
+  if (activePage && (activePage === "schedule" || activePage === "calendar")) {
+    loadSection(activePage); // Load the saved section
+  } else {
+    loadSection("schedule"); // Default to "schedule" if no section is saved
+  }
 
   // Navigation
   links.forEach((link) => {
@@ -119,6 +206,8 @@ document.addEventListener("DOMContentLoaded", function () {
       event.preventDefault();
       const section = link.getAttribute("data-link");
       loadSection(section);
+      // Store the active section in localStorage
+      localStorage.setItem("activePage", section);
     });
   });
 });
