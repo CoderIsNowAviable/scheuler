@@ -87,7 +87,7 @@ body {
   text-align: left;
 }
 
-.hero .content h1 { /*targets the total text*/
+.hero .content h1,h2,h3,h4 { /*targets the total text*/
   margin-right: 800px; /*moves the whole text to left*/
   font-size: 60px;
   font-family: 'Coolvetica';
@@ -95,7 +95,7 @@ body {
   line-height: 55px;
 }
 
-.hero .content .thin { /*tagrets only the gray stream text*/
+.hero .content .thin { /*tagrets only the main stream text*/
   color: #000;
   font-size: 65px;
   text-shadow: 8px 15px 0px #BEBEBE; /*adds that grey shadow*/
@@ -154,7 +154,7 @@ body {
 /* Footer */
 .footer {
   text-align: center;
-  margin-top: 50px;
+  margin-top: 60px;
 }
 
 .footer a {
@@ -162,7 +162,7 @@ body {
   text-decoration: none;
   color: #000;
   font-size: 15px;
-  font-family: Montserrat;
+  font-family: Coolvetica;
   transition: text-decoration 0.3s ease;
 }
 
@@ -170,8 +170,13 @@ body {
   text-decoration: underline; /* Underline on hover */
 }
 
+.footer p{
+  color:#333;
+  font-family: Coolvetica;
+}
+
 /* Responsive Styles */
-@media (max-width: 768px) {
+@media (max-width: 915px) {
   /* Body */
   body {
     background-size: cover; /* Adjust background for smaller screens */
@@ -188,6 +193,7 @@ body {
 
   .navbar .logo img {
     height: 80px; /* Scale down logo */
+    margin-top: -18px;
   }
 
   .navbar nav a {
@@ -207,17 +213,17 @@ body {
     text-align: center; /* Center-align for mobile */
   }
 
-  .hero .content h1 {
+  .hero .content h1,h2,h3 {
     font-size: 40px;
     margin-right: 0; /* Center-align text */
     text-align: center;
+    line-height: 0.7;
   }
 
   .hero .content .thin {
     font-size: 45px;
     text-shadow: 5px 10px 0px #BEBEBE;
   }
-
   .hero .content .bold,
   .hero .content .thick {
     font-size: 40px;
@@ -233,11 +239,11 @@ body {
   .hero .for-free {
     font-size: 30px;
     margin-left: 0; /* Center-align */
-    margin-top: -20px;
+    margin-top: -16px;
   }
 
   .hero .slogan {
-    font-size: 35px;
+    font-size: 32px;
     margin: 10px auto;
     margin-top: 60px;
   }
@@ -247,10 +253,15 @@ body {
     font-size: 12px; /* Scale down text */
     padding: 1rem;
     margin-top: 80px;
+    margin-bottom: 0px;
   }
 
   .footer a {
     font-size: 12px;
+    margin-bottom: 0px;
+  }
+  .footer p{
+    margin-bottom: 0px;
   }
 }
 
