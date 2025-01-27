@@ -9,8 +9,9 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="MyWebSite" />
     <link rel="manifest" href="/static/favicon/site.webmanifest" />
+
     <title>Sign Up and Log In</title>
-    <link rel="stylesheet" href="/static/css/registerr.css">
+    <link rel="stylesheet" href="/static/CSS/registerr.css">
 </head>
 <body>
     <div class="form-container">
@@ -18,7 +19,7 @@
             <div class="form-section">
                 <!-- Sign Up Form -->
                 <div class="form-content" id="signup-form" style="display: {{ 'block' if form_type == 'signup' else 'none' }}">
-                    <a href=""><img class="logo" src="/static/images/Logo.png"></a>
+                    <a href=""><img class="logo1" src="/static/images/Logo.png"></a>
                     <h1>hello,<br>there! :D</h1>
                     <form action="/users/signup" method="POST">
                         <label for="username">User Name</label>
@@ -41,7 +42,7 @@
 
                 <!-- Log In Form -->
                 <div class="form-content" id="login-form" style="display: {{ 'block' if form_type == 'signin' else 'none' }}">
-                    <a href=""><img class="logo" src="/static/images/Logo.png"></a>
+                    <a href=""><img class="logo2" src="/static/images/Logo.png"></a>
                     <h2>Howdy,<br></h2><span class="message">Welcome Back!</span>
                     <form id="signin-form" method="POST">
                         <label for="email">Email</label>
@@ -77,7 +78,7 @@
             </div>
         </div>
     </div>
-
+    
     <script>
         async function login(event) {
             event.preventDefault();
