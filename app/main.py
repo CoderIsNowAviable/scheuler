@@ -64,6 +64,7 @@ app.add_middleware(
 
 # Static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 templates = Jinja2Templates(directory="templates")
 PROFILE_PHOTO_DIR = "static/profile_photos"
 # Include routers
@@ -295,21 +296,35 @@ async def create_content_data(
 async def calender_page(request: Request):
     return templates.TemplateResponse("calender.html", {"request": request})
 
+from fastapi import Query
+from datetime import datetime
+
 @app.get("/api/events")
-async def get_events():
+async def get_events(start: str = Query(None), end: str = Query(None)):
     try:
-        # Load events from the database or file
+        # Load events from the file
         events_file_path = "events.json"
-        
+
         if not os.path.exists(events_file_path):
             raise HTTPException(status_code=404, detail="No events found")
 
         with open(events_file_path, "r") as event_file:
             events = json.load(event_file)
 
+        # Parse and filter events based on the `start` and `end` parameters
+        if start and end:
+            start_date = datetime.fromisoformat(start)
+            end_date = datetime.fromisoformat(end)
+            events = [
+                event for event in events
+                if datetime.fromisoformat(event["end"]) >= start_date
+                and datetime.fromisoformat(event["end"]) <= end_date
+            ]
+
         return events
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Could not load events: {str(e)}")
+
 
 
 @app.get("/privacy-policy", response_class=HTMLResponse)
