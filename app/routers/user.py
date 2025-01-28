@@ -215,4 +215,4 @@ def resend_verification_code(request: ResendCodeRequest, db: Session = Depends(g
 @router.get("/logout")
 async def logout(response: Response):
     response.delete_cookie("access_token")
-    return {"message": "Logged out successfully"}
+    return RedirectResponse(url="/", status_code=302)

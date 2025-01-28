@@ -16,7 +16,6 @@ body {
     align-items: center;
     height: 100vh;
     background-color: #f0f0f0;
-    transition: all 0.2s ease;
 }
 
 .container { /*the entire form box*/
@@ -25,7 +24,8 @@ body {
     height: 600px;
     overflow: hidden;
     border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);    
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    color: black;
 }
 
 .form-section { /*controls the left side box*/
@@ -42,9 +42,25 @@ h1 { /*targets the Hello There text*/
     font-weight: 500;
     margin-bottom: 10px;
     text-align: left;
-    /* "" solid blue; */
 }
 
+.logo1{
+    width: 160px;
+    height: auto;
+    position:absolute;
+    display: flex;
+    right: 735px;
+    top: 75px;
+}
+
+.logo2{
+    width: 160px;
+    height: auto;
+    position:absolute;
+    display: flex;
+    right: -735px;
+    top: 75px;
+}
 
 label { /*targets the username, email, pass layout only*/
     font-weight: 100px;
@@ -81,7 +97,7 @@ input:hover{
     cursor: pointer;
 }
 
-.terms label, .remember-me label { /*targets the textt*/
+.terms label, .remember-me label { /*targets the text*/
     font-size: 14px;
     font-weight: normal; /* Reset font weight */
     margin-top: -0px;
@@ -101,7 +117,6 @@ input:hover{
     /* margin: 20px auto 40px auto;
     margin-top: 45px; */
     /* margin-left: 120px; */
-
     /* !changed the margin and display to cetner the button */
     display: flex;
     margin: auto;
@@ -110,7 +125,7 @@ input:hover{
     background-color: black;
     color: white;
     font-size: 18px;
-    font-family: 'Coolvetica', sans-serif;
+    font-family: 'Coolvetica';
     border: none;
     border-radius: 0px;
     cursor: pointer;
@@ -300,7 +315,6 @@ label {
 #login-form {
     display: none;
 }
-
 #forget-pass{
     font-family: 'Montserrat';
     text-decoration: none;
@@ -310,20 +324,23 @@ label {
     font-weight: bold;
 }
 
+
 /* *DONE: Make mobile responsive */
 @media only screen and (max-width: 820px)
 {
+    .container {
+        width: 375px;
+        height: 500px;
+        position: relative;
+    }
     .form-section {
         padding: 0;
-    }
-    .container {
-        width: 90vw;
-        position: relative;
+        width: 100%;
     }
     h1, h2 {
         font-size: 60px;
         margin: 0px;
-        margin-top: -10px;
+        margin-top: -5px;
     }
     .info-section {
         visibility: hidden;
@@ -340,9 +357,30 @@ label {
         margin-top: 10%;
         margin-right: 10%;
     }
-    input {
-        width: 90%;
+
+    label { 
+        font-weight: 100px;
+        font-size: 12px;
+        font-family: 'Coolvetica';
+        margin-top: 10px;
+        display: block;
     }
+    
+    input {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        transition: box-shadow 0.3s ease;
+        font-family: Montserrat, sans-serif;
+    }
+
+    .button { 
+        margin-top: 38px;
+        margin-bottom: 0px;
+    }
+
     .form-toggle-links {
         visibility: visible;
         display: flex;
@@ -351,45 +389,34 @@ label {
         left: 0;
         width: 80%;
         margin-left: 10%;
-        bottom: 5%;
-        
+        bottom: 16%;   
     }
     .form-toggle-links a {
         color: black;
     }
     .form-toggle-links a:hover {
-        color: black;
-    }
-    .form-toggle-links a:focus {
-        color: black;
         text-decoration: underline;
+        color: black;
     }
+
     .footer-links {
         visibility: visible;
         display: flex;
         position: absolute;
-        left: 0;
+        left: 28px;
         width: 80%;
-        justify-content: center;
-        gap: 10px;
+        justify-content: right;
+        gap: 0px;
         margin-left: 10%;
         bottom: 4.5%;
     }
     .footer-links a {
         color: black;
+        font-family: Montserrat;
     }
     .footer-links a:hover {
         color: black;
-        text-decoration: none;
-    }
-    .footer-links a:focus {
-        color: black;
         text-decoration: underline;
     }
-    .form-content {
-        position: absolute;
-    }
-    .form-section {
-        width: 100%;
-    }
+
 }
