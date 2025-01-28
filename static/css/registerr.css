@@ -10,6 +10,7 @@
 }
 
 body {
+    position: relative;
     margin: 0;
     display: flex;
     justify-content: center;
@@ -47,13 +48,15 @@ h1 { /*targets the Hello There text*/
 .logo1{
     width: 160px;
     height: auto;
-    position:absolute;
+    position:fixed;
     display: flex;
-    right: 735px;
-    top: 75px;
+    left: 42%;
+    top: 13%;
+    margin: -30px;
 }
 
 .logo2{
+    display:none;
     width: 160px;
     height: auto;
     position:absolute;
@@ -324,6 +327,34 @@ label {
     font-weight: bold;
 }
 
+.pass-container {
+    position: relative;
+}
+
+
+#showicon{
+    width: 20px;
+    height: auto;
+    background: none;
+}
+
+#hideicon{
+    width: 20px;
+    height: auto;
+    background: none;
+}
+
+.pass-container button {
+    cursor: pointer;
+    position: absolute;
+    /* background-color: #000; */
+    background: transparent;
+    border: none;
+    color:#fff;
+    top: 30%;
+    right:-10px;
+}
+
 
 /* *DONE: Make mobile responsive */
 @media only screen and (max-width: 820px)
@@ -336,6 +367,9 @@ label {
     .form-section {
         padding: 0;
         width: 100%;
+    }
+    .logo1{
+        display: none;
     }
     h1, h2 {
         font-size: 60px;
@@ -420,3 +454,5 @@ label {
     }
 
 }
+
+
