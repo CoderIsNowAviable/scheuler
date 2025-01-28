@@ -5,6 +5,7 @@
   font-style: normal;
 }
 
+/*helaur*/
 @font-face {
   font-family: 'Antinkodan';
   src: url('../fonts/antinkodan-20250105T074502Z-001/antinkodan/Antinkodan.woff2') format('woff2');
@@ -550,6 +551,4 @@ main {
   transition: text-decoration 0.3s ease;
 }
 
-.footer a:hover{
-  text-decoration: underline; /* Underline on hover */
-}
+
