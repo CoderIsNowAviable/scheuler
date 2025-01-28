@@ -24,14 +24,15 @@
             </div>
         </div>
 
-        <div class="schedule-text">Schedule<BR>&nbsp;&nbsp;your post.</div>
-        <label for="title">Title</label>
+       <div class="schedule-text">Schedule<BR>&nbsp;&nbsp;your post.</div>
+        <br><label for="title">Title</label>
         <input type="text" id="title" placeholder="Enter title">
         <label for="description">Description</label>
         <textarea id="description" placeholder="Write a description"></textarea>
         <label for="tags">Tags</label>
         <input type="text" id="tags" placeholder="Add tags">
-        <input type="datetime-local" id="end-time" name="end-time" required><br><br>
+        <label for="tags">Date & Time</label>
+        <input type="datetime-local" id="end-time" name="end-time" required>
         <!-- Hidden start time (will be dynamically set to the current time) -->
         <input type="hidden" id="start-time" name="start-time">
         <button class="cta">Schedule</button>

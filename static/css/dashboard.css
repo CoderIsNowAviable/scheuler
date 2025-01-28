@@ -480,6 +480,18 @@ main {
   margin-left: 40px;
 }
 
+#start-time {
+  width: 250px;
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #4CAF50;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  color: #333;
+  outline: none;
+}
+
+
 .schedule-form input,
 .schedule-form textarea { /*targets the input area*/
   width: 320px;
