@@ -11,7 +11,7 @@
     <link rel="manifest" href="/static/favicon/site.webmanifest" />
 
     <title>Sign Up and Log In</title>
-    <link rel="stylesheet" href="/static/css/registerr.css">
+    <link rel="stylesheet" href="/static/CSS/register.css">
 </head>
 <body>
     <div class="form-container">
@@ -27,10 +27,16 @@
 
                         <label for="email">Email Address</label>
                         <input type="email" id="email" name="email" placeholder="Enter an Email" autocomplete="off" required>
-
+                        
                         <label for="password">Password</label>
-                        <input type="password" id="password" name="password" placeholder="Create a password" autocomplete="off"  required>
-
+                        <div class="pass-container">
+                            <input type="password" id="password" name="password" placeholder="Create a password" autocomplete="off">
+                            <button id="toggle-pass">
+                                <img src="/static/images/showpass.png" id="showicon" alt="Toggle password visibility">
+                            </button>
+                        </div>
+                        
+                        
                         <div class="terms">
                             <input type="checkbox" id="terms" required>
                             <label for="terms">I agree to all statements in <a href="/pages/terms-and-conditions" target="_blank">Terms of Service</a>.</label>
@@ -47,11 +53,16 @@
                     <form id="signin-form" method="POST">
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email" placeholder="Enter Your Email" autocomplete="off" required>
-
                         <label for="password">Password</label>
-                        <input type="password" id="password" name="password" placeholder="Enter Your Password" autocomplete="off" required>
-        
-                            <a href="/forgot-password" id="forget-pass"><p>Forgot your Password?</p></a>
+                        <div class="pass-container">
+                            <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="off">
+                            <button id="toggle-pass">
+                                <img src="/static/images/showpass.png" id="showicon" alt="Toggle password visibility">
+                            </button>
+                        </div>
+                        <!-- <input type="password" id="password" name="password" placeholder="Enter Your Password" autocomplete="off" required> -->
+    
+                        <a href="/forgot-password" id="forget-pass"><p>Forgot your Password?</p></a>
                         <button type="submit" class="button">Log In</button>
                     </form>
                 </div>
@@ -109,6 +120,16 @@
                 }
             }
         }
+        const passwordInput = document.getElementById("password");
+        const togglePasswordType = document.getElementById("toggle-pass")
+        const togglePassIcon = document.getElementById("showicon");
+  
+        togglePasswordType.addEventListener('click', (e)=>{
+          e.preventDefault();
+          const type = passwordInput.type === "password" ? "text" : "password";
+          passwordInput.type = type;
+          togglePassIcon.src = type === "password" ? "/static/images/showpass.png" : "/static/images/hidepass.png";
+        });
 
         document.getElementById("signin-form").addEventListener("submit", login);
 
