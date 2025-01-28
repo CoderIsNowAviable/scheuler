@@ -1,125 +1,122 @@
-// Select DOM elements
-const uploadBox = document.querySelector(".upload-box");
-const uploadText = document.querySelector(".upload-text");
-const selectButton = uploadBox.querySelector("button");
+document.addEventListener("DOMContentLoaded", function () {
+  const profileToggle = document.querySelector(".profile-toggle");
+  const profileMenu = document.querySelector(".profile-options");
+  const switchProfileBtn = document.getElementById("switch-profile-btn");
+  const profilePhotoInput = document.getElementById("profile-photo-input");
+  const profileImg = document.querySelector(".profile-img");
+  const profileEmail = document.getElementById("profile-email")?.value;
+  const links = document.querySelectorAll("a[data-link]");
+  const mainContent = document.getElementById("main-content");
 
-// Handle file selection via button
-selectButton.addEventListener("click", () => {
-    const fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.accept = "image/*";
-    fileInput.multiple = true; // Allow multiple file selection
-    fileInput.addEventListener("change", (event) => {
-        handleBulkFileUpload(event.target.files);
+  // Profile menu toggle
+  if (profileToggle && profileMenu) {
+    profileToggle.addEventListener("click", () => {
+      profileMenu.classList.toggle("visible");
     });
-    fileInput.click();
-});
+  }
 
-// Handle drag-and-drop events
-uploadBox.addEventListener("dragover", (event) => {
-    event.preventDefault();
-    uploadBox.classList.add("drag-over");
-});
+  // Switch Profile button click - triggers file input
+  if (switchProfileBtn && profilePhotoInput) {
+    switchProfileBtn.addEventListener("click", () => {
+      profilePhotoInput.click(); // Trigger the hidden file input
+    });
+  }
 
-uploadBox.addEventListener("dragleave", () => {
-    uploadBox.classList.remove("drag-over");
-});
+  // Handle file input change (when a user selects a file)
+  if (profilePhotoInput) {
+    profilePhotoInput.addEventListener("change", async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
 
-uploadBox.addEventListener("drop", (event) => {
-    event.preventDefault();
-    uploadBox.classList.remove("drag-over");
-    const files = Array.from(event.dataTransfer.files);
-    if (files.length > 0) handleBulkFileUpload(files);
-});
+      const email = profileEmail;
+      const formData = new FormData();
+      formData.append("profile_photo", file);
+      formData.append("email", email);
 
-// Function to handle bulk file upload
-function handleBulkFileUpload(files) {
-    const validFiles = Array.from(files).filter(file => file.type.startsWith("image/"));
+      // Send the request to upload the profile photo
+      try {
+        const response = await fetch("/upload-profile-photo", {
+          method: "POST",
+          body: formData,
+        });
+        const result = await response.json();
+        if (result.success) {
+          // Update the profile image on the page
+          profileImg.src = result.newPhotoUrl;
+          alert("Profile photo updated successfully!");
+        } else {
+          alert("Failed to upload profile photo.");
+        }
+      } catch (error) {
+        console.error("Error uploading profile photo:", error);
+        alert("Error uploading profile photo.");
+      }
+    });
+  }
 
-    if (validFiles.length === 0) {
-        alert("Please upload valid image files.");
-        return;
+  // Function to load sections dynamically
+  async function loadSection(section) {
+    console.log(`Loading section: ${section}`);
+    if (!mainContent) {
+      console.error("Main content element is missing!");
+      return;
     }
 
-    // Clear previous previews
-    uploadBox.innerHTML = "";
+    // Update active link
+    links.forEach((link) => link.classList.remove("active"));
+    const activeLink = document.querySelector(`a[data-link="${section}"]`);
+    if (activeLink) {
+      activeLink.classList.add("active");
+    }
 
-    // Display each uploaded image
-    validFiles.forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const imgWrapper = document.createElement("div");
-            imgWrapper.classList.add("img-wrapper");
+    try {
+      // Log request URL for debugging
+      console.log(`Fetching content for: /dashboard/${section}`);
+      const response = await fetch(`/dashboard/${section}`);
 
-            const img = document.createElement("img");
-            img.src = reader.result;
-            img.alt = file.name;
-            img.classList.add("uploaded-img");
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
 
-            const imgName = document.createElement("p");
-            imgName.textContent = file.name;
+      const html = await response.text();
+      console.log("Fetched HTML:", html); // Log the fetched HTML content
 
-            imgWrapper.appendChild(img);
-            imgWrapper.appendChild(imgName);
-            uploadBox.appendChild(imgWrapper);
-        };
-        reader.readAsDataURL(file);
+      mainContent.innerHTML = html;
+      console.log(`Loaded content for section: ${section}`);
+
+      // Initialize section-specific JS
+      if (section === "schedule") {
+        const { initializeSchedule } = await import(`/static/js/schedule.js`);
+        initializeSchedule();
+      } else if (section === "calendar") {
+        const { initializeCalendar } = await import(`/static/js/calendar.js`)
+        initializeCalendar(); // Initialize calendar directly
+      }
+    } catch (error) {
+      console.error("Error loading section:", error);
+      mainContent.innerHTML = `<p>Error loading section: ${section}. Please try again later.</p>`;
+    }
+  }
+
+
+  // Get the active page from localStorage on page load
+  const activePage = localStorage.getItem("activePage");
+
+  // If there's an active page stored, load that section, otherwise default to 'schedule'
+  if (activePage && (activePage === "schedule" || activePage === "calendar")) {
+    loadSection(activePage); // Load the saved section
+  } else {
+    loadSection("schedule"); // Default to "schedule" if no section is saved
+  }
+
+  // Navigation
+  links.forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      const section = link.getAttribute("data-link");
+      loadSection(section);
+      // Store the active section in localStorage
+      localStorage.setItem("activePage", section);
     });
-
-    uploadBox.style.border = "none";
-}
-
-
-document.addEventListener("DOMContentLoaded", () => {
-    // Fetch user details from the backend API
-    fetch("/api/user")
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error("Failed to fetch user data.");
-            }
-            return response.json();
-        })
-        .then((user) => {
-            // Update the profile card with user data
-            const profileName = document.querySelector(".profile-name");
-            const profileEmail = document.querySelector(".profile-email");
-            const profileImg = document.querySelector(".profile-img");
-
-            profileName.textContent = user.name || "Anonymous";
-            profileEmail.textContent = user.email || "Anonymous@example.com";
-            if (user.profilePicture) {
-                profileImg.src = user.profilePicture;
-            }
-        })
-        .catch((error) => {
-            console.error("Error loading user data:", error);
-        });
-
-    // Handle profile menu toggle
-    const profileToggle = document.querySelector(".profile-toggle");
-    const profileMenu = document.querySelector(".profile-options");
-
-    profileToggle.addEventListener("click", () => {
-        profileMenu.classList.toggle("visible");
-    });
-
-    // Handle logout
-    const logoutButton = document.getElementById("logout-button");
-    logoutButton.addEventListener("click", () => {
-        fetch("/api/logout", { method: "POST" })
-            .then((response) => {
-                if (response.ok) {
-                    // Redirect to login page
-                    window.location.href = "/";
-                } else {
-                    console.error("Logout failed.");
-                }
-            });
-    });
-
-    // Help link (can be routed to a help page)
-    const helpLink = document.getElementById("help-link");
-    helpLink.addEventListener("click", () => {
-        alert("Redirecting to Help...");
-    });
+  });
 });

@@ -1,70 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      type="image/png"
+      href="/static/favicon/favicon-96x96.png"
+      sizes="96x96"
+    />
+    <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/static/favicon/apple-touch-icon.png"
+    />
+    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+    <link rel="manifest" href="/static/favicon/site.webmanifest" />
     <title>Scheduler</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css">
-</head>
-<body>
-<header>
-    <div class="logo">
-        <img src="/static/images/Logo.png" alt="Logo" class="logo-icon">
+    <link rel="stylesheet" href="static/css/dashboard.css" />
+    <!-- FullCalendar Core CSS -->
+    <!-- FullCalendar Core CSS -->
+    <!-- FullCalendar CSS (6.x) -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.8/main.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.8/main.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.8/main.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/@fullcalendar/list@6.1.8/main.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      .custom-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background-color: #f9f9f9;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .custom-header-left,
+      .custom-header-center,
+      .custom-header-right {
+        display: flex;
+        align-items: center;
+      }
+
+      .nav-btn {
+        margin: 0 5px;
+        padding: 5px 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .nav-btn:hover {
+        background-color: #0056b3;
+      }
+
+      .view-dropdown {
+        padding: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: white;
+        color: #333;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div class="logo">
+        <img src="/static/images/Logo.png" alt="Logo" class="logo-icon" />
         <span>Scheduler</span>
-    </div>
-    <div class="nav-container">
+      </div>
+      <div class="nav-container">
         <button class="menu-toggle">☰</button>
         <nav>
-            <a href="#" class="active">Dashboard</a>
-            <a href="#">Calendar</a>
-            <a href="#">Activity</a>
-            <a href="#">Help</a>
+          <a href="#" data-link="schedule" class="active">Dashboard</a>
+          <a href="#" data-link="calendar">Calendar</a>
+          <a href="#">Activity</a>
+          <a href="#">Help</a>
         </nav>
-    </div>
-    <div class="profile-card">
-        <img src="{{ profile_photo_url }}" alt="Profile Picture" class="profile-img">
+      </div>
+      <div class="profile-card">
+        <img
+          src="static/images/notification-alert-icon.png"
+          class="notif-img"
+        />
+        <img
+          src="{{ profile_photo_url }}"
+          alt="Profile Picture"
+          class="profile-img"
+        />
         <div class="profile-info">
-            <span class="profile-name">{{ username }}</span>
-            <small class="profile-email">{{ email }}</small>
+          <span class="profile-name">{{ username }}</span>
+          <small class="profile-email">{{ email }}</small>
         </div>
         <button class="profile-toggle">▾</button>
         <ul class="profile-options">
-            <li><a href="#">Change Profile</a></li>
-            <li><a href="#">Bind to Tik Tok</a></li>
-            <li><a href="#">Help</a></li>
-            <li><a href="/users/logout">Logout</a></li>
+          <li><a href="#" id="switch-profile-btn">Switch Profile</a></li>
+          <li><a href="#">Help</a></li>
+          <li><a href="/users/logout">Logout</a></li>
         </ul>
-    </div>
-</header>
+      </div>
+      <input
+        type="file"
+        id="profile-photo-input"
+        style="display: none"
+        accept="image/*"
+      />
+      <input type="hidden" id="profile-email" value="{{ email }}" />
+    </header>
+    <main id="main-content"></main>
 
-<main>
-    <section class="upload-section">
-        <div class="upload-text">Upload your Image.</div>
-        <div class="upload-box">
-            <p>drag or drop a file to upload.</p>
-            <button>Select</button>
-        </div>
-    </section>
-    <section class="schedule-section">
-        <div class="schedule-form">
-            <div class="account-card">
-                <img src="/static/images/batman.jpg" alt="Profile Picture" class="account-img">
-                <div class="account-info">
-                    <span class="account-name">@razeforeal</span>
-                </div>
-                <button class="account-toggle">▾</button>
-            </div>
-            <div class="schedule-text">Schedule<BR>&nbsp;&nbsp;your post.</div>
-            <label for="title">Title</label>
-            <input type="text" id="title" placeholder="Enter title">
-            <label for="description">Description</label>
-            <textarea id="description" placeholder="Write a description"></textarea>
-            <label for="tags">Tags</label>
-            <input type="text" id="tags" placeholder="Add tags">
-            <button class="cta">Schedule</button>
-        </div>
-    </section>
-</main>
-<script src="/static/js/dashboard.js"></script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.15/index.global.min.js"></script>
+    <script src="static/js/dashboard.js"></script>
+    <script src="static/js/calendar.js"></script>
+  </body>
 </html>
