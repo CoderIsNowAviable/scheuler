@@ -238,13 +238,13 @@ async def tiktok_callback(request: Request):
 
     if state != csrf_state:
         raise HTTPException(status_code=400, detail="State parameter mismatch")
-
+    decoded_code = urllib.parse.unquote(code)
     # Exchange code for access token
     token_url = "https://open.tiktokapis.com/v2/oauth/token/"
     token_data = {
         "client_key": TIKTOK_CLIENT_KEY,
         "client_secret": TIKTOK_CLIENT_SECRET,
-        "code": code,
+        "code": decoded_code,
         "grant_type": "authorization_code",
         "redirect_uri": TIKTOK_REDIRECT_URI,
     }
