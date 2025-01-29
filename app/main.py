@@ -54,7 +54,7 @@ def get_db():
         db.close()
 
 # Encoding the redirect URI
-encoded_redirect_uri = quote(TIKTOK_REDIRECT_URI, safe="")
+encoded_redirect_uri = quote(TIKTOK_REDIRECT_URI.encode(), safe="")
 
 # Middleware setup for CORS
 app.add_middleware(
