@@ -89,6 +89,7 @@ os.makedirs("uploads", exist_ok=True)
 async def startup_event():
     print(f"CLIENT_KEY: {TIKTOK_CLIENT_KEY}")
     print(f"REDIRECT_URI: {TIKTOK_REDIRECT_URI}")
+
     
 
     
@@ -159,9 +160,6 @@ async def get_reset_password_page(request: Request, token: str):
 @app.get("/authenticate", response_class=HTMLResponse)
 async def authenticate(request: Request, email: str, token: str):
     return templates.TemplateResponse("authenticate.html", {"request": request, "email": email, "token": token})
-
-
-
 
 
 @app.get("/privacy-policy", response_class=HTMLResponse)
@@ -276,11 +274,6 @@ async def get_robots_txt():
     if os.path.exists(file_path):
         return FileResponse(file_path)
     return {"error": "robots.txt not found"}
-
-
-
-
-
 
 @app.get("/auth/google")
 async def google_login(response: Response):

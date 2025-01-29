@@ -56,6 +56,8 @@ export function initializeSchedule() {
     console.log([...formData.entries()]); // Log form data
 
     try {
+
+
       const response = await fetch("/dashboard/api/content-data/", {
         method: "POST",
         body: formData,
