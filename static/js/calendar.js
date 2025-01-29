@@ -14,7 +14,7 @@ export function initializeCalendar() {
       },
       events: async function (fetchInfo, successCallback, failureCallback) {
         try {
-          const response = await fetch("/api/events");
+          const response = await fetch("/dashboard/api/events");
           const data = await response.json();
 
           // Map events properly
