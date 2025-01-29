@@ -210,7 +210,6 @@ async def serve_verification_file(filename: str):
 
 
 
-
 def generate_csrf_state(length=16):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
@@ -227,7 +226,7 @@ async def login_tiktok(request: Request):
     print(f"✅ Session Set: csrfState = {csrf_state}")
     
     # TikTok OAuth URL
-    tiktok_oauth_url = "https://www.tiktok.com/oauth/authorize/"
+    tiktok_oauth_url = "https://www.tiktok.com/v2/auth/authorize/?"
     
     # OAuth parameters
     params = {
@@ -248,9 +247,13 @@ async def login_tiktok(request: Request):
 async def auth_tiktok(request: Request, code: str, state: str):
     """Handles TikTok's OAuth callback and exchanges the authorization code for an access token."""
     
+    # Log the callback URL and parameters for debugging
+    print(f"🔄 Callback URL: {request.url}")
+    print(f"🔹 Code: {code}")
+    print(f"🔹 State: {state}")
+    
     # Retrieve the CSRF state from the session
     csrf_state = request.session.get("csrfState")
-    
     if not csrf_state:
         raise HTTPException(status_code=400, detail="CSRF state not found in session")
 
@@ -274,7 +277,7 @@ async def auth_tiktok(request: Request, code: str, state: str):
 
     # Send a POST request to TikTok's token endpoint to exchange the code for an access token
     async with httpx.AsyncClient() as client:
-        response = await client.post(TIKTOK_API_URL = "https://open.tiktokapis.com/v2/oauth/token/", data=token_payload)
+        response = await client.post("https://open.tiktokapis.com/v2/oauth/token/", data=token_payload)
         response_data = response.json()
 
     if response.status_code != 200:
@@ -289,10 +292,9 @@ async def auth_tiktok(request: Request, code: str, state: str):
     print(f"✅ Access Token: {access_token}")
     
     # At this point, you can store the access token and use it to make API requests on behalf of the user
-    # For this example, we'll just redirect the user to a success page or dashboard
-
+    # For this example, we'll just return the access token
     return {"message": "OAuth successful", "access_token": access_token}
-    
+
 @app.get("/sitemap.xml")
 async def get_sitemap():
     file_path = "static/sitemap.xml"  # Path to your sitemap in the static folder
