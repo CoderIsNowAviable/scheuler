@@ -206,23 +206,21 @@ async def serve_verification_file(filename: str):
 
 
 
-# Redirect user to TikTok authorization page
-@app.get("/login/tiktok")
-async def tiktok_auth(response: Response):
-    # Generate a random CSRF state to prevent CSRF attacks
-    csrf_state = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
-    
-    # Store CSRF state in the user's cookies
-    response.set_cookie("csrfState", csrf_state, max_age=600, httponly=True, secure=True, path="/")
-    
-    # Prepare the TikTok authorization URL with necessary query parameters
-    redirect_uri = f"https://www.tiktok.com/v2/auth/authorize/?client_key={TIKTOK_CLIENT_KEY}&scope=user.info.basic&response_type=code&redirect_uri={TIKTOK_REDIRECT_URI}&state={csrf_state}"
-    
-    # Redirect the user to TikTok for authorization
-    return RedirectResponse(url=redirect_uri)
+import secrets  # ✅ Import the module
 
+@app.get("/login/tiktok/")
+async def auth_tiktok(response: Response):
+    csrf_state = secrets.token_urlsafe(16)  # ✅ Generate a secure random state
+    response.set_cookie(key="csrfState", value=csrf_state, max_age=600, httponly=True, secure=True)
 
-# Handle TikTok's callback after user authorization
+    auth_url = (
+        f"https://www.tiktok.com/v2/auth/authorize/?"
+        f"client_key={TIKTOK_CLIENT_KEY}&response_type=code&scope=user.info.basic&"
+        f"redirect_uri={TIKTOK_REDIRECT_URI}&state={csrf_state}"
+    )
+
+    return RedirectResponse(url=auth_url)
+
 @app.get("/auth/tiktok/callback/")
 async def tiktok_callback(request: Request):
     # Retrieve the authorization code and state from the callback query parameters
@@ -245,7 +243,7 @@ async def tiktok_callback(request: Request):
         raise HTTPException(status_code=400, detail="State parameter mismatch")
     
     # Exchange the authorization code for an access token
-    token_url = "https://open-api.tiktok.com/oauth/access_token/"
+    token_url = "https://open.tiktokapis.com/v2/oauth/token/"
     token_data = {
         "client_key": TIKTOK_CLIENT_KEY,
         "client_secret": TIKTOK_CLIENT_SECRET,
@@ -255,7 +253,8 @@ async def tiktok_callback(request: Request):
     }
 
     # Send the request to TikTok's token endpoint
-    response = requests.post(token_url, data=token_data)
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    response = requests.post(token_url, data=token_data, headers=headers)
     
     # Check if the request was successful
     if response.status_code != 200:
@@ -267,8 +266,9 @@ async def tiktok_callback(request: Request):
     if not access_token:
         raise HTTPException(status_code=400, detail="Access token not found")
     
-    # Return the access token (you can use this token to make authenticated requests)
+    # Return the access token
     return {"access_token": access_token}
+
     
 @app.get("/sitemap.xml")
 async def get_sitemap():
