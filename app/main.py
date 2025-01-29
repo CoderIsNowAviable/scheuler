@@ -1,7 +1,9 @@
 from datetime import datetime
 import json
 import logging
+import random
 import shutil
+import string
 from fastapi import Cookie, Depends, FastAPI, Form, HTTPException, Request, Response, UploadFile, File
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -12,7 +14,7 @@ from app.routers.auth import router as auth_router
 from app.routers.pages import router as pages_router
 from app.routers.dashboard import router as dashboard_router
 from fastapi.middleware.cors import CORSMiddleware
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 import os
 import requests
 from dotenv import load_dotenv
@@ -39,6 +41,7 @@ GOOGLE_CLIENT_ID= os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET=os.getenv("GOOGLE_CLIENT_SECRET")
 GOOGLE_REDIRECT_URI=os.getenv("GOOGLE_REDIRECT_URI")
 SCOPES = ["openid", "email", "profile"]
+TIKTOK_SCOPE = "user.info.basic"  # Adjust the scope based on what you need
 # Initialize FastAPI app
 app = FastAPI()
 
@@ -200,58 +203,63 @@ async def serve_verification_file(filename: str):
 
 
 
+
+
+
 # TikTok Login URL
+
 @app.get("/login/tiktok")
-def tiktok_login():
-    encoded_redirect_uri = quote(TIKTOK_REDIRECT_URI, safe="")
-    auth_url = (
-        f"https://www.tiktok.com/v2/auth/authorize/"
-        f"?client_key={TIKTOK_CLIENT_KEY}&response_type=code"
-        f"&redirect_uri={encoded_redirect_uri}&scope=user.info.basic"
-    )
-    print(f"TikTok Auth URL: {auth_url}")  # Log the generated URL
+async def tiktok_login(response: Response):
+    csrf_state = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+    response.set_cookie("csrfState", csrf_state)
+
+    query_params = {
+        "client_key": TIKTOK_CLIENT_KEY,
+        "scope": TIKTOK_SCOPE,
+        "response_type": "code",
+        "redirect_uri": TIKTOK_REDIRECT_URI,
+        "state": csrf_state,
+    }
+    
+    auth_url = f"https://www.tiktok.com/v2/auth/authorize/?{urlencode(query_params)}"
     return RedirectResponse(auth_url)
+
+
+
 
 @app.get("/auth/tiktok/callback/")
 async def tiktok_callback(request: Request):
-    try:
-        code = request.query_params.get("code")
-        state = request.query_params.get("state")
-        
-        # Log the received parameters for debugging
-        print(f"Received code: {code}, state: {state}")
-        
-        # Get the saved state from the session
-        session_state = request.session.get("csrfState")
-        
-        if not code or not state:
-            return {"error": "Missing 'code' or 'state' parameters"}
-        
-        if state != session_state:
-            return {"error": "State mismatch"}
-        
-        # Exchange the authorization code for an access token
-        response = requests.post("https://open.tiktokapis.com/v2/oauth/token/", data={
-            "client_key": TIKTOK_CLIENT_KEY,
-            "client_secret": TIKTOK_CLIENT_SECRET,
-            "code": code,
-            "grant_type": "authorization_code",
-            "redirect_uri": "https://scheduler-9v36.onrender.com/auth/tiktok/callback/",
-        })
-        
-        # Log the response for debugging
-        print(f"TikTok API response: {response.text}")
-        
-        response.raise_for_status()  # Raises HTTPError for bad responses
-        access_token = response.json().get("data", {}).get("access_token")
-        
-        if not access_token:
-            return {"error": "Failed to obtain access token"}
-        
-        return {"access_token": access_token}
-    except Exception as e:
-        return {"error": str(e)}
+    code = request.query_params.get("code")
+    state = request.query_params.get("state")
+    csrf_state = request.cookies.get("csrfState")
 
+    if not code or not state:
+        raise HTTPException(status_code=400, detail="Missing 'code' or 'state' parameters")
+    
+    if state != csrf_state:
+        raise HTTPException(status_code=400, detail="State parameter mismatch")
+    
+    # Exchange the authorization code for an access token
+    token_url = "https://open-api.tiktok.com/oauth/access_token/"
+    token_data = {
+        "client_key": TIKTOK_CLIENT_KEY,
+        "client_secret": os.getenv("TIKTOK_CLIENT_SECRET"),
+        "code": code,
+        "grant_type": "authorization_code",
+        "redirect_uri": TIKTOK_REDIRECT_URI,
+    }
+
+    response = requests.post(token_url, data=token_data)
+    if response.status_code != 200:
+        raise HTTPException(status_code=400, detail="Failed to get access token")
+    
+    access_token = response.json().get("data", {}).get("access_token")
+    if not access_token:
+        raise HTTPException(status_code=400, detail="Access token not found")
+
+    # You can now use this token to make authenticated requests
+    return {"access_token": access_token}
+    
     
     
     
