@@ -206,36 +206,41 @@ async def serve_verification_file(filename: str):
 
 
 
-# TikTok Login URL
-
-@app.get("/login/tiktok")
-async def tiktok_login(response: Response):
-    csrf_state = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-    response.set_cookie("csrfState", csrf_state)
-
-    query_params = {
-        "client_key": TIKTOK_CLIENT_KEY,
-        "scope": TIKTOK_SCOPE,
-        "response_type": "code",
-        "redirect_uri": TIKTOK_REDIRECT_URI,
-        "state": csrf_state,
-    }
+# Redirect user to TikTok authorization page
+@app.get("/auth/tiktok/")
+async def tiktok_auth(response: Response):
+    # Generate a random CSRF state to prevent CSRF attacks
+    csrf_state = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
     
-    auth_url = f"https://www.tiktok.com/v2/auth/authorize/?{urlencode(query_params)}"
-    return RedirectResponse(auth_url)
+    # Store CSRF state in the user's cookies
+    response.set_cookie("csrfState", csrf_state, max_age=600, httponly=True, secure=True, path="/")
+    
+    # Prepare the TikTok authorization URL with necessary query parameters
+    redirect_uri = f"https://www.tiktok.com/v2/auth/authorize/?client_key={TIKTOK_CLIENT_KEY}&scope=user.info.basic&response_type=code&redirect_uri={TIKTOK_REDIRECT_URI}&state={csrf_state}"
+    
+    # Redirect the user to TikTok for authorization
+    return RedirectResponse(url=redirect_uri)
 
 
-
-
+# Handle TikTok's callback after user authorization
 @app.get("/auth/tiktok/callback/")
 async def tiktok_callback(request: Request):
+    # Retrieve the authorization code and state from the callback query parameters
     code = request.query_params.get("code")
     state = request.query_params.get("state")
+    
+    # Retrieve the CSRF state stored in cookies
     csrf_state = request.cookies.get("csrfState")
-
+    
+    print(f"Received State: {state}")
+    print(f"Expected State: {csrf_state}")
+    print(f"Authorization Code: {code}")
+    
+    # Check if code or state is missing
     if not code or not state:
         raise HTTPException(status_code=400, detail="Missing 'code' or 'state' parameters")
     
+    # Ensure the state from the callback matches the CSRF state
     if state != csrf_state:
         raise HTTPException(status_code=400, detail="State parameter mismatch")
     
@@ -243,25 +248,27 @@ async def tiktok_callback(request: Request):
     token_url = "https://open-api.tiktok.com/oauth/access_token/"
     token_data = {
         "client_key": TIKTOK_CLIENT_KEY,
-        "client_secret": os.getenv("TIKTOK_CLIENT_SECRET"),
+        "client_secret": TIKTOK_CLIENT_SECRET,
         "code": code,
         "grant_type": "authorization_code",
         "redirect_uri": TIKTOK_REDIRECT_URI,
     }
 
+    # Send the request to TikTok's token endpoint
     response = requests.post(token_url, data=token_data)
-    if response.status_code != 200:
-        raise HTTPException(status_code=400, detail="Failed to get access token")
     
+    # Check if the request was successful
+    if response.status_code != 200:
+        error_message = response.json().get("message", "Unknown error")
+        raise HTTPException(status_code=400, detail=f"Failed to get access token: {error_message}")
+    
+    # Extract the access token from the response
     access_token = response.json().get("data", {}).get("access_token")
     if not access_token:
         raise HTTPException(status_code=400, detail="Access token not found")
-
-    # You can now use this token to make authenticated requests
+    
+    # Return the access token (you can use this token to make authenticated requests)
     return {"access_token": access_token}
-    
-    
-    
     
 @app.get("/sitemap.xml")
 async def get_sitemap():
