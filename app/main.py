@@ -210,10 +210,11 @@ async def auth_tiktok(request: Request):
     request.session["csrfState"] = csrf_state  # ✅ Store CSRF state in session
 
     print(f"✅ Session Set: csrfState = {csrf_state}")
-    scopes = "user.info.basic"
+
     auth_url = (
-        f"https://open.tiktokapis.com/v2/oauth/authorize/?client_key={TIKTOK_CLIENT_KEY}"
-        f"&response_type=code&scope={scopes}&redirect_uri={TIKTOK_REDIRECT_URI}&state={csrf_state}"
+        f"https://www.tiktok.com/v2/auth/authorize/?"
+        f"client_key={TIKTOK_CLIENT_KEY}&response_type=code&scope=user.info.basic&"
+        f"redirect_uri={TIKTOK_REDIRECT_URI}&state={csrf_state}"
     )
 
     return RedirectResponse(url=auth_url)
