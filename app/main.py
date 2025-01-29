@@ -200,9 +200,6 @@ async def serve_verification_file(filename: str):
 
 
 
-
-
-
 # TikTok Login URL
 @app.get("/login/tiktok")
 def tiktok_login():
@@ -215,29 +212,35 @@ def tiktok_login():
     print(f"TikTok Auth URL: {auth_url}")  # Log the generated URL
     return RedirectResponse(auth_url)
 
-
-
 @app.get("/auth/tiktok/callback/")
 async def tiktok_callback(request: Request):
     try:
         code = request.query_params.get("code")
         state = request.query_params.get("state")
         
+        # Log the received parameters for debugging
+        print(f"Received code: {code}, state: {state}")
+        
+        # Get the saved state from the session
+        session_state = request.session.get("csrfState")
+        
         if not code or not state:
             return {"error": "Missing 'code' or 'state' parameters"}
         
-        # Verify state parameter to prevent CSRF attacks
-        if state != requests.session.get("csrfState"):
+        if state != session_state:
             return {"error": "State mismatch"}
         
-        # Exchange authorization code for access token
-        response = requests.post("https://open.tiktokapis.com/v1/oauth/token/", data={
+        # Exchange the authorization code for an access token
+        response = requests.post("https://open.tiktokapis.com/v2/oauth/token/", data={
             "client_key": TIKTOK_CLIENT_KEY,
             "client_secret": TIKTOK_CLIENT_SECRET,
             "code": code,
             "grant_type": "authorization_code",
             "redirect_uri": "https://scheduler-9v36.onrender.com/auth/tiktok/callback/",
         })
+        
+        # Log the response for debugging
+        print(f"TikTok API response: {response.text}")
         
         response.raise_for_status()  # Raises HTTPError for bad responses
         access_token = response.json().get("data", {}).get("access_token")
@@ -248,7 +251,7 @@ async def tiktok_callback(request: Request):
         return {"access_token": access_token}
     except Exception as e:
         return {"error": str(e)}
-    
+
     
     
     
