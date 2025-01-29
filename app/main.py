@@ -216,13 +216,13 @@ async def auth_tiktok(response: Response, request: Request):
         key="csrfState", 
         value=csrf_state, 
         max_age=600, 
-        httponly=False,  # ✅ Allow debugging (set back to True in production)
-        secure=False,  # ✅ Debugging (change to True in production)
-        samesite="Lax"  # ✅ Ensures cookies are sent in cross-site requests
+        httponly=True,  # ✅ Allow debugging (set back to True in production)
+        secure=True,  # ✅ Debugging (change to True in production)
+        samesite="None"  # ✅ Ensures cookies are sent in cross-site requests
     )
 
     print(f"✅ Cookie Set: csrfState = {csrf_state}")
-    print(f"✅ All Cookies Before Redirect: {request.cookies}")
+    print(f"✅ All Cookie Before Redirect: {request.cookies}")
 
     auth_url = (
         f"https://www.tiktok.com/v2/auth/authorize/?"
