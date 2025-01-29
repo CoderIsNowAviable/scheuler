@@ -6,20 +6,25 @@ from fastapi import Cookie, Depends, FastAPI, Form, HTTPException, Request, Uplo
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from app.core.database import engine, Base, SessionLocal,get_db
-from app.models.user import User
-from sqlalchemy.orm import Session
+from app.core.database import engine, Base, SessionLocal
 from app.routers.user import router as user_router
 from app.routers.auth import router as auth_router
 from app.routers.pages import router as pages_router
+from app.routers.dashboard import router as dashboard_router
 from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import quote
 import os
 import requests
 from dotenv import load_dotenv
-from app.utils.random_profile_generator import generate_random_profile_photo
-
 from app.utils.jwt import get_email_from_token, verify_access_token
+from fastapi import FastAPI, Request, Depends
+from fastapi.responses import RedirectResponse, HTMLResponse
+from google_auth_oauthlib.flow import Flow
+import os
+from dotenv import load_dotenv
+import requests
+from fastapi.templating import Jinja2Templates
+from urllib.parse import quote
 
 # Initialize database models
 Base.metadata.create_all(bind=engine)
@@ -27,9 +32,9 @@ Base.metadata.create_all(bind=engine)
 # Load environment variables
 load_dotenv()
 
-CLIENT_KEY = os.getenv("CLIENT_KEY")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-REDIRECT_URI = os.getenv("REDIRECT_URI")
+TIKTOK_CLIENT_KEY = os.getenv("TIKTOK_CLIENT_KEY")
+TIKTOK_CLIENT_SECRET = os.getenv("TIKTOK_CLIENT_SECRET")
+TIKTOK_REDIRECT_URI = os.getenv("TIKTOK_REDIRECT_URI")
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -43,7 +48,7 @@ def get_db():
         db.close()
 
 # Encoding the redirect URI
-encoded_redirect_uri = quote(REDIRECT_URI, safe="")
+encoded_redirect_uri = quote(TIKTOK_REDIRECT_URI, safe="")
 
 # Middleware setup for CORS
 app.add_middleware(
@@ -71,12 +76,13 @@ PROFILE_PHOTO_DIR = "static/profile_photos"
 app.include_router(user_router, prefix="/users", tags=["users"])
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(pages_router, prefix="/pages", tags=["pages"])
+app.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 os.makedirs("uploads", exist_ok=True)
 
 @app.on_event("startup")
 async def startup_event():
-    print(f"CLIENT_KEY: {CLIENT_KEY}")
-    print(f"REDIRECT_URI: {REDIRECT_URI}")
+    print(f"CLIENT_KEY: {TIKTOK_CLIENT_KEY}")
+    print(f"REDIRECT_URI: {TIKTOK_REDIRECT_URI}")
     
 
     
@@ -150,181 +156,6 @@ async def authenticate(request: Request, email: str, token: str):
 
 
 
-@app.get("/dashboard")
-async def dashboard(request: Request, token: str = None, db: Session = Depends(get_db)):
-    if not token:
-        raise HTTPException(status_code=401, detail="Token is missing")
-
-    try:
-        # Decode the JWT token to get the email (or other user info)
-        user_data = verify_access_token(token)
-
-        # Extract email from token
-        email = user_data.get("sub")
-        if not email:
-            raise HTTPException(status_code=401, detail="Token is invalid or missing email")
-        
-        # Retrieve the user profile from the database using the email
-        user = db.query(User).filter(User.email == email).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        # Generate a random profile photo or fetch one from user data
-        # Handle profile photo URL
-        if user.profile_photo_url:
-            if user.profile_photo_url.startswith("http"):
-                profile_photo_url = user.profile_photo_url  # Full URL
-            else:
-                profile_photo_url = f"{user.profile_photo_url}"  # Local path
-        else:
-            # Use a default profile photo or generate one
-            profile_photo_url = generate_random_profile_photo(user, db)  
-        username = user.full_name # Assuming `name` is the column in your `User` table
-
-        # Pass the data to the template for rendering
-        return templates.TemplateResponse("dashboard.html", {
-            "request": request,
-            "username": username,
-            "email": email,
-            "profile_photo_url": profile_photo_url
-        })
-
-    except HTTPException:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-    
-    
-@app.get("/dashboard/{section}", response_class=HTMLResponse)
-async def load_section(request: Request, section: str):
-    """
-    Load dynamic content based on the section parameter.
-    """
-    if section == "schedule":
-        return templates.TemplateResponse("schedule.html", {"request": request})
-    elif section == "calendar":
-        # Render the calendar section (replace with actual calendar logic)
-        return templates.TemplateResponse("calendar.html", {"request": request })
-    else:
-        return HTMLResponse(content="Section Not Found", status_code=404)
-    
-    
-@app.post("/upload-profile-photo")
-async def upload_profile_photo(
-    email: str = Form(...), 
-    profile_photo: UploadFile = File(...), 
-    db: Session = Depends(get_db)
-):
-    try:
-        # Generate a unique filename for the uploaded profile photo
-        file_extension = profile_photo.filename.split('.')[-1]
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        new_filename = f"profile_{timestamp}.{file_extension}"
-        file_path = os.path.join(PROFILE_PHOTO_DIR, new_filename)
-
-        # Save the uploaded photo to the specified directory
-        with open(file_path, "wb") as f:
-            shutil.copyfileobj(profile_photo.file, f)
-
-        # Fetch the user from the database using the email
-        user = db.query(User).filter(User.email == email).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        # Update the user's profile photo URL in the database
-        user.profile_photo_url = f"/static/profile_photos/{new_filename}"
-        db.commit()
-
-        # Return a success response with the new profile photo URL
-        return JSONResponse(content={"success": True, "newPhotoUrl": f"/static/profile_photos/{new_filename}"})
-
-    except Exception as e:
-        # Log the error and raise an HTTPException
-        logging.error(f"Error uploading profile photo: {e}")
-        raise HTTPException(status_code=500, detail="Error uploading profile photo")
-
-from datetime import datetime
-
-@app.post("/api/content-data/")
-async def create_content_data(
-    title: str = Form(...),
-    description: str = Form(...),
-    tags: str = Form(...),
-    end_time: str = Form(...),
-    image: UploadFile = File(...),
-):
-    try:
-        # Convert the string start and end times into datetime objects
-        end_datetime = datetime.fromisoformat(end_time).replace(tzinfo=None)  # Make naive
-
-
-        # Save the image file to a directory
-        file_location = f"uploads/{image.filename}"
-        with open(file_location, "wb") as f:
-            f.write(await image.read())
-
-        # Save event data (title, start, end, etc.) to the database or a file
-        event = {
-            "title": title,
-            "end": end_datetime.isoformat(),
-            "description": description,
-            "tags": tags,
-            "file_location": file_location,
-        }
-
-        # Simulate saving to a database by appending to a file
-        events_file_path = "events.json"
-
-        # If the file doesn't exist, initialize an empty list
-        if not os.path.exists(events_file_path):
-            events = []
-        else:
-            with open(events_file_path, "r") as event_file:
-                events = json.load(event_file)
-
-        events.append(event)
-
-        with open(events_file_path, "w") as event_file:
-            json.dump(events, event_file)
-
-        return {"status": "success", "message": "Content data and event saved successfully"}
-
-    except Exception as e:
-        print(f"Error: {str(e)}")  # Log the full error
-        raise HTTPException(status_code=500, detail=f"Error saving content data: {str(e)}")
-
-
-@app.get("/calender", response_class=HTMLResponse)
-async def calender_page(request: Request):
-    return templates.TemplateResponse("calender.html", {"request": request})
-
-from fastapi import Query
-from datetime import datetime
-
-@app.get("/api/events")
-async def get_events(start: str = Query(None), end: str = Query(None)):
-    try:
-        # Load events from the file
-        events_file_path = "events.json"
-
-        if not os.path.exists(events_file_path):
-            raise HTTPException(status_code=404, detail="No events found")
-
-        with open(events_file_path, "r") as event_file:
-            events = json.load(event_file)
-
-        # Parse and filter events based on the `start` and `end` parameters
-        if start and end:
-            start_date = datetime.fromisoformat(start)
-            end_date = datetime.fromisoformat(end)
-            events = [
-                event for event in events
-                if datetime.fromisoformat(event["end"]) >= start_date
-                and datetime.fromisoformat(event["end"]) <= end_date
-            ]
-
-        return events
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Could not load events: {str(e)}")
-
 
 
 @app.get("/privacy-policy", response_class=HTMLResponse)
@@ -374,7 +205,7 @@ async def serve_verification_file(filename: str):
 def tiktok_login():
     auth_url = (
         f"https://www.tiktok.com/auth/authorize/"
-        f"?client_key={CLIENT_KEY}&response_type=code"
+        f"?client_key={TIKTOK_CLIENT_KEY}&response_type=code"
         f"&redirect_uri={encoded_redirect_uri}&scope=user.info.basic"
     )
     print(f"TikTok Auth URL: {auth_url}")  # Log the generated URL
@@ -399,11 +230,11 @@ async def tiktok_callback(request: Request):
     if code:
         token_url = "https://open.tiktokapis.com/v1/oauth/token/"
         payload = {
-            "client_key": CLIENT_KEY,
-            "client_secret": CLIENT_SECRET,
+            "client_key": TIKTOK_CLIENT_KEY,
+            "client_secret": TIKTOK_CLIENT_SECRET,
             "code": code,
             "grant_type": "authorization_code",
-            "redirect_uri": REDIRECT_URI,
+            "redirect_uri": TIKTOK_REDIRECT_URI,
         }
         response = requests.post(token_url, json=payload)
         try:
@@ -439,3 +270,86 @@ async def get_robots_txt():
     if os.path.exists(file_path):
         return FileResponse(file_path)
     return {"error": "robots.txt not found"}
+
+
+
+
+
+CLIENT_SECRETS_FILE = "static/credentials.json"  # Make sure to point to your client secrets file
+SCOPES = ["openid", "profile", "email"]  # Define the scopes you need
+REDIRECT_URI = "https://scheduler-9v36.onrender.com/auth/callback"
+
+
+@app.get("/auth/google")
+async def google_login():
+    """Generate Google OAuth URL and redirect user to Google for authentication."""
+    # Create the OAuth 2.0 flow instance
+    flow = Flow.from_client_secrets_file(
+        CLIENT_SECRETS_FILE,
+        scopes=SCOPES,
+        redirect_uri=REDIRECT_URI
+    )
+
+    # Generate the Google OAuth2 URL
+    authorization_url, state = flow.authorization_url(prompt='consent')  # Ensure prompt=consent for reauthentication
+    print(f"Google Auth URL: {authorization_url}")  # Debug log
+    return RedirectResponse(authorization_url)
+
+@app.get("/auth/callback")
+async def oauth2_callback(request: Request):
+    # Log the full callback URL
+    authorization_response = str(request.url)
+    print(f"Received callback URL: {authorization_response}")
+
+    # Extract the 'code' and 'state' from the URL
+    code = request.query_params.get("code")
+    state = request.query_params.get("state")
+    print(f"Authorization code: {code}, State: {state}")  # Debug the code and state
+
+    # Initialize the flow with client secrets and redirect URI
+    flow = Flow.from_client_secrets_file(
+        CLIENT_SECRETS_FILE,
+        scopes=SCOPES,
+        redirect_uri=REDIRECT_URI
+    )
+
+    # Validate the 'state' parameter for security
+    if state != request.cookies.get("oauth_state"):
+        print("State parameter mismatch, potential security issue.")
+        return templates.TemplateResponse(
+            "error.html", {"request": request, "error": "State parameter mismatch"}
+        )
+
+    if code:
+        try:
+            # Exchange the authorization code for tokens
+            print("Exchanging authorization code for tokens...")
+            flow.fetch_token(authorization_response=authorization_response)
+            credentials = flow.credentials
+            print(f"Access Token: {credentials.token}")  # Debug the token
+
+            # Fetch the user's profile using the credentials
+            profile_response = requests.get(
+                "https://www.googleapis.com/oauth2/v1/userinfo",
+                headers={"Authorization": f"Bearer {credentials.token}"}
+            )
+            print(f"Profile API response: {profile_response.status_code} - {profile_response.text}")  # Debug profile response
+
+            if profile_response.status_code == 200:
+                profile_data = profile_response.json()
+                print(f"User profile data: {profile_data}")  # Debug user profile
+                return templates.TemplateResponse("user_profile.html", {"request": request, "profile": profile_data})
+            else:
+                print(f"Failed to fetch profile data: {profile_response.status_code} - {profile_response.text}")
+                return templates.TemplateResponse("error.html", {"request": request, "error": "Failed to fetch profile data."})
+
+        except Exception as e:
+            print(f"Error during OAuth callback: {e}")
+            return templates.TemplateResponse(
+                "error.html", {"request": request, "error": f"Error during OAuth callback: {str(e)}"}
+            )
+    else:
+        print("No authorization code received")
+        return templates.TemplateResponse(
+            "error.html", {"request": request, "error": "No authorization code received"}
+        )

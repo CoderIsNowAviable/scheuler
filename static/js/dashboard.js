@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Send the request to upload the profile photo
       try {
-        const response = await fetch("/upload-profile-photo", {
+        const response = await fetch("/dashboard/upload-profile-photo", {
           method: "POST",
           body: formData,
         });
