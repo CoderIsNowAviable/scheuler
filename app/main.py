@@ -221,16 +221,11 @@ async def auth_tiktok(request: Request):
 
 @app.get("/auth/tiktok/callback/")
 async def tiktok_callback(request: Request):
-    """Handles TikTok's OAuth callback and exchanges the authorization code for an access token."""
+    """Handles TikTok's OAuth callback, exchanges code for an access token, and fetches user info."""
 
     code = request.query_params.get("code")
     state = request.query_params.get("state")
-    csrf_state = request.session.get("csrfState")  # ✅ Retrieve CSRF from session
-
-    print(f"🔄 Callback Received!")
-    print(f"🔹 Received State: {state}")
-    print(f"🔹 Expected State: {csrf_state}")
-    print(f"🔹 Raw Authorization Code: {code}")
+    csrf_state = request.session.get("csrfState")  
 
     if not code or not state:
         raise HTTPException(status_code=400, detail="Missing 'code' or 'state' parameters")
@@ -238,16 +233,12 @@ async def tiktok_callback(request: Request):
     if state != csrf_state:
         raise HTTPException(status_code=400, detail="State parameter mismatch")
 
-    # ✅ Decode Authorization Code (Fix special character issues)
-    decoded_code = urllib.parse.unquote(code)
-    print(f"🔹 Decoded Authorization Code: {decoded_code}")
-
     # Exchange code for access token
     token_url = "https://open.tiktokapis.com/v2/oauth/token/"
     token_data = {
         "client_key": TIKTOK_CLIENT_KEY,
         "client_secret": TIKTOK_CLIENT_SECRET,
-        "code": decoded_code,
+        "code": code,
         "grant_type": "authorization_code",
         "redirect_uri": TIKTOK_REDIRECT_URI,
     }
@@ -256,21 +247,50 @@ async def tiktok_callback(request: Request):
     async with httpx.AsyncClient() as client:
         response = await client.post(token_url, data=token_data, headers=headers)
 
-    # Debug TikTok API Response
-    print(f"🔴 TikTok API Response: {response.text}")
-
     if response.status_code != 200:
         error_message = response.json().get("message", "Unknown error")
         raise HTTPException(status_code=400, detail=f"Failed to get access token: {error_message}")
 
-    access_token = response.json().get("access_token")
+    # ✅ Extract access token correctly
+    response_data = response.json()
+    access_token = response_data.get("access_token")
+    open_id = response_data.get("open_id")  # TikTok's unique user ID
+
     if not access_token:
         raise HTTPException(status_code=400, detail="Access token not found")
+
+    # ✅ Fetch user profile info
+    user_info_url = "https://open.tiktokapis.com/v2/user/info/"
+    user_info_params = {
+        "fields": "open_id,union_id,display_name,avatar_url"
+    }
+    user_info_headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+
+    async with httpx.AsyncClient() as client:
+        user_info_response = await client.get(user_info_url, params=user_info_params, headers=user_info_headers)
+
+    if user_info_response.status_code != 200:
+        error_message = user_info_response.json().get("message", "Unknown error")
+        raise HTTPException(status_code=400, detail=f"Failed to fetch user info: {error_message}")
+
+    user_info = user_info_response.json().get("data", {})
 
     # ✅ Clear session after successful authentication
     request.session.pop("csrfState", None)
 
-    return {"message": "OAuth successful", "access_token": access_token}
+    return {
+        "message": "OAuth successful",
+        "access_token": access_token,
+        "user": {
+            "open_id": user_info.get("open_id"),
+            "display_name": user_info.get("display_name"),
+            "avatar_url": user_info.get("avatar_url"),
+        }
+    }
+
 
 
     
