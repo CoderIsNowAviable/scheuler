@@ -210,11 +210,10 @@ async def auth_tiktok(request: Request):
     request.session["csrfState"] = csrf_state  # ✅ Store CSRF state in session
 
     print(f"✅ Session Set: csrfState = {csrf_state}")
-
+    scopes = "user.info.basic"
     auth_url = (
-        f"https://www.tiktok.com/v2/auth/authorize/?"
-        f"client_key={TIKTOK_CLIENT_KEY}&response_type=code&scope=user.info.basic&"
-        f"redirect_uri={TIKTOK_REDIRECT_URI}&state={csrf_state}"
+        f"https://open.tiktokapis.com/v2/oauth/authorize/?client_key={TIKTOK_CLIENT_KEY}"
+        f"&response_type=code&scope={scopes}&redirect_uri={TIKTOK_REDIRECT_URI}&state={csrf_state}"
     )
 
     return RedirectResponse(url=auth_url)
@@ -223,10 +222,17 @@ async def auth_tiktok(request: Request):
 async def tiktok_callback(request: Request):
     """Handles TikTok's OAuth callback, exchanges code for an access token, and fetches user info."""
 
+    # Step 1: Extract query parameters
     code = request.query_params.get("code")
     state = request.query_params.get("state")
-    csrf_state = request.session.get("csrfState")  
+    error = request.query_params.get("error")
+    error_description = request.query_params.get("error_description")
+    csrf_state = request.session.get("csrfState")  # Retrieve CSRF state stored in session
 
+    if error:
+        # If there's an error parameter, handle the error gracefully
+        return {"error": error, "error_description": error_description}
+    
     if not code or not state:
         raise HTTPException(status_code=400, detail="Missing 'code' or 'state' parameters")
 
