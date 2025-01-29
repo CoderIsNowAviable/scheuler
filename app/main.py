@@ -291,11 +291,10 @@ async def tiktok_callback(request: Request):
         raise HTTPException(status_code=400, detail=f"Failed to fetch user info: {error_message}")
 
     # Extract user info from the response
-    user_info = user_info_response.json().get("data", {})
+    user_info = user_info_response.json().get("data", {}).get("user", {})
 
     # Clear session after successful authentication
     request.session.pop("csrfState", None)
-
     return {
         "message": "OAuth successful",
         "access_token": access_token,
@@ -304,6 +303,7 @@ async def tiktok_callback(request: Request):
             "display_name": user_info.get("display_name"),
             "avatar_url": user_info.get("avatar_url"),
         }
+
     }
 
 
