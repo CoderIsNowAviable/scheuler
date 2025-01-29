@@ -207,7 +207,7 @@ async def serve_verification_file(filename: str):
 
 
 # Redirect user to TikTok authorization page
-@app.get("/login/tiktok/")
+@app.get("/login/tiktok")
 async def tiktok_auth(response: Response):
     # Generate a random CSRF state to prevent CSRF attacks
     csrf_state = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
