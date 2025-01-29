@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 import logging
 import random
+import secrets
 import shutil
 import string
 from fastapi import Cookie, Depends, FastAPI, Form, HTTPException, Request, Response, UploadFile, File
@@ -27,6 +28,7 @@ import requests
 from fastapi.templating import Jinja2Templates
 from urllib.parse import quote
 from oauthlib.oauth2 import WebApplicationClient
+from starlette.middleware.sessions import SessionMiddleware
 
 # Initialize database models
 Base.metadata.create_all(bind=engine)
@@ -43,9 +45,13 @@ GOOGLE_REDIRECT_URI=os.getenv("GOOGLE_REDIRECT_URI")
 SCOPES = ["openid", "email", "profile"]
 TIKTOK_SCOPE = "user.info.basic"  # Adjust the scope based on what you need
 # Initialize FastAPI app
+
+
+
 app = FastAPI()
 
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
+app.add_middleware(SessionMiddleware, secret_key=secrets.token_urlsafe(32))
 
 
 # Dependency to manage the database session
@@ -206,24 +212,14 @@ async def serve_verification_file(filename: str):
 
 
 
-import secrets  # ✅ Import the module
 
 @app.get("/login/tiktok/")
-async def auth_tiktok(response: Response, request: Request):
-    csrf_state = secrets.token_urlsafe(16)  # ✅ Generate a secure random state
+async def auth_tiktok(request: Request):
+    csrf_state = secrets.token_urlsafe(16)  # Generate a secure random CSRF token
+    request.session["csrfState"] = csrf_state  # ✅ Store it in session
+
+    print(f"✅ Session Set: csrfState = {csrf_state}")
     
-    response.set_cookie(
-        key="csrfState", 
-        value=csrf_state, 
-        max_age=600, 
-        httponly=True,  # ✅ Allow debugging (set back to True in production)
-        secure=True,  # ✅ Debugging (change to True in production)
-        samesite="None"  # ✅ Ensures cookies are sent in cross-site requests
-    )
-
-    print(f"✅ Cookie Set: csrfState = {csrf_state}")
-    print(f"✅ All Cookie Before Redirect: {request.cookies}")
-
     auth_url = (
         f"https://www.tiktok.com/v2/auth/authorize/?"
         f"client_key={TIKTOK_CLIENT_KEY}&response_type=code&scope=user.info.basic&"
@@ -231,7 +227,6 @@ async def auth_tiktok(response: Response, request: Request):
     )
 
     return RedirectResponse(url=auth_url)
-
 
 @app.get("/auth/tiktok/callback/")
 async def tiktok_callback(request: Request):
@@ -241,15 +236,14 @@ async def tiktok_callback(request: Request):
     code = request.query_params.get("code")
     state = request.query_params.get("state")
     
-    # Retrieve the CSRF state stored in cookies
-    csrf_state = request.cookies.get("csrfState")
+    # Retrieve the CSRF state stored in session
+    csrf_state = request.session.get("csrfState")
 
     # Debugging logs
     print(f"🔄 Callback Received!")
     print(f"🔹 Received State: {state}")
-    print(f"🔹 Expected State (csrfState from Cookie): {csrf_state}")
+    print(f"🔹 Expected State (csrfState from Session): {csrf_state}")
     print(f"🔹 Authorization Code: {code}")
-    print(f"🔹 All Received Cookies: {request.cookies}")  # ✅ Print all cookies
 
     # Validate the state parameter
     if not code or not state:
@@ -282,7 +276,8 @@ async def tiktok_callback(request: Request):
         raise HTTPException(status_code=400, detail="Access token not found")
     
     return {"access_token": access_token}
-
+    
+    
     
 @app.get("/sitemap.xml")
 async def get_sitemap():
