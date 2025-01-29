@@ -1,3 +1,7 @@
+User-agent: Googlebot
+Disallow:
+
+
 User-agent: *
 Disallow: /register
 Disallow: /login

@@ -215,47 +215,39 @@ def tiktok_login():
     print(f"TikTok Auth URL: {auth_url}")  # Log the generated URL
     return RedirectResponse(auth_url)
 
-# TikTok OAuth2 Callback with better debugging
+
+
 @app.get("/auth/tiktok/callback/")
 async def tiktok_callback(request: Request):
-    code = request.query_params.get("code")
-    error = request.query_params.get("error")
-
-    # Debugging: Log the full request URL
-    print(f"Full request URL: {request.url}")
-    print(f"Received code: {code}")
-    print(f"Received error: {error}")
-
-    if error:
-        return templates.TemplateResponse(
-            "error.html", {"request": request, "error": f"Authorization failed: {error}"}
-        )
-
-    if code:
-        token_url = "https://open.tiktokapis.com/v1/oauth/token/"
-        payload = {
+    try:
+        code = request.query_params.get("code")
+        state = request.query_params.get("state")
+        
+        if not code or not state:
+            return {"error": "Missing 'code' or 'state' parameters"}
+        
+        # Verify state parameter to prevent CSRF attacks
+        if state != requests.session.get("csrfState"):
+            return {"error": "State mismatch"}
+        
+        # Exchange authorization code for access token
+        response = requests.post("https://open.tiktokapis.com/v1/oauth/token/", data={
             "client_key": TIKTOK_CLIENT_KEY,
             "client_secret": TIKTOK_CLIENT_SECRET,
             "code": code,
             "grant_type": "authorization_code",
-            "redirect_uri": TIKTOK_REDIRECT_URI,
-        }
-        response = requests.post(token_url, json=payload)
-        try:
-            response.raise_for_status()
-            token_data = response.json()
-            print(f"Token response: {token_data}")
-            return templates.TemplateResponse("success.html", {"request": request, "data": token_data})
-        except requests.exceptions.RequestException as e:
-            error_data = e.response.json() if e.response else {}
-            print(f"Token fetch error: {error_data}")
-            return templates.TemplateResponse(
-                "error.html", {"request": request, "error": f"Failed to fetch token: {error_data}"}
-            )
-
-    return templates.TemplateResponse(
-        "error.html", {"request": request, "error": "No authorization code provided"}
-    )
+            "redirect_uri": "https://scheduler-9v36.onrender.com/auth/tiktok/callback/",
+        })
+        
+        response.raise_for_status()  # Raises HTTPError for bad responses
+        access_token = response.json().get("data", {}).get("access_token")
+        
+        if not access_token:
+            return {"error": "Failed to obtain access token"}
+        
+        return {"access_token": access_token}
+    except Exception as e:
+        return {"error": str(e)}
     
     
     
