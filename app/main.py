@@ -1,36 +1,23 @@
-from datetime import datetime
-import json
 import logging
-import random
 import secrets
-import shutil
-import string
-from fastapi import Cookie, Depends, FastAPI, Form, HTTPException, Request, Response, UploadFile, File
-from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
+from fastapi import Cookie,FastAPI, HTTPException, Request, Response
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+import httpx
 from app.core.database import engine, Base, SessionLocal
 from app.routers.user import router as user_router
 from app.routers.auth import router as auth_router
 from app.routers.pages import router as pages_router
 from app.routers.dashboard import router as dashboard_router
 from fastapi.middleware.cors import CORSMiddleware
-from urllib.parse import quote, quote_plus, unquote, urlencode
 import os
 import requests
 from dotenv import load_dotenv
 from app.utils.jwt import get_email_from_token, verify_access_token
-from fastapi.responses import RedirectResponse, HTMLResponse
-from google_auth_oauthlib.flow import Flow
-import os
-from dotenv import load_dotenv
-import requests
-from fastapi.templating import Jinja2Templates
-from urllib.parse import quote
 from oauthlib.oauth2 import WebApplicationClient
-from starlette.middleware.sessions import SessionMiddleware
 import urllib.parse
-import httpx
+from starlette.middleware.sessions import SessionMiddleware
 
 # Initialize database models
 Base.metadata.create_all(bind=engine)
@@ -38,22 +25,11 @@ Base.metadata.create_all(bind=engine)
 # Load environment variables
 load_dotenv()
 
-TIKTOK_CLIENT_KEY = os.getenv("TIKTOK_CLIENT_KEY")
-TIKTOK_CLIENT_SECRET = os.getenv("TIKTOK_CLIENT_SECRET")
-TIKTOK_REDIRECT_URI = os.getenv("TIKTOK_REDIRECT_URI")
-GOOGLE_CLIENT_ID= os.getenv("GOOGLE_CLIENT_ID")
-GOOGLE_CLIENT_SECRET=os.getenv("GOOGLE_CLIENT_SECRET")
-GOOGLE_REDIRECT_URI=os.getenv("GOOGLE_REDIRECT_URI")
-SCOPES = ["openid", "email", "profile"]
-TIKTOK_SCOPE = "user.info.basic"  # Adjust the scope based on what you need
+
 # Initialize FastAPI app
-
-
-
 app = FastAPI()
 
-client = WebApplicationClient(GOOGLE_CLIENT_ID)
-app.add_middleware(SessionMiddleware, secret_key=secrets.token_urlsafe(32))
+
 
 
 # Dependency to manage the database session
@@ -82,6 +58,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+YOUR_SECRET_KEY = os.getenv("YOUR_SECRET_KEY")
+app.add_middleware(SessionMiddleware, secret_key=YOUR_SECRET_KEY, session_cookie="session")
+
+
+TIKTOK_CLIENT_KEY = os.getenv("TIKTOK_CLIENT_KEY")
+TIKTOK_CLIENT_SECRET = os.getenv("TIKTOK_CLIENT_SECRET")
+TIKTOK_REDIRECT_URI = os.getenv("TIKTOK_REDIRECT_URI")
+GOOGLE_CLIENT_ID= os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET=os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI=os.getenv("GOOGLE_REDIRECT_URI")
+SCOPES = ["openid", "email", "profile"]
+TIKTOK_SCOPE = "user.info.basic"  # Adjust the scope based on what you need
+client = WebApplicationClient(GOOGLE_CLIENT_ID)
+
 
 # Static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -210,91 +201,77 @@ async def serve_verification_file(filename: str):
 
 
 
-def generate_csrf_state(length=16):
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+
+
 
 @app.get("/login/tiktok/")
-async def login_tiktok(request: Request):
-    """Redirects the user to TikTok's OAuth login page."""
-    
-    # Generate a random CSRF state
-    csrf_state = generate_csrf_state()
-    
-    # Store CSRF state in the session for later validation
-    request.session["csrfState"] = csrf_state
+async def auth_tiktok(request: Request):
+    """Redirects the user to TikTok's OAuth login page with session-based CSRF protection."""
+
+    csrf_state = secrets.token_urlsafe(16)  # ✅ Generate a secure random state
+    request.session["csrfState"] = csrf_state  # ✅ Store in session
 
     print(f"✅ Session Set: csrfState = {csrf_state}")
-    
-    # TikTok OAuth URL
-    tiktok_oauth_url = "https://www.tiktok.com/v2/auth/authorize/?"
-    
-    # OAuth parameters
-    params = {
-        "client_key": TIKTOK_CLIENT_KEY,
-        "response_type": "code",
-        "scope": "user.info.basic",
-        "redirect_uri": TIKTOK_REDIRECT_URI,
-        "state": csrf_state,  # Pass the CSRF state as a query parameter
-    }
 
-    # Encode the parameters and build the full URL
-    oauth_url = f"{tiktok_oauth_url}?{urllib.parse.urlencode(params)}"
-    
-    # Redirect the user to TikTok's OAuth authorization page
-    return RedirectResponse(url=oauth_url)
+    auth_url = (
+        f"https://www.tiktok.com/v2/auth/authorize?"
+        f"client_key={TIKTOK_CLIENT_KEY}&response_type=code&scope=user.info.basic&"
+        f"redirect_uri={urllib.parse.quote(TIKTOK_REDIRECT_URI)}&state={csrf_state}"
+    )
+
+    return RedirectResponse(url=auth_url)
+
 
 @app.get("/auth/tiktok/callback/")
-async def auth_tiktok(request: Request, code: str, state: str):
+async def tiktok_callback(request: Request):
     """Handles TikTok's OAuth callback and exchanges the authorization code for an access token."""
-    
-    # Log the callback URL and parameters for debugging
-    print(f"🔄 Callback URL: {request.url}")
-    print(f"🔹 Code: {code}")
-    print(f"🔹 State: {state}")
-    
-    # Retrieve the CSRF state from the session
-    csrf_state = request.session.get("csrfState")
-    if not csrf_state:
-        raise HTTPException(status_code=400, detail="CSRF state not found in session")
 
-    # Validate the state parameter from the callback matches the CSRF state stored in the session
-    if state != csrf_state:
-        raise HTTPException(status_code=400, detail="Invalid state parameter")
-    
+    code = request.query_params.get("code")
+    state = request.query_params.get("state")
+    csrf_state = request.session.get("csrfState")  # ✅ Retrieve CSRF from session
+
     print(f"🔄 Callback Received!")
     print(f"🔹 Received State: {state}")
     print(f"🔹 Expected State: {csrf_state}")
     print(f"🔹 Authorization Code: {code}")
-    
-    # Exchange the authorization code for an access token
-    token_payload = {
+
+    if not code or not state:
+        raise HTTPException(status_code=400, detail="Missing 'code' or 'state' parameters")
+
+    if state != csrf_state:
+        raise HTTPException(status_code=400, detail="State parameter mismatch")
+
+    # Exchange code for access token
+    token_url = "https://open.tiktokapis.com/v2/oauth/token/"
+    token_data = {
         "client_key": TIKTOK_CLIENT_KEY,
         "client_secret": TIKTOK_CLIENT_SECRET,
         "code": code,
         "grant_type": "authorization_code",
         "redirect_uri": TIKTOK_REDIRECT_URI,
     }
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
-    # Send a POST request to TikTok's token endpoint to exchange the code for an access token
     async with httpx.AsyncClient() as client:
-        response = await client.post("https://open.tiktokapis.com/v2/oauth/token/", data=token_payload)
-        response_data = response.json()
+        response = await client.post(token_url, data=token_data, headers=headers)
 
     if response.status_code != 200:
-        raise HTTPException(status_code=400, detail="Error exchanging code for token")
+        error_message = response.json().get("message", "Unknown error")
+        raise HTTPException(status_code=400, detail=f"Failed to get access token: {error_message}")
 
-    # Access token is in the response data (you can store or use it as needed)
-    access_token = response_data.get("data", {}).get("access_token")
-    
+    access_token = response.json().get("data", {}).get("access_token")
     if not access_token:
-        raise HTTPException(status_code=400, detail="Access token not found in response")
-    
-    print(f"✅ Access Token: {access_token}")
-    
-    # At this point, you can store the access token and use it to make API requests on behalf of the user
-    # For this example, we'll just return the access token
+        raise HTTPException(status_code=400, detail="Access token not found")
+
+    # ✅ Clear session after successful authentication
+    request.session.pop("csrfState", None)
+
     return {"message": "OAuth successful", "access_token": access_token}
 
+
+
+    
 @app.get("/sitemap.xml")
 async def get_sitemap():
     file_path = "static/sitemap.xml"  # Path to your sitemap in the static folder
