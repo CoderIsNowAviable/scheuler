@@ -263,7 +263,7 @@ async def tiktok_callback(request: Request):
         error_message = response.json().get("message", "Unknown error")
         raise HTTPException(status_code=400, detail=f"Failed to get access token: {error_message}")
 
-    access_token = response.json().get("data", {}).get("access_token")
+    access_token = response.json().get("access_token")
     if not access_token:
         raise HTTPException(status_code=400, detail="Access token not found")
 
