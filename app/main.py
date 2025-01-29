@@ -2,7 +2,7 @@ from datetime import datetime
 import json
 import logging
 import shutil
-from fastapi import Cookie, Depends, FastAPI, Form, HTTPException, Request, UploadFile, File
+from fastapi import Cookie, Depends, FastAPI, Form, HTTPException, Request, Response, UploadFile, File
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -17,7 +17,6 @@ import os
 import requests
 from dotenv import load_dotenv
 from app.utils.jwt import get_email_from_token, verify_access_token
-from fastapi import FastAPI, Request, Depends
 from fastapi.responses import RedirectResponse, HTMLResponse
 from google_auth_oauthlib.flow import Flow
 import os
@@ -25,6 +24,7 @@ from dotenv import load_dotenv
 import requests
 from fastapi.templating import Jinja2Templates
 from urllib.parse import quote
+from oauthlib.oauth2 import WebApplicationClient
 
 # Initialize database models
 Base.metadata.create_all(bind=engine)
@@ -35,9 +35,15 @@ load_dotenv()
 TIKTOK_CLIENT_KEY = os.getenv("TIKTOK_CLIENT_KEY")
 TIKTOK_CLIENT_SECRET = os.getenv("TIKTOK_CLIENT_SECRET")
 TIKTOK_REDIRECT_URI = os.getenv("TIKTOK_REDIRECT_URI")
-
+GOOGLE_CLIENT_ID= os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET=os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI=os.getenv("GOOGLE_REDIRECT_URI")
+SCOPES = ["openid", "email", "profile"]
 # Initialize FastAPI app
 app = FastAPI()
+
+client = WebApplicationClient(GOOGLE_CLIENT_ID)
+
 
 # Dependency to manage the database session
 def get_db():
@@ -275,81 +281,66 @@ async def get_robots_txt():
 
 
 
-CLIENT_SECRETS_FILE = "static/credentials.json"  # Make sure to point to your client secrets file
-SCOPES = ["openid", "profile", "email"]  # Define the scopes you need
-REDIRECT_URI = "https://scheduler-9v36.onrender.com/auth/callback"
-
 
 @app.get("/auth/google")
-async def google_login():
+async def google_login(response: Response):
     """Generate Google OAuth URL and redirect user to Google for authentication."""
-    # Create the OAuth 2.0 flow instance
-    flow = Flow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE,
-        scopes=SCOPES,
-        redirect_uri=REDIRECT_URI
+    
+    # Generate the Google OAuth2 URL
+    authorization_url = client.prepare_request_uri(
+        "https://accounts.google.com/o/oauth2/auth",
+        redirect_uri=GOOGLE_REDIRECT_URI,
+        scope=" ".join(SCOPES),
+        access_type="offline",
+        prompt="consent"
     )
 
-    # Generate the Google OAuth2 URL
-    authorization_url, state = flow.authorization_url(prompt='consent')  # Ensure prompt=consent for reauthentication
-    print(f"Google Auth URL: {authorization_url}")  # Debug log
+    # Store the state parameter in the cookies
+    state = os.urandom(24).hex()  # Generate a random state string
+    response.set_cookie("oauth_state", state)
+
     return RedirectResponse(authorization_url)
 
-@app.get("/auth/callback")
-async def oauth2_callback(request: Request):
-    # Log the full callback URL
-    authorization_response = str(request.url)
-    print(f"Received callback URL: {authorization_response}")
 
-    # Extract the 'code' and 'state' from the URL
+@app.get("/auth/callback")
+async def oauth2_callback(request: Request, oauth_state: str = Cookie(None)):
+    """Handle the OAuth2 callback and fetch the user's profile."""
+    
+    # Extract the code and state from the callback URL
     code = request.query_params.get("code")
     state = request.query_params.get("state")
-    print(f"Authorization code: {code}, State: {state}")  # Debug the code and state
 
-    # Initialize the flow with client secrets and redirect URI
-    flow = Flow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE,
-        scopes=SCOPES,
-        redirect_uri=REDIRECT_URI
-    )
-
-    # Validate the 'state' parameter for security
-    if state != request.cookies.get("oauth_state"):
-        print("State parameter mismatch, potential security issue.")
-        return templates.TemplateResponse(
-            "error.html", {"request": request, "error": "State parameter mismatch"}
-        )
+    # Validate the state parameter to prevent CSRF attacks
+    if state != oauth_state:
+        return {"error": "State parameter mismatch"}
 
     if code:
-        try:
-            # Exchange the authorization code for tokens
-            print("Exchanging authorization code for tokens...")
-            flow.fetch_token(authorization_response=authorization_response)
-            credentials = flow.credentials
-            print(f"Access Token: {credentials.token}")  # Debug the token
+        # Exchange the authorization code for an access token
+        token_url = "https://oauth2.googleapis.com/token"
+        token_data = {
+            "code": code,
+            "client_id": GOOGLE_CLIENT_ID,
+            "client_secret": GOOGLE_CLIENT_SECRET,
+            "redirect_uri": GOOGLE_REDIRECT_URI,
+            "grant_type": "authorization_code"
+        }
+        token_response = requests.post(token_url, data=token_data)
+        
+        if token_response.status_code != 200:
+            return {"error": "Failed to get tokens"}
 
-            # Fetch the user's profile using the credentials
-            profile_response = requests.get(
-                "https://www.googleapis.com/oauth2/v1/userinfo",
-                headers={"Authorization": f"Bearer {credentials.token}"}
-            )
-            print(f"Profile API response: {profile_response.status_code} - {profile_response.text}")  # Debug profile response
+        # Extract the access token
+        token_info = token_response.json()
+        access_token = token_info.get("access_token")
 
-            if profile_response.status_code == 200:
-                profile_data = profile_response.json()
-                print(f"User profile data: {profile_data}")  # Debug user profile
-                return templates.TemplateResponse("user_profile.html", {"request": request, "profile": profile_data})
-            else:
-                print(f"Failed to fetch profile data: {profile_response.status_code} - {profile_response.text}")
-                return templates.TemplateResponse("error.html", {"request": request, "error": "Failed to fetch profile data."})
-
-        except Exception as e:
-            print(f"Error during OAuth callback: {e}")
-            return templates.TemplateResponse(
-                "error.html", {"request": request, "error": f"Error during OAuth callback: {str(e)}"}
-            )
-    else:
-        print("No authorization code received")
-        return templates.TemplateResponse(
-            "error.html", {"request": request, "error": "No authorization code received"}
-        )
+        # Fetch the user's profile using the access token
+        profile_url = "https://www.googleapis.com/oauth2/v1/userinfo"
+        profile_response = requests.get(profile_url, headers={"Authorization": f"Bearer {access_token}"})
+        
+        if profile_response.status_code == 200:
+            profile_data = profile_response.json()
+            return {"profile": profile_data}
+        else:
+            return {"error": "Failed to fetch profile"}
+    
+    return {"error": "No code found in request"}
