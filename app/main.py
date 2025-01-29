@@ -54,7 +54,6 @@ def get_db():
         db.close()
 
 # Encoding the redirect URI
-encoded_redirect_uri = quote(TIKTOK_REDIRECT_URI.encode(), safe="")
 
 # Middleware setup for CORS
 app.add_middleware(
@@ -207,8 +206,9 @@ async def serve_verification_file(filename: str):
 # TikTok Login URL
 @app.get("/login/tiktok")
 def tiktok_login():
+    encoded_redirect_uri = quote(TIKTOK_REDIRECT_URI, safe="")
     auth_url = (
-        f"https://www.tiktok.com/auth/authorize/"
+        f"https://www.tiktok.com/v2/auth/authorize/"
         f"?client_key={TIKTOK_CLIENT_KEY}&response_type=code"
         f"&redirect_uri={encoded_redirect_uri}&scope=user.info.basic"
     )
@@ -216,7 +216,7 @@ def tiktok_login():
     return RedirectResponse(auth_url)
 
 # TikTok OAuth2 Callback with better debugging
-@app.get("/auth/tiktok/callback")
+@app.get("/auth/tiktok/callback/")
 async def tiktok_callback(request: Request):
     code = request.query_params.get("code")
     error = request.query_params.get("error")
