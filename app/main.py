@@ -204,24 +204,20 @@ async def serve_verification_file(filename: str):
 
 
 
-
 @app.get("/login/tiktok/")
 async def auth_tiktok(request: Request):
-    """Redirects the user to TikTok's OAuth login page with session-based CSRF protection."""
-
     csrf_state = secrets.token_urlsafe(16)  # ✅ Generate a secure random state
-    request.session["csrfState"] = csrf_state  # ✅ Store in session
+    request.session["csrfState"] = csrf_state  # ✅ Store CSRF state in session
 
     print(f"✅ Session Set: csrfState = {csrf_state}")
 
     auth_url = (
-        f"https://www.tiktok.com/v2/auth/authorize?"
+        f"https://www.tiktok.com/v2/auth/authorize/?"
         f"client_key={TIKTOK_CLIENT_KEY}&response_type=code&scope=user.info.basic&"
-        f"redirect_uri={urllib.parse.quote(TIKTOK_REDIRECT_URI)}&state={csrf_state}"
+        f"redirect_uri={TIKTOK_REDIRECT_URI}&state={csrf_state}"
     )
 
     return RedirectResponse(url=auth_url)
-
 
 @app.get("/auth/tiktok/callback/")
 async def tiktok_callback(request: Request):
@@ -234,7 +230,7 @@ async def tiktok_callback(request: Request):
     print(f"🔄 Callback Received!")
     print(f"🔹 Received State: {state}")
     print(f"🔹 Expected State: {csrf_state}")
-    print(f"🔹 Authorization Code: {code}")
+    print(f"🔹 Raw Authorization Code: {code}")
 
     if not code or not state:
         raise HTTPException(status_code=400, detail="Missing 'code' or 'state' parameters")
@@ -242,12 +238,16 @@ async def tiktok_callback(request: Request):
     if state != csrf_state:
         raise HTTPException(status_code=400, detail="State parameter mismatch")
 
+    # ✅ Decode Authorization Code (Fix special character issues)
+    decoded_code = urllib.parse.unquote(code)
+    print(f"🔹 Decoded Authorization Code: {decoded_code}")
+
     # Exchange code for access token
     token_url = "https://open.tiktokapis.com/v2/oauth/token/"
     token_data = {
         "client_key": TIKTOK_CLIENT_KEY,
         "client_secret": TIKTOK_CLIENT_SECRET,
-        "code": code,
+        "code": decoded_code,
         "grant_type": "authorization_code",
         "redirect_uri": TIKTOK_REDIRECT_URI,
     }
@@ -255,6 +255,9 @@ async def tiktok_callback(request: Request):
 
     async with httpx.AsyncClient() as client:
         response = await client.post(token_url, data=token_data, headers=headers)
+
+    # Debug TikTok API Response
+    print(f"🔴 TikTok API Response: {response.text}")
 
     if response.status_code != 200:
         error_message = response.json().get("message", "Unknown error")
@@ -268,7 +271,6 @@ async def tiktok_callback(request: Request):
     request.session.pop("csrfState", None)
 
     return {"message": "OAuth successful", "access_token": access_token}
-
 
 
     
