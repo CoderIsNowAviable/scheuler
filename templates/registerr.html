@@ -11,7 +11,7 @@
     <link rel="manifest" href="/static/favicon/site.webmanifest" />
 
     <title>Sign Up and Log In</title>
-    <link rel="stylesheet" href="/static/css/registerr.css">
+    <link rel="stylesheet" href="/static/css/register.css">
 </head>
 <body>
     <div class="form-container" id="form-container">
@@ -68,15 +68,15 @@
                         </div>
     
                         <a href="/forgot-password" id="forget-pass"><p>Forgot your Password?</p></a>
+                        
+                    <div class="google-auth">
+                        <a href="/auth/google" class="btn-google-login">
+                            <img src="/static/images/google.webp" alt="Google Logo" style="width: 30px; height: auto;">Log in with Google
+                        </a>
+                    </div>
 
-                        <button type="submit" class="button">Log In</button>
-
-                        <div class="google-auth">
-                            <a href="/auth/google" class="btn-google-login">
-                                <img src="/static/images/google.webp" alt="Google Logo" style="width: 30px; height: auto;">Log in with Google
-                            </a>
-                        </div>
-                    </form>
+                    <button type="submit" class="button">Log In</button>
+                </form>
                 </div>
             </div>
 
