@@ -388,7 +388,7 @@ async def google_callback(request: Request, db: requests.Session = Depends(get_d
         
         if user:
             # If user exists, redirect them to the login page
-            return RedirectResponse(url="/login", status_code=302)
+            return RedirectResponse(url="/register?form=signin", status_code=302)
         
         # If the user does not exist, create a new user in the database
         user = User(
