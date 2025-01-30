@@ -3,44 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="icon"
-      type="image/png"
-      href="/static/favicon/favicon-96x96.png"
-      sizes="96x96"
-    />
+    <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96"/>
     <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
     <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="/static/favicon/apple-touch-icon.png"
-    />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png"/>
     <meta name="apple-mobile-web-app-title" content="MyWebSite" />
     <link rel="manifest" href="/static/favicon/site.webmanifest" />
+
     <title>Scheduler</title>
-
     <link rel="stylesheet" href="/static/css/dashboard.css" />
-    <!-- FullCalendar Core CSS -->
-    <!-- FullCalendar Core CSS -->
-    <!-- FullCalendar CSS (6.x) -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.8/main.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.8/main.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.8/main.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/@fullcalendar/list@6.1.8/main.css"
-      rel="stylesheet"
-    />
 
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.8/main.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.8/main.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.8/main.css"rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/list@6.1.8/main.css" rel="stylesheet"/>
+    <!-- CSS FOR CALENDAR -->
     <style>
       .custom-header {
         display: flex;
@@ -98,21 +75,16 @@
           <a href="#">Help</a>
         </nav>
       </div>
-      <div class="profile-card">
-        <img
 
-          src="/static/images/notification-alert-icon.png"
-          class="notif-img"
-        />
-        <img
-          src="{{ profile_photo_url }}"
-          alt="Profile Picture"
-          class="profile-img"
-        />
+      <div class="profile-card">
+        <img src="/static/images/notification-alert-icon.png" class="notif-img"/>
+        <img src="{{ profile_photo_url }}" alt="Profile Picture" class="profile-img"/>
+
         <div class="profile-info">
           <span class="profile-name">{{ username }}</span>
           <small class="profile-email">{{ email }}</small>
         </div>
+
         <button class="profile-toggle">▾</button>
         <ul class="profile-options">
           <li><a href="#" id="switch-profile-btn">Switch Profile</a></li>
@@ -120,16 +92,12 @@
           <li><a href="/users/logout">Logout</a></li>
         </ul>
       </div>
-      <input
-        type="file"
-        id="profile-photo-input"
-        style="display: none"
-        accept="image/*"
-      />
+
+      <input type="file" id="profile-photo-input" style="display: none" accept="image/*"/>
       <input type="hidden" id="profile-email" value="{{ email }}" />
     </header>
-    <main id="main-content"></main>
 
+    <main id="main-content"></main>
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.8/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.8/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.8/index.global.min.js"></script>

@@ -66,12 +66,8 @@ app.add_middleware(SessionMiddleware, secret_key=YOUR_SECRET_KEY, session_cookie
 TIKTOK_CLIENT_KEY = os.getenv("TIKTOK_CLIENT_KEY")
 TIKTOK_CLIENT_SECRET = os.getenv("TIKTOK_CLIENT_SECRET")
 TIKTOK_REDIRECT_URI = os.getenv("TIKTOK_REDIRECT_URI")
-GOOGLE_CLIENT_ID= os.getenv("GOOGLE_CLIENT_ID")
-GOOGLE_CLIENT_SECRET=os.getenv("GOOGLE_CLIENT_SECRET")
-GOOGLE_REDIRECT_URI=os.getenv("GOOGLE_REDIRECT_URI")
-SCOPES = ["openid", "email", "profile"]
+
 TIKTOK_SCOPE = "user.info.basic"  # Adjust the scope based on what you need
-client = WebApplicationClient(GOOGLE_CLIENT_ID)
 httpx_client = httpx.AsyncClient()
 
 
@@ -323,65 +319,3 @@ async def get_robots_txt():
         return FileResponse(file_path)
     return {"error": "robots.txt not found"}
 
-@app.get("/auth/google")
-async def google_login(response: Response):
-    """Generate Google OAuth URL and redirect user to Google for authentication."""
-    
-    # Generate the Google OAuth2 URL
-    authorization_url = client.prepare_request_uri(
-        "https://accounts.google.com/o/oauth2/auth",
-        redirect_uri=GOOGLE_REDIRECT_URI,
-        scope=" ".join(SCOPES),
-        access_type="offline",
-        prompt="consent"
-    )
-
-    # Store the state parameter in the cookies
-    state = os.urandom(24).hex()  # Generate a random state string
-    response.set_cookie("oauth_state", state)
-
-    return RedirectResponse(authorization_url)
-
-
-@app.get("/auth/callback")
-async def oauth2_callback(request: Request, oauth_state: str = Cookie(None)):
-    """Handle the OAuth2 callback and fetch the user's profile."""
-    
-    # Extract the code and state from the callback URL
-    code = request.query_params.get("code")
-    state = request.query_params.get("state")
-
-    # Validate the state parameter to prevent CSRF attacks
-    if state != oauth_state:
-        return {"error": "State parameter mismatch"}
-
-    if code:
-        # Exchange the authorization code for an access token
-        token_url = "https://oauth2.googleapis.com/token"
-        token_data = {
-            "code": code,
-            "client_id": GOOGLE_CLIENT_ID,
-            "client_secret": GOOGLE_CLIENT_SECRET,
-            "redirect_uri": GOOGLE_REDIRECT_URI,
-            "grant_type": "authorization_code"
-        }
-        token_response = requests.post(token_url, data=token_data)
-        
-        if token_response.status_code != 200:
-            return {"error": "Failed to get tokens"}
-
-        # Extract the access token
-        token_info = token_response.json()
-        access_token = token_info.get("access_token")
-
-        # Fetch the user's profile using the access token
-        profile_url = "https://www.googleapis.com/oauth2/v1/userinfo"
-        profile_response = requests.get(profile_url, headers={"Authorization": f"Bearer {access_token}"})
-        
-        if profile_response.status_code == 200:
-            profile_data = profile_response.json()
-            return {"profile": profile_data}
-        else:
-            return {"error": "Failed to fetch profile"}
-    
-    return {"error": "No code found in request"}
