@@ -8,7 +8,7 @@ from fastapi.templating import Jinja2Templates
 import httpx
 from app.core.database import engine, Base, SessionLocal
 from app.routers.user import router as user_router
-from app.routers.auth import router as auth_router
+# from app.routers.auth import router as auth_router
 from app.routers.pages import router as pages_router
 from app.routers.dashboard import router as dashboard_router
 from fastapi.middleware.cors import CORSMiddleware
@@ -84,7 +84,7 @@ templates = Jinja2Templates(directory="templates")
 PROFILE_PHOTO_DIR = "static/profile_photos"
 # Include routers
 app.include_router(user_router, prefix="/users", tags=["users"])
-app.include_router(auth_router, prefix="/auth", tags=["auth"])
+# app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(pages_router, prefix="/pages", tags=["pages"])
 app.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 os.makedirs("uploads", exist_ok=True)
