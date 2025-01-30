@@ -383,27 +383,12 @@ async def google_callback(request: Request, db: requests.Session = Depends(get_d
         full_name = profile_data.get("name")
         profile_photo = profile_data.get("picture")
         
-               # Check if the user already exists in the database by email
         user = db.query(User).filter(User.email == email).first()
+        if not user:
+            user = User(full_name=full_name, email=email, profile_photo_url=profile_photo, is_verified=True, hashed_password="google-oauth")
+            db.add(user)
+            db.commit()
+            db.refresh(user)
         
-        if user:
-            # If user exists, redirect them to the login page
-            return RedirectResponse(url="/register?form=signin", status_code=302)
-        
-        # If the user does not exist, create a new user in the database
-        user = User(
-            full_name=full_name, 
-            email=email, 
-            profile_photo_url=profile_photo, 
-            is_verified=True, 
-            hashed_password="google-oauth"
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-        
-        # Create a new access token for the logged-in user
         access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=24))
-        
-        # Redirect the user to the dashboard with the generated token
         return RedirectResponse(url=f"/dashboard?token={access_token}", status_code=302)
