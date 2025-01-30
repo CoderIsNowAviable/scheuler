@@ -1,6 +1,7 @@
+from datetime import timedelta
 import logging
 import secrets
-from fastapi import Cookie,FastAPI, HTTPException, Request, Response
+from fastapi import Cookie, Depends,FastAPI, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -14,11 +15,12 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 import requests
 from dotenv import load_dotenv
-from app.utils.jwt import get_email_from_token, verify_access_token
+from app.utils.jwt import create_access_token, get_email_from_token, verify_access_token
 from oauthlib.oauth2 import WebApplicationClient
 import urllib.parse
 from starlette.middleware.sessions import SessionMiddleware
-
+from app.core.database import get_db
+from app.models import User
 # Initialize database models
 Base.metadata.create_all(bind=engine)
 
@@ -344,7 +346,7 @@ async def google_login(response: Response):
 
 
 @app.get("/auth/callback")
-async def oauth2_callback(request: Request, oauth_state: str = Cookie(None)):
+async def google_callback(request: Request, db: requests.Session = Depends(get_db), oauth_state: str = Cookie(None)):
     """Handle the OAuth2 callback and fetch the user's profile."""
     
     # Extract the code and state from the callback URL
@@ -370,18 +372,23 @@ async def oauth2_callback(request: Request, oauth_state: str = Cookie(None)):
         if token_response.status_code != 200:
             return {"error": "Failed to get tokens"}
 
-        # Extract the access token
-        token_info = token_response.json()
-        access_token = token_info.get("access_token")
-
-        # Fetch the user's profile using the access token
-        profile_url = "https://www.googleapis.com/oauth2/v1/userinfo"
-        profile_response = requests.get(profile_url, headers={"Authorization": f"Bearer {access_token}"})
+        access_token = token_response.json().get("access_token")
+        profile_response = requests.get("https://www.googleapis.com/oauth2/v1/userinfo", 
+                                        headers={"Authorization": f"Bearer {access_token}"})
+        if profile_response.status_code != 200:
+            raise HTTPException(status_code=400, detail="Failed to fetch Google profile")
         
-        if profile_response.status_code == 200:
-            profile_data = profile_response.json()
-            return {"profile": profile_data}
-        else:
-            return {"error": "Failed to fetch profile"}
-    
-    return {"error": "No code found in request"}
+        profile_data = profile_response.json()
+        email = profile_data.get("email")
+        full_name = profile_data.get("name")
+        profile_photo = profile_data.get("picture")
+        
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            user = User(full_name=full_name, email=email, profile_photo_url=profile_photo, is_verified=True, hashed_password="google-oauth")
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        
+        access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=24))
+        return RedirectResponse(url=f"/dashboard?token={access_token}", status_code=302)
