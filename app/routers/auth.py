@@ -20,7 +20,7 @@ SCOPES = ["openid", "email", "profile"]
 
 
 
-@router.get("/auth/google")
+@router.get("/google")
 async def google_login(response: Response):
     state = os.urandom(24).hex()
     response.set_cookie("oauth_state", state)
@@ -29,7 +29,7 @@ async def google_login(response: Response):
                 f"access_type=offline&prompt=consent&state={state}")
     return RedirectResponse(auth_url)
 
-@router.get("/auth/callback")
+@router.get("/callback")
 async def google_callback(request: Request, db: Session = Depends(get_db), oauth_state: str = Cookie(None)):
     code = request.query_params.get("code")
     state = request.query_params.get("state")
