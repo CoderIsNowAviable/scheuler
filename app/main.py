@@ -324,6 +324,7 @@ async def tiktok_callback(request: Request, db: requests.Session = Depends(get_d
     db.commit()  # Commit the transaction to save the TikTok account details in the database
 
     # Step 6: Clear session after successful authentication
+    request.session.pop("email", None)  # Removes email from session
     request.session.pop("csrfState", None)
     
     access_token = create_access_token( expires_delta=timedelta(hours=24))
