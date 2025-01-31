@@ -225,18 +225,17 @@ async def auth_tiktok(request: Request):
 
     return RedirectResponse(url=auth_url)
 
-
 @app.get("/auth/tiktok/callback/")
 async def tiktok_callback(request: Request, db: requests.Session = Depends(get_db)):
     """Handles TikTok's OAuth callback, exchanges code for an access token, and fetches user info."""
-    
+
     # Step 1: Extract query parameters
     code = request.query_params.get("code")
     state = request.query_params.get("state")
 
     if code is None or state is None:
         return {"error": "Missing 'code' or 'state' parameters"}
-    
+
     error = request.query_params.get("error")
     error_description = request.query_params.get("error_description")
     csrf_state = request.session.get("csrfState")  # Retrieve CSRF state stored in session
@@ -244,12 +243,12 @@ async def tiktok_callback(request: Request, db: requests.Session = Depends(get_d
     if error:
         # If there's an error parameter, handle the error gracefully
         return {"error": error, "error_description": error_description}
-    
+
     if state != csrf_state:
         raise HTTPException(status_code=400, detail="State parameter mismatch")
-    
+
     decoded_code = urllib.parse.unquote(code)
-    
+
     # Step 2: Exchange code for access token
     token_url = "https://open.tiktokapis.com/v2/oauth/token/"
     token_data = {
@@ -323,12 +322,21 @@ async def tiktok_callback(request: Request, db: requests.Session = Depends(get_d
 
     db.commit()  # Commit the transaction to save the TikTok account details in the database
 
-    # Step 6: Clear session after successful authentication  # Removes email from session
+    # Step 6: Store TikTok session info (email and open_id)
+    request.session["tiktok_session"] = {
+        "email": user_email,
+        "open_id": openid,
+        "access_token": access_token,  # Permanent token for API calls
+    }
+
+    # Clear session after successful authentication
     request.session.pop("csrfState", None)
-    
+
+    # Create access token for session management
     access_token = create_access_token(data={"sub": user_email}, expires_delta=timedelta(hours=24))
 
-    return RedirectResponse(url=f"/dashboard/?token={ access_token}", status_code=302)
+    # Redirect to dashboard with access token
+    return RedirectResponse(url=f"/dashboard/?token={access_token}", status_code=302)
 
 
 

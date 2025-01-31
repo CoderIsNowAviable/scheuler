@@ -212,28 +212,26 @@ async def get_events(start: str = Query(None), end: str = Query(None)):
 
 @router.get("/api/tiktok-profile")
 async def get_tiktok_profile(request: Request, db: Session = Depends(get_db)):
-    # Extract the token from the request cookies
-    token = request.cookies.get("access_token")
-    if not token:
+    # Retrieve the tiktok session from the request session
+    tiktok_session = request.session.get("tiktok_session")
+    if not tiktok_session:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
-    
-    # Decode the token to get the email
-    email = get_email_from_Ctoken(token)
-    
-    # Query the user from the database using the email
-    user = db.query(User).filter(User.email == email).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    
-    # Check if the user has a linked TikTok account
-    tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.user_id == user.id).first()
-    
-    # If no TikTok account is found, return a response indicating that
-    if not tiktok_account:
-        return JSONResponse(content={"message": "No TikTok account linked."}, status_code=200)
 
-    # If TikTok account is linked, return the relevant data
+    # Extract open_id and access_token from the session
+    openid = tiktok_session.get("open_id")
+    access_token = tiktok_session.get("access_token")
+
+    if not openid or not access_token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session data")
+
+    # Query the TikTok account from the database
+    tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.openid == openid).first()
+
+    if not tiktok_account:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="TikTok account not found")
+
+    # Return the TikTok account details
     return JSONResponse(content={
         "tiktok_username": tiktok_account.username,
-        "tiktok_profile_picture": tiktok_account.profile_picture_url
+        "tiktok_profile_picture": tiktok_account.profile_picture
     }, status_code=200)
