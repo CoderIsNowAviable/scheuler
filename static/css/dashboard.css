@@ -455,9 +455,6 @@ main {
   transform: scale(1.2);
 }
 
-.hidden {
-  display: none;
-}
 
 
 .schedule-text { /*targets the schedule text*/
