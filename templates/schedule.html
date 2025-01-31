@@ -13,13 +13,8 @@
     <div class="schedule-form">
         <div id="account-section">
             <!-- Add TikTok Account Section (visible only if no TikTok account is bound) -->
-            {% if tiktok_username is none or tiktok_username|length == 0 %}
-            <div class="account-card add-account">
-                <a href="/login/tiktok">
-                    <button id="bind-account-btn">+ Add TikTok Account</button>
-                </a>
-            </div>
-            {% else %}
+
+         
             <!-- Bound TikTok Account Section (visible only if a TikTok account is bound) -->
             <div class="account-card bound-account">
                 <!-- TikTok Profile Picture -->
@@ -30,7 +25,7 @@
                 </div>
                 <button class="account-toggle">▾</button>
             </div>
-            {% endif %}
+           
         </div>
         <br>
         <!-- Debugging TikTok Data -->
