@@ -43,8 +43,7 @@ class TikTokAccount(Base):
     user_id = Column(Integer, ForeignKey("users.id"), unique=True)  # One user, one TikTok account
     openid = Column(String(255), unique=True, index=True)  # TikTok OpenID
     username = Column(String(255), nullable=False)
-    profile_picture = Column(String(255), nullable=True)
-
+    profile_picture = Column(String(500), nullable=True)  # Increase to 500 characters
     user = relationship("User", back_populates="tiktok_account")
 
 class Content(Base):
