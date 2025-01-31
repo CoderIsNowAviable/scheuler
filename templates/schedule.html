@@ -7,27 +7,31 @@
 </section>
 
 <section class="schedule-section">
-    <div class="schedule-form">
-        <div id="account-section">
-            <!-- Add TikTok Account Section (visible only if no TikTok account is bound) -->
-            <div class="account-card add-account {% if not tiktok_username %}{{ '' }}{% else %}{{ 'hidden' }}{% endif %}">
-                <a href="/login/tiktok">
-                    <button id="bind-account-btn">+ Add TikTok Account</button>
-                </a>
-            </div>
-
-            <!-- Bound TikTok Account Section (visible only if a TikTok account is bound) -->
-            <div class="account-card bound-account {% if tiktok_username %}{{ '' }}{% else %}{{ 'hidden' }}{% endif %}">
-                <!-- TikTok Profile Picture -->
-                <img src="{{ tiktok_profile_picture }}" alt="Profile Picture" class="account-img" />
-                <div class="account-info">
-                    <!-- TikTok Username -->
-                    <span class="account-name">{{ tiktok_username }}</span>
+    <section class="schedule-section">
+        <div class="schedule-form">
+            <div id="account-section">
+                <!-- Add TikTok Account Section (visible only if no TikTok account is bound) -->
+                <div class="account-card add-account {% if not tiktok_username %}{{ '' }}{% else %}{{ 'hidden' }}{% endif %}">
+                    <a href="/login/tiktok">
+                        <button id="bind-account-btn">+ Add TikTok Account</button>
+                    </a>
                 </div>
-                <button class="account-toggle">▾</button>
+    
+                <!-- Bound TikTok Account Section (visible only if a TikTok account is bound) -->
+                <div class="account-card bound-account {% if tiktok_username %}{{ '' }}{% else %}{{ 'hidden' }}{% endif %}">
+                    <!-- TikTok Profile Picture -->
+                    <img src="{{ tiktok_profile_picture }}" alt="Profile Picture" class="account-img" />
+                    <div class="account-info">
+                        <!-- TikTok Username -->
+                        <span class="account-name">{{ tiktok_username }}</span>
+                    </div>
+                    <button class="account-toggle">▾</button>
+                </div>
             </div>
+    
+            {% debug %}
         </div>
-
+    </div>
         <!-- Post Scheduling Form -->
         <label for="title">Title</label>
         <input type="text" id="title" placeholder="Enter title">
