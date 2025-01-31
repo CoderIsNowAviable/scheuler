@@ -13,28 +13,28 @@
     <div class="schedule-form">
         <div id="account-section">
             <!-- Add TikTok Account Section (visible only if no TikTok account is bound) -->
-            {% if tiktok_username is none or tiktok_username|length == 0 %}
+            {% if not tiktok_username %}
             <div class="account-card add-account">
-                <a href="/login/tiktok">
-                    <button id="bind-account-btn">+ Add TikTok Account</button>
-                </a>
+            <a href="/login/tiktok">
+                <button id="bind-account-btn">+ Add TikTok Account</button>
+            </a>
             </div>
             {% else %}
             <!-- Bound TikTok Account Section (visible only if a TikTok account is bound) -->
             <div class="account-card bound-account">
-                <!-- TikTok Profile Picture -->
-                <img src="{{ tiktok_profile_picture or '/static/images/Overlays.png' }}" alt="Profile Picture" class="account-img" />
-                <div class="account-info">
-                    <!-- TikTok Username -->
-                    <span class="account-name">{{ tiktok_username or 'No TikTok account bound' }}</span>
-                </div>
-                <button class="account-toggle">▾</button>
+            <!-- TikTok Profile Picture -->
+            <img src="{{ tiktok_profile_picture }}" alt="Profile Picture" class="account-img" />
+            <div class="account-info">
+                <!-- TikTok Username -->
+                <span class="account-name">{{ tiktok_username }}</span>
+            </div>
+            <button class="account-toggle">▾</button>
             </div>
             {% endif %}
         </div>
         <br>
-        <p>TikTok Username (Debug): {{ tiktok_username }}</p>
-        <p>TikTok Profile Picture (Debug): <img src="{{ tiktok_profile_picture }}" alt="TikTok Profile" width="50px" /></p>
+        <p> Username : {{ tiktok_username }}</p>
+        <p>TikTok  <img src="{{ tiktok_profile_picture }}" alt="TikTok Profile" width="50px" /></p>
         
     </div>
 
