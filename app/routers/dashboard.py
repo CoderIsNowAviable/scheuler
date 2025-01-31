@@ -62,7 +62,7 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
         print(f"tiktok_username: {tiktok_username}")
         print(f"tiktok_profile_picture: {tiktok_profile_picture}")
 
-        # If user is linked to TikTok, show /me page with TikTok info
+        # If user is linked to TikTok, show main dashboard with TikTok info
         if tiktok_account:
             return templates.TemplateResponse("dashboard.html", {
                 "request": request,
@@ -73,17 +73,18 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
                 "tiktok_profile_picture": tiktok_account.profile_picture,
             })
         
-        # Otherwise, show main dashboard and offer TikTok login
+        # Otherwise, show /me page and offer TikTok login
         return templates.TemplateResponse("schedule.html", {
                 "request": request,
                 "username": username,
                 "email": email,
                 "profile_photo_url": profile_photo_url,
+                "tiktok_username": tiktok_username,
+                "tiktok_profile_picture": tiktok_profile_picture,
             })
 
     except HTTPException:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
-
 
     
 @router.get("/{section}", response_class=HTMLResponse)
