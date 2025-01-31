@@ -67,6 +67,14 @@ async def signin(response: Response, email: str = Form(...), password: str = For
         return RedirectResponse(url=f"/authenticate?email={email}&token={access_token}", status_code=302)
 
     if user:
+        # Check if user is authenticated via Google OAuth and skip password verification for them
+        if user.hashed_password == "google-oauth":
+            # Generate a JWT token and redirect to dashboard
+            access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=24))
+            response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
+            return RedirectResponse(url=f"/dashboard?token={access_token}", status_code=302)
+
+        # If not Google OAuth, verify the password
         if not verify_password(password, user.hashed_password):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid password")
 
