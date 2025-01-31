@@ -39,9 +39,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const accountSection = document.getElementById('tiktok-account-placeholder');
     
     // Fetch TikTok account info from the backend
-    fetch('dashboard/api/tiktok-profile')
+    fetch('/dashboard/api/tiktok-profile')
         .then(response => response.json())
         .then(data => {
+            console.log(data); // Debug the response
             if (data.tiktok_username) {
                 accountSection.innerHTML = `
                     <div class="account-card bound-account">
