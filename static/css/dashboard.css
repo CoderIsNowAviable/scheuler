@@ -411,6 +411,8 @@ main {
 /* After state: Bound account */
 .bound-account {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   position: relative;
 }
 

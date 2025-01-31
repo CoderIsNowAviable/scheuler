@@ -8,16 +8,14 @@
         <input type="file" id="file-upload" style="display:none" />
     </div>
 </section>
-
 <section class="schedule-section">
     <div class="schedule-form">
         <div id="account-section">
-            <!-- Placeholder where TikTok account info will be dynamically injected -->
+            <!-- TikTok account information will be injected here dynamically -->
             <div id="tiktok-account-placeholder"></div>
         </div>
 
-        <!-- Post Scheduling Form -->
-        <br><label for="title">Title</label>
+        <label for="title">Title</label>
         <input type="text" id="title" placeholder="Enter title">
 
         <label for="description">Description</label>
@@ -33,38 +31,3 @@
         <button class="cta">Schedule</button>
     </div>
 </section>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const accountSection = document.getElementById('tiktok-account-placeholder');
-    
-    // Fetch TikTok account info from the backend
-    fetch('/dashboard/api/tiktok-profile')
-        .then(response => response.json())
-        .then(data => {
-            console.log(data); // Debug the response
-            if (data.tiktok_username) {
-                accountSection.innerHTML = `
-                    <div class="account-card bound-account">
-                        <img src="${data.tiktok_profile_picture}" alt="Profile Picture" class="account-img" />
-                        <div class="account-info">
-                            <span class="account-name">${data.tiktok_username}</span>
-                        </div>
-                        <button class="account-toggle">▾</button>
-                    </div>
-                `;
-            } else {
-                accountSection.innerHTML = `
-                    <div class="account-card add-account">
-                        <a href="/login/tiktok">
-                            <button id="bind-account-btn">+ Add TikTok Account</button>
-                        </a>
-                    </div>
-                `;
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching TikTok profile:', error);
-        });
-});
-</script>

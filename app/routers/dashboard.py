@@ -2,14 +2,14 @@ import json
 import logging
 import os
 import shutil
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile,status
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.user import User, Content, TikTokAccount
-from app.utils.jwt import verify_access_token
+from app.utils.jwt import get_email_from_Ctoken, verify_access_token
 from app.utils.random_profile_generator import generate_random_profile_photo
 from datetime import datetime
 from fastapi import Query
