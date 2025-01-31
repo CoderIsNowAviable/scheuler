@@ -328,7 +328,7 @@ async def tiktok_callback(request: Request, db: requests.Session = Depends(get_d
     
     access_token = create_access_token(data={"sub": user_email}, expires_delta=timedelta(hours=24))
 
-    return RedirectResponse(url=f"/dashboard/me/?token={ access_token}", status_code=302)
+    return RedirectResponse(url=f"/dashboard/?token={ access_token}", status_code=302)
 
 
 
