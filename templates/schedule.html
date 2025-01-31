@@ -1,61 +1,69 @@
 <section class="upload-section">
-        <div class="upload-text">Upload your Image.</div>
-        <div class="upload-box">
-            <p>Drag or drop a file to upload.</p>
-            <label for="file-upload">
-                <button id="select-photo-btn">Select</button>
-            </label>
-            <input type="file" id="file-upload" style="display:none" />
-        </div>
+    <div class="upload-text">Upload your Image.</div>
+    <div class="upload-box">
+        <p>Drag or drop a file to upload.</p>
+        <label for="file-upload">
+            <button id="select-photo-btn">Select</button>
+        </label>
+        <input type="file" id="file-upload" style="display:none" />
+    </div>
 </section>
 
 <section class="schedule-section">
-        <div class="schedule-form">
-            <div id="account-section">
-                {% if tiktok_username %}
-                <!-- Bound TikTok Account Section (visible only if a TikTok account is bound) -->
-                <div class="account-card bound-account">
-                        <!-- TikTok Profile Picture -->
-                        <img src="{{ tiktok_profile_picture }}" alt="Profile Picture" class="account-img" />
+    <div class="schedule-form">
+        <div id="account-section">
+            <!-- Placeholder where TikTok account info will be dynamically injected -->
+            <div id="tiktok-account-placeholder"></div>
+        </div>
+
+        <!-- Post Scheduling Form -->
+        <br><label for="title">Title</label>
+        <input type="text" id="title" placeholder="Enter title">
+
+        <label for="description">Description</label>
+        <textarea id="description" placeholder="Write a description"></textarea>
+
+        <label for="tags">Tags</label>
+        <input type="text" id="tags" placeholder="Add tags">
+
+        <label for="end-time">Date & Time</label>
+        <input type="datetime-local" id="end-time" name="end-time" required>
+        <input type="hidden" id="start-time" name="start-time">
+
+        <button class="cta">Schedule</button>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const accountSection = document.getElementById('tiktok-account-placeholder');
+    
+    // Fetch TikTok account info from the backend
+    fetch('dashboard/api/tiktok-profile')
+        .then(response => response.json())
+        .then(data => {
+            if (data.tiktok_username) {
+                accountSection.innerHTML = `
+                    <div class="account-card bound-account">
+                        <img src="${data.tiktok_profile_picture}" alt="Profile Picture" class="account-img" />
                         <div class="account-info">
-                            <!-- TikTok Username -->
-                            <span class="account-name">{{ tiktok_username }}</span>
+                            <span class="account-name">${data.tiktok_username}</span>
                         </div>
                         <button class="account-toggle">▾</button>
-                </div>
-                {% else %}
-                <!-- Add TikTok Account Section (visible only if no TikTok account is bound) -->
-                <div class="account-card add-account">
+                    </div>
+                `;
+            } else {
+                accountSection.innerHTML = `
+                    <div class="account-card add-account">
                         <a href="/login/tiktok">
                             <button id="bind-account-btn">+ Add TikTok Account</button>
                         </a>
-                </div>
-                {% endif %}
-            </div>
-            
-            <!-- Debugging section -->
-            {% if tiktok_username == "Black listed" %}
-            <p>TikTok Account is blacklisted.</p>
-            {% else %}
-            <p>TikTok Username: {{ tiktok_username }}</p>
-            <p>TikTok Profile Picture: <img src="{{ tiktok_profile_picture }}" alt="TikTok Profile" width="50px" /></p>
-            {% endif %}
-            
-            <!-- Post Scheduling Form -->
-            <br><label for="title">Title</label>
-            <input type="text" id="title" placeholder="Enter title">
-
-            <label for="description">Description</label>
-            <textarea id="description" placeholder="Write a description"></textarea>
-
-            <label for="tags">Tags</label>
-            <input type="text" id="tags" placeholder="Add tags">
-
-            <label for="end-time">Date & Time</label>
-            <input type="datetime-local" id="end-time" name="end-time" required>
-            <input type="hidden" id="start-time" name="start-time">
-
-            <button class="cta">Schedule</button>
-        </div>
-</section>
-
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching TikTok profile:', error);
+        });
+});
+</script>
