@@ -137,17 +137,38 @@ async def upload_profile_photo(
 
 
 
-
 @router.post("/api/content-data/")
 async def create_content_data(
+    request: Request,  # Get the request object to access the session
     title: str = Form(...),
     description: str = Form(...),
     tags: str = Form(...),
     end_time: str = Form(...),
     image: UploadFile = File(...),
-    db: Session = Depends(get_db),  # Use dependency to get the DB session
+    db: Session = Depends(get_db),
 ):
     try:
+        # Retrieve the TikTok session from the session
+        tiktok_session = request.session.get("tiktok_session")
+        
+        if not tiktok_session:
+            raise HTTPException(status_code=401, detail="User not authenticated with TikTok")
+        
+        # Retrieve the email or open_id from the session
+        user_email = tiktok_session.get("email")
+        
+        if not user_email:
+            raise HTTPException(status_code=401, detail="TikTok email not found in session")
+        
+        # Retrieve the user_id from the database based on the email
+        user = db.query(User).filter(User.email == user_email).first()
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Extract the user_id
+        user_id = user.id
+
         # Convert the string end time into a datetime object
         end_datetime = datetime.fromisoformat(end_time).replace(tzinfo=None)  # Make naive
 
@@ -156,12 +177,9 @@ async def create_content_data(
         with open(file_location, "wb") as f:
             f.write(await image.read())
 
-        # Assuming user is logged in, fetch the user_id
-        user_id = 1  # Replace this with the actual logged-in user ID logic
-        
         # Create content instance and insert into the database
         new_content = Content(
-            user_id=user_id,
+            user_id=user_id,  # Use the dynamically fetched user_id
             platform="tiktok",  # or another platform if necessary
             media_url=file_location,  # Save the image/video path in the media_url
             title=title,
@@ -179,8 +197,6 @@ async def create_content_data(
     except Exception as e:
         print(f"Error: {str(e)}")  # Log the full error
         raise HTTPException(status_code=500, detail=f"Error saving content data: {str(e)}")
-
-
 
 @router.get("/api/events")
 async def get_events(start: str = Query(None), end: str = Query(None)):
