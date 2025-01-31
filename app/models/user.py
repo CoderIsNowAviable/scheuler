@@ -1,7 +1,6 @@
-from fastapi import Response
-from datetime import datetime
-from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Boolean
 from sqlalchemy.orm import relationship
+from datetime import datetime
 from app.core.database import Base
 
 class User(Base):
@@ -14,7 +13,11 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
     verification_code = Column(String(5))
     profile_photo_url = Column(String(255), default=None)
-    pending_users = relationship("PendingUser", back_populates="owner")
+
+    # Relationships
+    pending_user = relationship("PendingUser", back_populates="owner", uselist=False)
+    tiktok_account = relationship("TikTokAccount", back_populates="user", uselist=False)
+    contents = relationship("Content", back_populates="user")
 
 class PendingUser(Base):
     __tablename__ = "pending_users"
@@ -26,8 +29,34 @@ class PendingUser(Base):
     verification_code = Column(String(5))
     verification_code_expiry = Column(DateTime, nullable=True)
     owner_id = Column(Integer, ForeignKey("users.id"))
-    owner = relationship("User", back_populates="pending_users")
-    
+
+    owner = relationship("User", back_populates="pending_user")
+
     def is_code_expired(self):
         """Helper method to check if the verification code has expired"""
         return self.verification_code_expiry < datetime.utcnow()
+
+class TikTokAccount(Base):
+    __tablename__ = "tiktok_accounts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True)  # One user, one TikTok account
+    openid = Column(String(255), unique=True, index=True)  # TikTok OpenID
+    username = Column(String(255), nullable=False)
+    profile_picture = Column(String(255), nullable=True)
+
+    user = relationship("User", back_populates="tiktok_account")
+
+class Content(Base):
+    __tablename__ = "contents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))  # Who created this content
+    platform = Column(String(50), nullable=False, default="tiktok")  # e.g., TikTok, Instagram
+    media_url = Column(String(255), nullable=False)  # Storage URL of the video/image
+    title = Column(String(255), nullable=True)
+    description = Column(Text, nullable=True)
+    tags = Column(String(255), nullable=True)  # Comma-separated tags
+    scheduled_time = Column(DateTime, nullable=True)  # When to post
+
+    user = relationship("User", back_populates="contents")

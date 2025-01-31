@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import httpx
 from app.core.database import engine, Base, SessionLocal
+from app.models.user import TikTokAccount
 from app.routers.user import router as user_router
 # from app.routers.auth import router as auth_router
 from app.routers.pages import router as pages_router
@@ -224,16 +225,18 @@ async def auth_tiktok(request: Request):
 
     return RedirectResponse(url=auth_url)
 
-@app.get("/auth/tiktok/callback/")
-async def tiktok_callback(request: Request):
-    """Handles TikTok's OAuth callback, exchanges code for an access token, and fetches user info."""
 
+@app.get("/auth/tiktok/callback/")
+async def tiktok_callback(request: Request, db: requests.Session = Depends(get_db)):
+    """Handles TikTok's OAuth callback, exchanges code for an access token, and fetches user info."""
+    
     # Step 1: Extract query parameters
     code = request.query_params.get("code")
     state = request.query_params.get("state")
 
     if code is None or state is None:
         return {"error": "Missing 'code' or 'state' parameters"}
+    
     error = request.query_params.get("error")
     error_description = request.query_params.get("error_description")
     csrf_state = request.session.get("csrfState")  # Retrieve CSRF state stored in session
@@ -247,7 +250,7 @@ async def tiktok_callback(request: Request):
     
     decoded_code = urllib.parse.unquote(code)
     
-    # Exchange code for access token
+    # Step 2: Exchange code for access token
     token_url = "https://open.tiktokapis.com/v2/oauth/token/"
     token_data = {
         "client_key": TIKTOK_CLIENT_KEY,
@@ -265,15 +268,15 @@ async def tiktok_callback(request: Request):
         error_message = response.json().get("message", "Unknown error")
         raise HTTPException(status_code=400, detail=f"Failed to get access token: {error_message}")
 
-    # Extract access token correctly
+    # Extract access token and openid
     response_data = response.json()
     access_token = response_data.get("access_token")
-    open_id = response_data.get("open_id")  # TikTok's unique user ID
+    openid = response_data.get("open_id")  # TikTok's unique user ID
 
-    if not access_token:
-        raise HTTPException(status_code=400, detail="Access token not found")
+    if not access_token or not openid:
+        raise HTTPException(status_code=400, detail="Access token or open_id not found")
 
-    # Fetch user profile info
+    # Step 3: Fetch user profile info
     user_info_url = "https://open.tiktokapis.com/v2/user/info/"
     user_info_params = {
         "fields": "open_id,union_id,display_name,avatar_url"
@@ -285,31 +288,49 @@ async def tiktok_callback(request: Request):
     async with httpx.AsyncClient() as client:
         user_info_response = await client.get(user_info_url, params=user_info_params, headers=user_info_headers)
 
-    # Log the full response content for debugging
-    print("User Info Response:", user_info_response.text)  # Log the raw response body
-
     if user_info_response.status_code != 200:
         error_message = user_info_response.json().get("message", "Unknown error")
         raise HTTPException(status_code=400, detail=f"Failed to fetch user info: {error_message}")
 
-    # Extract user info from the response
     user_info = user_info_response.json().get("data", {}).get("user", {})
 
-    # Clear session after successful authentication
+    # Step 4: Retrieve the user from the database
+    user_email = request.session.get("email")  # Assuming email is stored in session after login
+    user = db.query(User).filter(User.email == user_email).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Step 5: Check if TikTok account already exists
+    tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.user_id == user.id).first()
+
+    if tiktok_account:
+        # Update existing TikTok account info
+        tiktok_account.openid = openid
+        tiktok_account.username = user_info.get("display_name")
+        tiktok_account.profile_picture = user_info.get("avatar_url")
+    else:
+        # Create a new TikTok account record
+        new_tiktok_account = TikTokAccount(
+            user_id=user.id,
+            openid=openid,
+            username=user_info.get("display_name"),
+            profile_picture=user_info.get("avatar_url"),
+        )
+        db.add(new_tiktok_account)
+
+    db.commit()  # Commit the transaction to save the TikTok account details in the database
+
+    # Step 6: Clear session after successful authentication
     request.session.pop("csrfState", None)
-    return {
-        "message": "OAuth successful",
-        "access_token": access_token,
-        "user": {
-            "open_id": user_info.get("open_id"),
-            "display_name": user_info.get("display_name"),
-            "avatar_url": user_info.get("avatar_url"),
-        }
-
-    }
-
-
     
+    access_token = create_access_token( expires_delta=timedelta(hours=24))
+
+    return RedirectResponse(url=f"/dashboard/me/?token={ access_token}", status_code=302)
+
+
+
+
 @app.get("/sitemap.xml")
 async def get_sitemap():
     file_path = "static/sitemap.xml"  # Path to your sitemap in the static folder

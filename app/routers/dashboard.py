@@ -8,15 +8,19 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.models.user import User
+from app.models.user import User, Content
 from app.utils.jwt import verify_access_token
 from app.utils.random_profile_generator import generate_random_profile_photo
+from datetime import datetime
 
 router = APIRouter()
-router.mount("/static", StaticFiles(directory="static"), name="static")
-router.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+router.mount("/static", StaticFiles(directory=os.path.join(os.getcwd(), "static")), name="static")
+router.mount("/uploads", StaticFiles(directory=os.path.join(os.getcwd(), "uploads")), name="uploads")
+
 templates = Jinja2Templates(directory="templates")
-PROFILE_PHOTO_DIR = "/static/profile_photos"
+
+
+PROFILE_PHOTO_DIR = os.path.join(os.getcwd(), "static", "profile_photos")
 
 @router.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request, token: str = None, db: Session = Depends(get_db)):
@@ -37,31 +41,76 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        # Generate a random profile photo or fetch one from user data
-        # Handle profile photo URL
+        # Generate or fetch profile photo URL
         if user.profile_photo_url:
-            if user.profile_photo_url.startswith("http"):
-                profile_photo_url = user.profile_photo_url  # Full URL
-            else:
-                profile_photo_url = f"{user.profile_photo_url}"  # Local path
+            profile_photo_url = user.profile_photo_url if user.profile_photo_url.startswith("http") else f"/static/{user.profile_photo_url}"
         else:
-            # Use a default profile photo or generate one
-            profile_photo_url = generate_random_profile_photo(user, db)  
-        username = user.full_name # Assuming `name` is the column in your `User` table
+            profile_photo_url = generate_random_profile_photo(user, db)  # Use a random profile photo generator
+
+        username = user.full_name  # Assuming `full_name` is the column for the username
+
+        # Fetch TikTok info if linked
+        tiktok_account = user.tiktok_account
+        tiktok_username = tiktok_account.username if tiktok_account else None
+        tiktok_profile_picture = tiktok_account.profile_picture if tiktok_account else None
 
         # Pass the data to the template for rendering
         return templates.TemplateResponse("dashboard.html", {
             "request": request,
             "username": username,
             "email": email,
-            "profile_photo_url": profile_photo_url
+            "profile_photo_url": profile_photo_url,
+            "tiktok_username": tiktok_username,
+            "tiktok_profile_picture": tiktok_profile_picture
         })
 
     except HTTPException:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+
     
     
-@router.get("/{section}", response_class=HTMLResponse)
+@router.get("/me", response_class=HTMLResponse)
+async def dashboard_me(request: Request, token: str = None, db: Session = Depends(get_db)):
+    """Display the logged-in user's profile including TikTok info"""
+
+    if not token:
+        raise HTTPException(status_code=401, detail="Token is missing")
+
+    try:
+        # Decode the JWT token to get user info
+        user_data = verify_access_token(token)
+
+        # Extract email from the token (the 'sub' field)
+        email = user_data.get("sub")
+        if not email:
+            raise HTTPException(status_code=401, detail="Token is invalid or missing email")
+
+        # Retrieve the user from the database using the email
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Fetch TikTok account if it exists
+        tiktok_account = user.tiktok_account
+
+        # Set the profile photo URL
+        profile_photo_url = user.profile_photo_url if user.profile_photo_url else "default_profile_photo_url.png"
+
+        # Pass the data to the template for rendering
+        return templates.TemplateResponse("dashboard.html", {
+            "request": request,
+            "username": user.full_name,
+            "email": user.email,
+            "profile_photo_url": profile_photo_url,
+            "tiktok_username": tiktok_account.username if tiktok_account else None,
+            "tiktok_profile_picture": tiktok_account.profile_picture if tiktok_account else None,
+        })
+
+    except HTTPException:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    
+@router.get("/me/{section}", response_class=HTMLResponse)
 async def load_section(request: Request, section: str):
     """
     Load dynamic content based on the section parameter.
@@ -109,7 +158,8 @@ async def upload_profile_photo(
         logging.error(f"Error uploading profile photo: {e}")
         raise HTTPException(status_code=500, detail="Error uploading profile photo")
 
-from datetime import datetime
+
+router = APIRouter()
 
 @router.post("/api/content-data/")
 async def create_content_data(
@@ -118,47 +168,40 @@ async def create_content_data(
     tags: str = Form(...),
     end_time: str = Form(...),
     image: UploadFile = File(...),
+    db: Session = Depends(get_db),  # Use dependency to get the DB session
 ):
     try:
-        # Convert the string start and end times into datetime objects
+        # Convert the string end time into a datetime object
         end_datetime = datetime.fromisoformat(end_time).replace(tzinfo=None)  # Make naive
-
 
         # Save the image file to a directory
         file_location = f"uploads/{image.filename}"
         with open(file_location, "wb") as f:
             f.write(await image.read())
 
-        # Save event data (title, start, end, etc.) to the database or a file
-        event = {
-            "title": title,
-            "end": end_datetime.isoformat(),
-            "description": description,
-            "tags": tags,
-            "file_location": file_location,
-        }
+        # Assuming user is logged in, fetch the user_id
+        user_id = 1  # Replace this with the actual logged-in user ID logic
+        
+        # Create content instance and insert into the database
+        new_content = Content(
+            user_id=user_id,
+            platform="tiktok",  # or another platform if necessary
+            media_url=file_location,  # Save the image/video path in the media_url
+            title=title,
+            description=description,
+            tags=tags,
+            scheduled_time=end_datetime,
+        )
 
-        # Simulate saving to a database by appending to a file
-        events_file_path = "events.json"
+        # Add content to the database and commit
+        db.add(new_content)
+        db.commit()
 
-        # If the file doesn't exist, initialize an empty list
-        if not os.path.exists(events_file_path):
-            events = []
-        else:
-            with open(events_file_path, "r") as event_file:
-                events = json.load(event_file)
-
-        events.append(event)
-
-        with open(events_file_path, "w") as event_file:
-            json.dump(events, event_file)
-
-        return {"status": "success", "message": "Content data and event saved successfully"}
+        return {"status": "success", "message": "Content data saved successfully"}
 
     except Exception as e:
         print(f"Error: {str(e)}")  # Log the full error
         raise HTTPException(status_code=500, detail=f"Error saving content data: {str(e)}")
-
 
 from fastapi import Query
 from datetime import datetime
