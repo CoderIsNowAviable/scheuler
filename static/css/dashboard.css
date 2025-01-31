@@ -5,7 +5,6 @@
   font-style: normal;
 }
 
-/*helaur*/
 @font-face {
   font-family: 'Antinkodan';
   src: url('../fonts/antinkodan-20250105T074502Z-001/antinkodan/Antinkodan.woff2') format('woff2');
@@ -527,28 +526,4 @@ main {
   box-shadow: 7px 7px 0px #BEBEBE; /* Grey box shadow under the button */
   transform: translateY(-5px); /* Moves the button slightly up */
 }
-
-/* Footer */
-.footer {
-  text-align: center;
-  margin-top: 40px;
-  margin-left: 95px;
-  color:#333
-}
-
-.footer p{
-  text-align: center;
-  margin-top: -50px;
-  margin-right: 80px;
-}
-.footer a {
-  margin: 2px;
-  text-decoration: none;
-  color: #000;
-  font-size: 14px;
-  font-family: Coolvetica;
-  font-weight: 100;
-  transition: text-decoration 0.3s ease;
-}
-
 

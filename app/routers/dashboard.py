@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.models.user import User, Content
+from app.models.user import User, Content, TikTokAccount
 from app.utils.jwt import verify_access_token
 from app.utils.random_profile_generator import generate_random_profile_photo
 from datetime import datetime
@@ -55,9 +55,12 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
         username = user.full_name  # Assuming `full_name` is the column for the username
 
         # Fetch TikTok info if linked
-        tiktok_account = user.tiktok_account
+        tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.user_id == user.id).first()
         tiktok_username = tiktok_account.username if tiktok_account else None
         tiktok_profile_picture = tiktok_account.profile_picture if tiktok_account else None
+        
+        print(f"tiktok_username: {tiktok_username}")
+        print(f"tiktok_profile_picture: {tiktok_profile_picture}")
 
         # If user is linked to TikTok, show /me page with TikTok info
         if tiktok_account:
