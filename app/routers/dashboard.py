@@ -105,6 +105,8 @@ async def dashboard_me(request: Request, token: str = None, db: Session = Depend
         # Set the profile photo URL
         profile_photo_url = user.profile_photo_url if user.profile_photo_url else "default_profile_photo_url.png"
 
+        print(f"tiktok_username: {tiktok_account.username}")
+        print(f"tiktok_profile_picture: {tiktok_account.profile_picture}")
         # Pass the data to the template for rendering
         return templates.TemplateResponse("dashboard.html", {
             "request": request,
