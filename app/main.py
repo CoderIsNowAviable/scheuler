@@ -294,10 +294,12 @@ async def tiktok_callback(request: Request, db: requests.Session = Depends(get_d
 
     user_info = user_info_response.json().get("data", {}).get("user", {})
 
-    # Step 4: Retrieve the user from the database
-    user_email = request.session.get("email")  # Assuming email is stored in session after login
-    user = db.query(User).filter(User.email == user_email).first()
+    # Step 4: Retrieve the user from the database using the email stored in the session
+    user_email = request.session.get("email")  # Retrieve email from the session
+    if not user_email:
+        raise HTTPException(status_code=401, detail="User email not found in session")
 
+    user = db.query(User).filter(User.email == user_email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 

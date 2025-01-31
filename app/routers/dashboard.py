@@ -41,6 +41,9 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
         if not email:
             raise HTTPException(status_code=401, detail="Token is invalid or missing email")
         
+        
+        if "email" not in request.session:
+            request.session["email"] = email
         # Retrieve the user profile from the database using the email
         user = db.query(User).filter(User.email == email).first()
         if not user:
