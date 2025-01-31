@@ -19,7 +19,7 @@
             <!-- Bound TikTok Account Section (visible only if a TikTok account is bound) -->
             <div class="account-card bound-account {% if tiktok_username %}{{ '' }}{% else %}{{ 'hidden' }}{% endif %}">
                 <!-- TikTok Profile Picture -->
-                <img src="{{ tiktok_profile_picture if tiktok_profile_picture else '/static/images/default-avatar.png' }}" alt="Profile Picture" class="account-img" />
+                <img src="{{ tiktok_profile_picture }}" alt="Profile Picture" class="account-img" />
                 <div class="account-info">
                     <!-- TikTok Username -->
                     <span class="account-name">{{ tiktok_username }}</span>

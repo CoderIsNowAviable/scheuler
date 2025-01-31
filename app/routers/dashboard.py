@@ -111,8 +111,8 @@ async def dashboard_me(request: Request, token: str = None, db: Session = Depend
             "username": user.full_name,
             "email": user.email,
             "profile_photo_url": profile_photo_url,
-            "tiktok_username": tiktok_account.username if tiktok_account else None,
-            "tiktok_profile_picture": tiktok_account.profile_picture if tiktok_account else None,
+            "tiktok_username": tiktok_account.username ,
+            "tiktok_profile_picture": tiktok_account.profile_picture  ,
         })
 
     except HTTPException:
