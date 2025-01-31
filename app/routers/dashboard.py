@@ -12,8 +12,13 @@ from app.models.user import User, Content
 from app.utils.jwt import verify_access_token
 from app.utils.random_profile_generator import generate_random_profile_photo
 from datetime import datetime
+from fastapi import Query
+from datetime import datetime
+
 
 router = APIRouter()
+
+
 router.mount("/static", StaticFiles(directory=os.path.join(os.getcwd(), "static")), name="static")
 router.mount("/uploads", StaticFiles(directory=os.path.join(os.getcwd(), "uploads")), name="uploads")
 
@@ -159,7 +164,7 @@ async def upload_profile_photo(
         raise HTTPException(status_code=500, detail="Error uploading profile photo")
 
 
-router = APIRouter()
+
 
 @router.post("/api/content-data/")
 async def create_content_data(
@@ -203,8 +208,7 @@ async def create_content_data(
         print(f"Error: {str(e)}")  # Log the full error
         raise HTTPException(status_code=500, detail=f"Error saving content data: {str(e)}")
 
-from fastapi import Query
-from datetime import datetime
+
 
 @router.get("/api/events")
 async def get_events(start: str = Query(None), end: str = Query(None)):
