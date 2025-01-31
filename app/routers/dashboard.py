@@ -69,8 +69,8 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
                 "username": username,
                 "email": email,
                 "profile_photo_url": profile_photo_url,
-                "tiktok_username": tiktok_username,
-                "tiktok_profile_picture": tiktok_profile_picture
+                "tiktok_username": tiktok_account.username if tiktok_account else None,
+                "tiktok_profile_picture": tiktok_account.profile_picture if tiktok_account else None,
             })
         
         # Otherwise, show main dashboard and offer TikTok login
@@ -80,7 +80,7 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
             "email": email,
             "profile_photo_url": profile_photo_url,
             "tiktok_username": tiktok_username or 'No TikTok account bound',
-            "tiktok_profile_picture": tiktok_profile_picture or '/static/images/default-avatar.png'
+            "tiktok_profile_picture": tiktok_profile_picture or '/static/images/default-avatar.png',
         })
 
     except HTTPException:
