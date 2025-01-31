@@ -18,6 +18,7 @@
                     <button id="bind-account-btn">+ Add TikTok Account</button>
                 </a>
             </div>
+            {% endif %}
     
             <!-- Bound TikTok Account Section (visible only if a TikTok account is bound) -->
             <div class="account-card bound-account {% if tiktok_username %}">
@@ -29,6 +30,7 @@
                 </div>
                 <button class="account-toggle">▾</button>
             </div>
+            {% endif %}
         </div>
 
         <!-- Post Scheduling Form -->

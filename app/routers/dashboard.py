@@ -41,21 +41,17 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
         if not email:
             raise HTTPException(status_code=401, detail="Token is invalid or missing email")
         
-        
         if "email" not in request.session:
             request.session["email"] = email
-            
+
         # Retrieve the user profile from the database using the email
         user = db.query(User).filter(User.email == email).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Generate or fetch profile photo URL
-        if user.profile_photo_url:
-            profile_photo_url = user.profile_photo_url if user.profile_photo_url.startswith("http") else f"/static/{user.profile_photo_url}"
-        else:
-            profile_photo_url = generate_random_profile_photo(user, db)  # Use a random profile photo generator
-
+        profile_photo_url = user.profile_photo_url if user.profile_photo_url else "default_profile_photo_url.png"
+        
         username = user.full_name  # Assuming `full_name` is the column for the username
 
         # Fetch TikTok info if linked
@@ -63,65 +59,33 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
         tiktok_username = tiktok_account.username if tiktok_account else None
         tiktok_profile_picture = tiktok_account.profile_picture if tiktok_account else None
 
-        # Pass the data to the template for rendering
+        # If user is linked to TikTok, show /me page with TikTok info
+        if tiktok_account:
+            return templates.TemplateResponse("dashboard.html", {
+                "request": request,
+                "username": username,
+                "email": email,
+                "profile_photo_url": profile_photo_url,
+                "tiktok_username": tiktok_username,
+                "tiktok_profile_picture": tiktok_profile_picture
+            })
+        
+        # Otherwise, show main dashboard and offer TikTok login
         return templates.TemplateResponse("dashboard.html", {
             "request": request,
             "username": username,
             "email": email,
             "profile_photo_url": profile_photo_url,
-            "tiktok_username": tiktok_username,
-            "tiktok_profile_picture": tiktok_profile_picture
+            "tiktok_username": tiktok_username or 'No TikTok account bound',
+            "tiktok_profile_picture": tiktok_profile_picture or '/static/images/default-avatar.png'
         })
 
     except HTTPException:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-    
-    
-@router.get("/me", response_class=HTMLResponse)
-async def dashboard_me(request: Request, token: str = None, db: Session = Depends(get_db)):
-    """Display the logged-in user's profile including TikTok info"""
-
-    if not token:
-        raise HTTPException(status_code=401, detail="Token is missing")
-
-    try:
-        # Decode the JWT token to get user info
-        user_data = verify_access_token(token)
-
-        # Extract email from the token (the 'sub' field)
-        email = user_data.get("sub")
-        if not email:
-            raise HTTPException(status_code=401, detail="Token is invalid or missing email")
-
-        # Retrieve the user from the database using the email
-        user = db.query(User).filter(User.email == email).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        # Fetch TikTok account if it exists
-        tiktok_account = user.tiktok_account
-
-        # Set the profile photo URL
-        profile_photo_url = user.profile_photo_url if user.profile_photo_url else "default_profile_photo_url.png"
-
-        print(f"tiktok_username: {tiktok_account.username}")
-        print(f"tiktok_profile_picture: {tiktok_account.profile_picture}")
-        # Pass the data to the template for rendering
-        return templates.TemplateResponse("dashboard.html", {
-            "request": request,
-            "username": user.full_name,
-            "email": user.email,
-            "profile_photo_url": profile_photo_url,
-            "tiktok_username": tiktok_account.username ,
-            "tiktok_profile_picture": tiktok_account.profile_picture  ,
-        })
-
-    except HTTPException:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
     
-@router.get("/me/{section}", response_class=HTMLResponse)
+@router.get("/{section}", response_class=HTMLResponse)
 async def load_section(request: Request, section: str):
     """
     Load dynamic content based on the section parameter.

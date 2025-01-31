@@ -71,8 +71,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     try {
       // Log request URL for debugging
-      console.log(`Fetching content for: /dashboard/me/${section}`);
-      const response = await fetch(`/dashboard/me/${section}`);
+      console.log(`Fetching content for: /dashboard/${section}`);
+      const response = await fetch(`/dashboard/${section}`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
