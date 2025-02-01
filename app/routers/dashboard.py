@@ -145,6 +145,8 @@ async def load_section(request: Request, section: str, db: Session = Depends(get
     tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.user_id == user.id).first()
     tiktok_username = tiktok_account.username if tiktok_account else None
     tiktok_profile_picture = tiktok_account.profile_picture if tiktok_account else None
+    print("tiktok_username",tiktok_username)
+    print("tiktok_profile_picture",tiktok_profile_picture)
     # Prepare user-specific data
     user_data = {
         "userId": user.id,
@@ -298,29 +300,30 @@ async def get_events(start: str = Query(None), end: str = Query(None), db: Sessi
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Could not load events: {str(e)}")
 
-
-@router.get("/api/tiktok-profile")
+@router.get("/api/tiktok-profile",)
 async def get_tiktok_profile(request: Request, db: Session = Depends(get_db)):
-    # Retrieve the tiktok session from the request session
-    tiktok_session = request.session.get("tiktok_session")
-    if not tiktok_session:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    """
+    Endpoint to fetch the logged-in user's TikTok profile data.
+    This endpoint is called dynamically by JavaScript in the SPA.
+    """
+    user_id = request.session.get("user_id")
 
-    # Extract open_id and access_token from the session
-    openid = tiktok_session.get("open_id")
-    access_token = tiktok_session.get("access_token")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
-    if not openid or not access_token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session data")
+    # Fetch the user from the database
+    user = db.query(User).filter(User.id == user_id).first()
 
-    # Query the TikTok account from the database
-    tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.openid == openid).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid session. Please log in again.")
+
+    # Fetch TikTok account linked to the user
+    tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.user_id == user.id).first()
 
     if not tiktok_account:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="TikTok account not found")
+        return {"tiktok_username": None, "tiktok_profile_picture": None}
 
-    # Return the TikTok account details
-    return JSONResponse(content={
+    return {
         "tiktok_username": tiktok_account.username,
         "tiktok_profile_picture": tiktok_account.profile_picture
-    }, status_code=200)
+    }

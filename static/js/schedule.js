@@ -20,25 +20,27 @@ export function initializeSchedule() {
   fetch("/dashboard/api/tiktok-profile")
     .then((response) => response.json())
     .then((data) => {
-      console.log(data); // Ensure data is received correctly
+      const accountSection = document.getElementById("account-section");
+
+      // Check if TikTok account data is available
       if (data && data.tiktok_username) {
         accountSection.innerHTML = `
-          <div class="account-card bound-account">
-            <img src="${data.tiktok_profile_picture}" alt="Profile Picture" class="account-img" />
-            <div class="account-info">
-              <span class="account-name">${data.tiktok_username}</span>
-            </div>
-            <button class="account-toggle">▾</button>
+        <div class="account-card bound-account">
+          <img src="${data.tiktok_profile_picture}" alt="Profile Picture" class="account-img" />
+          <div class="account-info">
+            <span class="account-name">${data.tiktok_username}</span>
           </div>
-        `;
+          <button class="account-toggle">▾</button>
+        </div>
+      `;
       } else {
         accountSection.innerHTML = `
-          <div class="account-card add-account">
-            <a href="/login/tiktok">
-              <button id="bind-account-btn">+ Add TikTok Account</button>
-            </a>
-          </div>
-        `;
+        <div class="account-card add-account">
+          <a href="/login/tiktok">
+            <button id="bind-account-btn">+ Add TikTok Account</button>
+          </a>
+        </div>
+      `;
       }
 
       // Call initializeSchedule only after account section is updated
