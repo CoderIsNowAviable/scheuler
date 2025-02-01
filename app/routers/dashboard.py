@@ -75,7 +75,7 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
             })
         
         # Otherwise, show /me page and offer TikTok login
-        return templates.TemplateResponse("schedule.html", {
+        return templates.TemplateResponse("dashboard.html", {
                 "request": request,
                 "username": username,
                 "email": email,
