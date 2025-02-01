@@ -303,7 +303,7 @@ async def tiktok_callback(request: Request, db: requests.Session = Depends(get_d
         raise HTTPException(status_code=404, detail="User not found")
 
     # Step 5: Check if TikTok account already exists
-    tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.tiktok_user_id == tiktok_user_info["user_id"]).first()
+    tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.openid == openid).first()
     if tiktok_account:
         if tiktok_account.user_id != user.id:
             raise HTTPException(status_code=400, detail="This TikTok account is already linked to another user")
