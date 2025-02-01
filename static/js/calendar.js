@@ -4,7 +4,7 @@ export function initializeCalendar() {
   if (calendarEl && typeof FullCalendar !== "undefined") {
     const calendar = new FullCalendar.Calendar(calendarEl, {
       schedulerLicenseKey: "GPL-My-Project-Is-Open-Source",
-      initialView: "timeGridWeek", // Default view
+      initialView: "dayGridMonth", // Default view
       height: "auto",
       scrollTime: "21:00:00", // Default scroll to 9 PM
       headerToolbar: {

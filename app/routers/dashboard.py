@@ -266,39 +266,29 @@ async def create_content_data(
         raise HTTPException(status_code=500, detail=f"Error saving content data: {str(e)}")
 
 @router.get("/api/events")
-async def get_events(start: str = Query(None), end: str = Query(None), db: Session = Depends(get_db)):
-    try:
-        # Parse and filter events based on the `start` and `end` parameters
-        if start and end:
-            start_date = datetime.fromisoformat(start)
-            end_date = datetime.fromisoformat(end)
+async def get_events(request: Request, db: Session = Depends(get_db)):
+    """
+    Fetch events (scheduled content) for the logged-in user only.
+    """
+    user_id = request.session.get("user_id")
 
-            # Query contents from the database within the given date range
-            events = db.query(Content).filter(
-                Content.scheduled_time >= start_date,
-                Content.scheduled_time <= end_date
-            ).all()
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
-        else:
-            # If no date range is provided, retrieve all content events
-            events = db.query(Content).all()
-
-        # Format the events for the calendar
-        calendar_events = [
-            {
-                "title": event.title,
-                "start": (event.scheduled_time - timedelta(minutes=1)).isoformat(),  # Subtract 1 minute for start
-                "end": event.scheduled_time.isoformat(),  # Use scheduled_time as end time
-                "description": event.description,
-                "media_url": event.media_url,
-            }
-            for event in events
-        ]
-
-        return calendar_events
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Could not load events: {str(e)}")
+    # Fetch user events (scheduled content) from the Content table
+    events = db.query(Content).filter(Content.user_id == user_id, Content.scheduled_time >= datetime.utcnow()).all()
+    
+        # Return events data, filter or format as needed
+    return [
+        {
+            "title": event.title,
+            "start": event.scheduled_time.isoformat(),  # Assuming event has a scheduled_time field
+            "end": event.scheduled_time.isoformat(),  # Can adjust this based on your event duration logic
+            "description": event.description,
+            "media_url": event.media_url,  # You can add media URL if required
+        }
+        for event in events
+    ]
 
 @router.get("/api/tiktok-profile",)
 async def get_tiktok_profile(request: Request, db: Session = Depends(get_db)):
