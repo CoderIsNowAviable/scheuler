@@ -117,7 +117,7 @@ async def get_user_profile(request: Request, db: Session = Depends(get_db)):
         "tiktok_account_exists": bool(tiktok_account),  # Add a flag indicating if TikTok account is linked
     }
     # Render the user profile template with the data
-    return templates.TemplateResponse("profile.html", {"request": request, **user_profile_data})
+    return templates.TemplateResponse("dashboard.html", {"request": request, **user_profile_data})
 
 
 
