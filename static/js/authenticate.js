@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Check if verification was successful
         if (data.message === "Verification successful!") {
           // Redirect to the dashboard with the token in the URL
-          window.location.href = `/dashboard?token=${data.access_token}`;
+          window.location.href = `/dashboard`;
         } else {
           alert("Error verifying code: " + data.detail);
         }

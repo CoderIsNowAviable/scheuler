@@ -3,7 +3,7 @@ import logging
 import os
 import shutil
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile,status
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -28,97 +28,91 @@ templates = Jinja2Templates(directory="templates")
 
 PROFILE_PHOTO_DIR = os.path.join(os.getcwd(), "static", "profile_photos")
 
+
+
 @router.get("/", response_class=HTMLResponse)
-async def dashboard(request: Request, token: str = None, db: Session = Depends(get_db)):
-    if not token:
-        raise HTTPException(status_code=401, detail="Token is missing")
+async def dashboard(request: Request, db: Session = Depends(get_db)):
+    """
+    Dashboard page that isolates user data based on session authentication.
+    Ensures only the logged-in user's data is retrieved.
+    """
 
-    try:
-        # Decode the JWT token to get the email (or other user info)
-        user_data = verify_access_token(token)
+    # Retrieve the user ID from the session
+    user_id = request.session.get("user_id")
 
-        # Extract email from token
-        email = user_data.get("sub")
-        if not email:
-            raise HTTPException(status_code=401, detail="Token is invalid or missing email")
-        
-        # Retrieve the user profile from the database using the email
-        user = db.query(User).filter(User.email == email).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+    if not user_id:
+        # If no user ID in session, redirect to login
+        return RedirectResponse(url="/login", status_code=302)
 
-        # Store user_id in session for later use
-        request.session["user_id"] = user.id
+    # Fetch the user from the database
+    user = db.query(User).filter(User.id == user_id).first()
 
-        # Generate or fetch profile photo URL
-        profile_photo_url = user.profile_photo_url if user.profile_photo_url else "default_profile_photo_url.png"
-        
-        username = user.full_name  # Assuming `full_name` is the column for the username
+    if not user:
+        # If user does not exist, clear session and redirect to login
+        request.session.clear()
+        raise HTTPException(status_code=401, detail="Invalid session. Please log in again.")
 
-        # Fetch TikTok info linked to the logged-in user
-        tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.user_id == user.id).first()
-        tiktok_username = tiktok_account.username if tiktok_account else None
-        tiktok_profile_picture = tiktok_account.profile_picture if tiktok_account else None
+    # Fetch TikTok info linked to the logged-in user
+    tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.user_id == user.id).first()
+    tiktok_username = tiktok_account.username if tiktok_account else None
+    tiktok_profile_picture = tiktok_account.profile_picture if tiktok_account else None
 
-        # Check and print TikTok data for debug purposes
-        print(f"tiktok_username: {tiktok_username}")
-        print(f"tiktok_profile_picture: {tiktok_profile_picture}")
+    # Prepare user data for the template
+    user_data = {
+        "user_id": user.id,
+        "username": user.full_name,  # Assuming `full_name` is the correct field
+        "email": user.email,
+        "profile_photo_url": user.profile_photo_url if user.profile_photo_url else "default_profile_photo_url.png",
+        "tiktok_username": tiktok_username,
+        "tiktok_profile_picture": tiktok_profile_picture
+    }
 
-        # Show main dashboard with TikTok info if available
-        if tiktok_account:
-            return templates.TemplateResponse("dashboard.html", {
-                "request": request,
-                "username": username,
-                "email": email,
-                "profile_photo_url": profile_photo_url,
-                "tiktok_username": tiktok_account.username,
-                "tiktok_profile_picture": tiktok_account.profile_picture,
-                "user_id": user.id,  # Ensure user_id is passed to the frontend
-            })
+    # Render the dashboard template
+    return templates.TemplateResponse("dashboard.html", {"request": request, **user_data})
 
-        # Otherwise, show /me page and offer TikTok login
-        return templates.TemplateResponse("dashboard.html", {
-            "request": request,
-            "username": username,
-            "email": email,
-            "profile_photo_url": profile_photo_url,
-            "tiktok_username": tiktok_username,
-            "tiktok_profile_picture": tiktok_profile_picture,
-            "user_id": user.id,  # Ensure user_id is passed to the frontend
-        })
-
-    except HTTPException:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-
-    
 
 @router.get("/{section}", response_class=HTMLResponse)
-async def load_section(request: Request, section: str, user: User = Depends(get_current_user)):
+async def load_section(request: Request, section: str, db: Session = Depends(get_db)):
     """
     Load dynamic content based on the section parameter.
-    This function ensures that only user-specific data is shown.
+    Ensures that only authenticated users can access their own data.
     """
+
+    # Retrieve the user ID from session
+    user_id = request.session.get("user_id")
+
+    if not user_id:
+        # If no user ID in session, redirect to login
+        return RedirectResponse(url="/login", status_code=302)
+
+    # Fetch the user from the database
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        # If user not found, clear session and redirect
+        request.session.clear()
+        raise HTTPException(status_code=401, detail="Invalid session. Please log in again.")
+
+    # Prepare user-specific data
     user_data = {
         "userId": user.id,
-        "username": user.username,
-        "profilePhotoUrl": user.profile_photo_url,
+        "username": user.full_name,  # Assuming `full_name` is correct
+        "profilePhotoUrl": user.profile_photo_url or "default_profile_photo_url.png",
         "email": user.email,
         "tiktokUsername": user.tiktok_username,
         "tiktokProfilePicture": user.tiktok_profile_picture
     }
 
+    # Render the requested section
     if section == "schedule":
-        # Render the schedule section with user data
         return templates.TemplateResponse("schedule.html", {"request": request, "user": user_data})
     
     elif section == "calendar":
-        # Render the calendar section with user data
         return templates.TemplateResponse("calendar.html", {"request": request, "user": user_data})
     
     else:
-        # Return 404 for unrecognized sections
         return HTMLResponse(content="Section Not Found", status_code=404)
-    
+
     
 @router.post("/upload-profile-photo")
 async def upload_profile_photo(

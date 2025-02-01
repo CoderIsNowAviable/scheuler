@@ -39,35 +39,25 @@ def verify_access_token(token: str):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
+
 def get_current_user(request: Request, db: Session = Depends(get_db)):
     """
-    Get the current authenticated user from the token or session.
+    Get the current authenticated user from the session.
     """
-    token = request.cookies.get("access_token")  # Or from the Authorization header
+    session_user_id = request.session.get("user_id")  # Retrieve user_id from session
 
-    if not token:
-        logger.warning("No access token found in request")
+    if not session_user_id:
+        logger.warning("No user_id found in session")
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    try:
-        user_data = verify_access_token(token)  # Decode the token and retrieve user data
-        user_id = user_data.get("sub")
+    # Fetch the user from the database
+    user = db.query(User).filter(User.id == session_user_id).first()
 
-        if not user_id:
-            logger.warning("User ID not found in token")
-            raise HTTPException(status_code=401, detail="Invalid token or user data missing")
+    if not user:
+        logger.warning(f"User with ID {session_user_id} not found in database")
+        raise HTTPException(status_code=404, detail="User not found")
 
-        user = db.query(User).filter(User.id == user_id).first()
-
-        if not user:
-            logger.warning(f"User with ID {user_id} not found in database")
-            raise HTTPException(status_code=404, detail="User not found")
-
-        return user
-    except Exception as e:
-        logger.error(f"Error in get_current_user: {e}")
-        raise HTTPException(status_code=401, detail="Token is invalid or expired")
-
+    return user
 
 def get_email_from_token(token: str):
     try:

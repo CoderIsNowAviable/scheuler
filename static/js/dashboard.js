@@ -71,6 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
     try {
       console.log(`Fetching content for: /dashboard/${section}`);
       const response = await fetch(`/dashboard/${section}`, {
+        method: "GET",
         credentials: "include", // Ensures cookies/session are sent
       });
 

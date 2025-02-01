@@ -1,4 +1,5 @@
 from datetime import timedelta
+from urllib import request
 from fastapi import APIRouter, Form, HTTPException, Depends, Request, Response, status, Cookie
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
@@ -69,23 +70,19 @@ async def signin(response: Response, email: str = Form(...), password: str = For
     if user:
         # Check if user is authenticated via Google OAuth and skip password verification for them
         if user.hashed_password == "google-oauth":
+            request.session["user_id"] = user.id
+
             # Generate a JWT token and redirect to dashboard
-            access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=24))
-            response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
-            return RedirectResponse(url=f"/dashboard?token={access_token}", status_code=302)
+
+            return RedirectResponse(url=f"/dashboard", status_code=302)
 
         # If not Google OAuth, verify the password
         if not verify_password(password, user.hashed_password):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid password")
 
-        # Generate a 24-hour JWT token
-        access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=24))
-
-        # Optionally, store token in cookie
-        response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
-
         # Redirect to dashboard with token in the URL
-        return RedirectResponse(url=f"/dashboard?token={access_token}", status_code=302)
+        request.session["user_id"] = user.id
+        return RedirectResponse(url=f"/dashboard", status_code=302)
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
@@ -221,6 +218,6 @@ def resend_verification_code(request: ResendCodeRequest, db: Session = Depends(g
 
 
 @router.get("/logout")
-async def logout(response: Response):
-    response.delete_cookie("access_token")
+async def logout(request: Request):
+    request.session.clear()
     return RedirectResponse(url="/", status_code=302)
