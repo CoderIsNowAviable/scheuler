@@ -76,3 +76,12 @@ def get_email_from_token(token: str):
     except JWTError:
         raise HTTPException(status_code=400, detail="Invalid token")
 
+def get_email_from_Ctoken(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=403, detail="Could not validate credentials")
+        return email
+    except JWTError:
+        raise HTTPException(status_code=403, detail="Could not validate credentials")
