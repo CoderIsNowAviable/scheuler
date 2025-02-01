@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.user import User, Content, TikTokAccount
-from app.utils.jwt import get_email_from_Ctoken, verify_access_token
+from app.utils.jwt import get_current_user, get_email_from_Ctoken, verify_access_token
 from app.utils.random_profile_generator import generate_random_profile_photo
 from datetime import datetime, timedelta
 from fastapi import Query
@@ -73,6 +73,7 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
                 "profile_photo_url": profile_photo_url,
                 "tiktok_username": tiktok_account.username,
                 "tiktok_profile_picture": tiktok_account.profile_picture,
+                "user_id": user.id,  # Ensure user_id is passed to the frontend
             })
 
         # Otherwise, show /me page and offer TikTok login
@@ -83,23 +84,39 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
             "profile_photo_url": profile_photo_url,
             "tiktok_username": tiktok_username,
             "tiktok_profile_picture": tiktok_profile_picture,
+            "user_id": user.id,  # Ensure user_id is passed to the frontend
         })
 
     except HTTPException:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
     
+
 @router.get("/{section}", response_class=HTMLResponse)
-async def load_section(request: Request, section: str):
+async def load_section(request: Request, section: str, user: User = Depends(get_current_user)):
     """
     Load dynamic content based on the section parameter.
+    This function ensures that only user-specific data is shown.
     """
+    user_data = {
+        "userId": user.id,
+        "username": user.username,
+        "profilePhotoUrl": user.profile_photo_url,
+        "email": user.email,
+        "tiktokUsername": user.tiktok_username,
+        "tiktokProfilePicture": user.tiktok_profile_picture
+    }
+
     if section == "schedule":
-        return templates.TemplateResponse("schedule.html", {"request": request})
+        # Render the schedule section with user data
+        return templates.TemplateResponse("schedule.html", {"request": request, "user": user_data})
+    
     elif section == "calendar":
-        # Render the calendar section (replace with actual calendar logic)
-        return templates.TemplateResponse("calendar.html", {"request": request })
+        # Render the calendar section with user data
+        return templates.TemplateResponse("calendar.html", {"request": request, "user": user_data})
+    
     else:
+        # Return 404 for unrecognized sections
         return HTMLResponse(content="Section Not Found", status_code=404)
     
     

@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const switchProfileBtn = document.getElementById("switch-profile-btn");
   const profilePhotoInput = document.getElementById("profile-photo-input");
   const profileImg = document.querySelector(".profile-img");
-  const profileEmail = document.getElementById("profile-email")?.value;
+  const profileEmail = document.getElementById("profile-email");
   const links = document.querySelectorAll("a[data-link]");
   const mainContent = document.getElementById("main-content");
 
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const file = event.target.files[0];
       if (!file) return;
 
-      const email = profileEmail;
+      const email = profileEmail?.value || window.userData.email;  // Use the global user data for email
       const formData = new FormData();
       formData.append("profile_photo", file);
       formData.append("email", email);
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const { initializeSchedule } = await import(`/static/js/schedule.js`);
         initializeSchedule();
       } else if (section === "calendar") {
-        const { initializeCalendar } = await import(`/static/js/calendar.js`)
+        const { initializeCalendar } = await import(`/static/js/calendar.js`);
         initializeCalendar(); // Initialize calendar directly
       }
     } catch (error) {
@@ -97,7 +97,6 @@ document.addEventListener("DOMContentLoaded", function () {
       mainContent.innerHTML = `<p>Error loading section: ${section}. Please try again later.</p>`;
     }
   }
-
 
   // Get the active page from localStorage on page load
   const activePage = localStorage.getItem("activePage");
@@ -119,4 +118,21 @@ document.addEventListener("DOMContentLoaded", function () {
       localStorage.setItem("activePage", section);
     });
   });
+  
+  // Update profile photo on page load using global user data
+  if (profileImg) {
+    profileImg.src = window.userData.profilePhotoUrl || "default_profile_photo_url.png";  // Use global profile photo URL
+  }
+  
+  // Optional: Show TikTok username and profile picture if available
+  const tiktokUsernameElement = document.querySelector(".tiktok-username");
+  const tiktokProfilePicElement = document.querySelector(".tiktok-profile-pic");
+  
+  if (tiktokUsernameElement) {
+    tiktokUsernameElement.textContent = window.userData.tiktokUsername || "Not connected to TikTok";
+  }
+
+  if (tiktokProfilePicElement) {
+    tiktokProfilePicElement.src = window.userData.tiktokProfilePicture || "default_tiktok_profile_pic.png";
+  }
 });

@@ -105,5 +105,15 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.15/index.global.min.js"></script>
     <script src="/static/js/dashboard.js"></script>
     <script type="module" src="/static/js/calendar.js"></script>
+    <script>
+      window.userData = {
+        userId: "{{ user_id }}",  // User ID passed from backend
+        username: "{{ username }}",  // Username passed from backend
+        profilePhotoUrl: "{{ profile_photo_url }}",  // Profile photo URL
+        email: "{{ email }}",  // User's email
+        tiktokUsername: "{{ tiktok_username }}",  // TikTok username
+        tiktokProfilePicture: "{{ tiktok_profile_picture }}"  // TikTok profile picture
+      };
+    </script>
   </body>
 </html>
