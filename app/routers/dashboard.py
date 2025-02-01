@@ -64,7 +64,7 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
         "email": user.email,
         "profile_photo_url": user.profile_photo_url if user.profile_photo_url else "default_profile_photo_url.png",
         "tiktok_username": tiktok_username,
-        "tiktok_profile_picture": tiktok_profile_picture
+        "tiktok_profile_picture": tiktok_profile_picture,
     }
 
     # Render the dashboard template
@@ -92,15 +92,17 @@ async def load_section(request: Request, section: str, db: Session = Depends(get
         # If user not found, clear session and redirect
         request.session.clear()
         raise HTTPException(status_code=401, detail="Invalid session. Please log in again.")
-
+    tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.user_id == user.id).first()
+    tiktok_username = tiktok_account.username if tiktok_account else None
+    tiktok_profile_picture = tiktok_account.profile_picture if tiktok_account else None
     # Prepare user-specific data
     user_data = {
         "userId": user.id,
         "username": user.full_name,  # Assuming `full_name` is correct
         "profilePhotoUrl": user.profile_photo_url or "default_profile_photo_url.png",
         "email": user.email,
-        "tiktokUsername": user.tiktok_username,
-        "tiktokProfilePicture": user.tiktok_profile_picture
+        "tiktokUsername": tiktok_username,
+        "tiktokProfilePicture": tiktok_profile_picture,
     }
 
     # Render the requested section

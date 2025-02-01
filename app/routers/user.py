@@ -58,13 +58,13 @@ async def signup(
     return RedirectResponse(url=f"/authenticate?email={email}&token={access_token}", status_code=302)
 
 @router.post("/signin")
-async def signin(response: Response, email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+async def signin(request: Request, email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == email).first()
     pending_user = db.query(PendingUser).filter(PendingUser.email == email).first()
 
     if pending_user:
         access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=1))
-        response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
+        request.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
         return RedirectResponse(url=f"/authenticate?email={email}&token={access_token}", status_code=302)
 
     if user:
