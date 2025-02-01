@@ -39,7 +39,7 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
 
     # Retrieve the user ID from the session
     user_id = request.session.get("user_id")
-    print("user_id",user_id)
+
     if not user_id:
         # If no user ID in session, redirect to login
         return RedirectResponse(url="/login", status_code=302)
@@ -52,26 +52,76 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
         request.session.clear()
         raise HTTPException(status_code=401, detail="Invalid session. Please log in again.")
 
-    # Fetch TikTok info linked to the logged-in user
+    # Check if TikTok is linked to the user
     tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.user_id == user.id).first()
-    tiktok_username = tiktok_account.username if tiktok_account else None
-    tiktok_profile_picture = tiktok_account.profile_picture if tiktok_account else None
 
     # Prepare user data for the template
     user_data = {
-        "user_id": user.id,
+        "user_id": user.id, 
         "username": user.full_name,  # Assuming `full_name` is the correct field
         "email": user.email,
         "profile_photo_url": user.profile_photo_url if user.profile_photo_url else "default_profile_photo_url.png",
-        "tiktok_username": tiktok_username,
-        "tiktok_profile_picture": tiktok_profile_picture,
+        "tiktok_username": tiktok_account.username if tiktok_account else None,
+        "tiktok_profile_picture": tiktok_account.profile_picture if tiktok_account else None,
     }
 
-    # Render the dashboard template
+    if tiktok_account:
+        # If TikTok account is linked, redirect to /dashboard/me
+        return RedirectResponse(url="/dashboard/me", status_code=302)
+
+    # If TikTok is not linked, render dashboard without TikTok info
     return templates.TemplateResponse("dashboard.html", {"request": request, **user_data})
 
 
-@router.get("/{section}", response_class=HTMLResponse)
+@router.get("/me", response_class=HTMLResponse)
+async def get_user_profile(request: Request, db: Session = Depends(get_db)):
+    """
+    Endpoint to get the logged-in user's profile information and verify their TikTok account.
+    Only allows access to users with a linked TikTok account.
+    """
+    
+    # Retrieve the user ID from the session
+    user_id = request.session.get("user_id")
+
+    if not user_id:
+        # If no user ID in session, redirect to login
+        return RedirectResponse(url="/login", status_code=302)
+
+    # Fetch the user from the database
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        # If user does not exist, clear session and redirect to login
+        request.session.clear()
+        raise HTTPException(status_code=401, detail="Invalid session. Please log in again.")
+
+    # Fetch TikTok info linked to the logged-in user (if exists)
+    tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.user_id == user.id).first()
+
+    # If no TikTok account is linked, redirect to the dashboard or another page
+    if not tiktok_account:
+        return RedirectResponse(url="/dashboard", status_code=302)
+
+    # If TikTok account exists, prepare user profile data
+    tiktok_username = tiktok_account.username if tiktok_account else None
+    tiktok_profile_picture = tiktok_account.profile_picture if tiktok_account else None
+
+    # Prepare user profile data, including TikTok information (if available)
+    user_profile_data = {
+        "user_id": user.id,
+        "username": user.full_name,  # Assuming `full_name` is the correct field
+        "email": user.email,
+        "profile_photo_url": user.profile_photo_url or "default_profile_photo_url.png",
+        "tiktok_username": tiktok_username,
+        "tiktok_profile_picture": tiktok_profile_picture,
+        "tiktok_account_exists": bool(tiktok_account),  # Add a flag indicating if TikTok account is linked
+    }
+    # Render the user profile template with the data
+    return templates.TemplateResponse("profile.html", {"request": request, **user_profile_data})
+
+
+
+@router.get("/me/{section}", response_class=HTMLResponse)
 async def load_section(request: Request, section: str, db: Session = Depends(get_db)):
     """
     Load dynamic content based on the section parameter.

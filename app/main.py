@@ -424,5 +424,4 @@ async def google_callback(request: Request, db: requests.Session = Depends(get_d
             db.commit()
             db.refresh(user)
         
-        access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=24))
-        return RedirectResponse(url=f"/dashboard?token={access_token}", status_code=302)
+        return RedirectResponse(url=f"/dashboard", status_code=302)

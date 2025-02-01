@@ -71,9 +71,7 @@ async def signin(request: Request, email: str = Form(...), password: str = Form(
         # Check if user is authenticated via Google OAuth and skip password verification for them
         if user.hashed_password == "google-oauth":
             request.session["user_id"] = user.id
-
             # Generate a JWT token and redirect to dashboard
-
             return RedirectResponse(url=f"/dashboard", status_code=302)
 
         # If not Google OAuth, verify the password
