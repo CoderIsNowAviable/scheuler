@@ -11,9 +11,10 @@ from app.core.database import get_db
 from app.models.user import User, Content, TikTokAccount
 from app.utils.jwt import get_email_from_Ctoken, verify_access_token
 from app.utils.random_profile_generator import generate_random_profile_photo
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi import Query
 from datetime import datetime
+from app.models.user import User, Content, TikTokAccount
 
 
 router = APIRouter()
@@ -199,31 +200,39 @@ async def create_content_data(
         raise HTTPException(status_code=500, detail=f"Error saving content data: {str(e)}")
 
 @router.get("/api/events")
-async def get_events(start: str = Query(None), end: str = Query(None)):
+async def get_events(start: str = Query(None), end: str = Query(None), db: Session = Depends(get_db)):
     try:
-        # Load events from the file
-        events_file_path = "events.json"
-
-        if not os.path.exists(events_file_path):
-            raise HTTPException(status_code=404, detail="No events found")
-
-        with open(events_file_path, "r") as event_file:
-            events = json.load(event_file)
-
         # Parse and filter events based on the `start` and `end` parameters
         if start and end:
             start_date = datetime.fromisoformat(start)
             end_date = datetime.fromisoformat(end)
-            events = [
-                event for event in events
-                if datetime.fromisoformat(event["end"]) >= start_date
-                and datetime.fromisoformat(event["end"]) <= end_date
-            ]
 
-        return events
+            # Query contents from the database within the given date range
+            events = db.query(Content).filter(
+                Content.scheduled_time >= start_date,
+                Content.scheduled_time <= end_date
+            ).all()
+
+        else:
+            # If no date range is provided, retrieve all content events
+            events = db.query(Content).all()
+
+        # Format the events for the calendar
+        calendar_events = [
+            {
+                "title": event.title,
+                "start": (event.scheduled_time - timedelta(minutes=1)).isoformat(),  # Subtract 1 minute for start
+                "end": event.scheduled_time.isoformat(),  # Use scheduled_time as end time
+                "description": event.description,
+                "media_url": event.media_url,
+            }
+            for event in events
+        ]
+
+        return calendar_events
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Could not load events: {str(e)}")
-
 
 
 @router.get("/api/tiktok-profile")

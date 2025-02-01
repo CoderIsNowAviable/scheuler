@@ -24,8 +24,7 @@ export function initializeCalendar() {
             end: event.end,
             extendedProps: {
               description: event.description,
-              tags: event.tags,
-              file_location: event.file_location,
+              media: event.media_url, // Add media URL for the image
             },
           }));
 
@@ -35,31 +34,29 @@ export function initializeCalendar() {
           failureCallback(error);
         }
       },
+      // Event rendering logic
+      eventRender: function(info) {
+        const eventElement = info.el;
+        const mediaUrl = info.event.extendedProps.media; // Get media URL from extendedProps
+        if (mediaUrl) {
+          const imgElement = document.createElement("img");
+          imgElement.src = mediaUrl;
+          imgElement.alt = "Event Image";
+          imgElement.style.width = "50px"; // Adjust the size as needed
+          imgElement.style.marginRight = "5px"; // Space between image and title
+
+          // Prepend the image to the event title
+          const titleElement = eventElement.querySelector(".fc-event-title");
+          titleElement.insertBefore(imgElement, titleElement.firstChild);
+        }
+      }
     });
 
     // Render the calendar
     calendar.render();
 
-    // Add dropdown functionality
-    const dropdownBtn = document.getElementById("dropdown-btn");
-    const dropdownMenu = document.getElementById("dropdown-menu");
-
-    dropdownBtn.addEventListener("click", () => {
-      dropdownMenu.classList.toggle("hidden");
-    });
-
-    dropdownMenu.addEventListener("click", (event) => {
-      const view = event.target.getAttribute("data-view");
-      if (view) {
-        calendar.changeView(view); // Change the calendar view
-        dropdownMenu.classList.add("hidden");
-      }
-    });
-
     console.log("Calendar initialized with view dropdown");
   } else {
-    console.error(
-      "FullCalendar is not defined or #calendar element is missing"
-    );
+    console.error("FullCalendar is not defined or #calendar element is missing");
   }
 }
