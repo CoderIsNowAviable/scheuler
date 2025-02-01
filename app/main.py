@@ -337,10 +337,9 @@ async def tiktok_callback(request: Request, db: requests.Session = Depends(get_d
     request.session.pop("csrfState", None)
 
     # Create access token for session management
-    access_token = create_access_token(data={"sub": user_email}, expires_delta=timedelta(hours=24))
 
     # Redirect to dashboard with access token
-    return RedirectResponse(url=f"/dashboard/?token={access_token}", status_code=302)
+    return RedirectResponse(url=f"/dashboard", status_code=302)
 
 
 

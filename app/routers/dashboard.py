@@ -39,7 +39,7 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
 
     # Retrieve the user ID from the session
     user_id = request.session.get("user_id")
-
+    print("user_id",user_id)
     if not user_id:
         # If no user ID in session, redirect to login
         return RedirectResponse(url="/login", status_code=302)
