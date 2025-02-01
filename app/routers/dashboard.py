@@ -42,28 +42,29 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
         if not email:
             raise HTTPException(status_code=401, detail="Token is invalid or missing email")
         
-        if "email" not in request.session:
-            request.session["email"] = email
-
         # Retrieve the user profile from the database using the email
         user = db.query(User).filter(User.email == email).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+
+        # Store user_id in session for later use
+        request.session["user_id"] = user.id
 
         # Generate or fetch profile photo URL
         profile_photo_url = user.profile_photo_url if user.profile_photo_url else "default_profile_photo_url.png"
         
         username = user.full_name  # Assuming `full_name` is the column for the username
 
-        # Fetch TikTok info if linked
+        # Fetch TikTok info linked to the logged-in user
         tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.user_id == user.id).first()
         tiktok_username = tiktok_account.username if tiktok_account else None
         tiktok_profile_picture = tiktok_account.profile_picture if tiktok_account else None
-        
+
+        # Check and print TikTok data for debug purposes
         print(f"tiktok_username: {tiktok_username}")
         print(f"tiktok_profile_picture: {tiktok_profile_picture}")
 
-        # If user is linked to TikTok, show main dashboard with TikTok info
+        # Show main dashboard with TikTok info if available
         if tiktok_account:
             return templates.TemplateResponse("dashboard.html", {
                 "request": request,
@@ -73,16 +74,16 @@ async def dashboard(request: Request, token: str = None, db: Session = Depends(g
                 "tiktok_username": tiktok_account.username,
                 "tiktok_profile_picture": tiktok_account.profile_picture,
             })
-        
+
         # Otherwise, show /me page and offer TikTok login
         return templates.TemplateResponse("dashboard.html", {
-                "request": request,
-                "username": username,
-                "email": email,
-                "profile_photo_url": profile_photo_url,
-                "tiktok_username": tiktok_username,
-                "tiktok_profile_picture": tiktok_profile_picture,
-            })
+            "request": request,
+            "username": username,
+            "email": email,
+            "profile_photo_url": profile_photo_url,
+            "tiktok_username": tiktok_username,
+            "tiktok_profile_picture": tiktok_profile_picture,
+        })
 
     except HTTPException:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
