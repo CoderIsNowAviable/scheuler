@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const file = event.target.files[0];
       if (!file) return;
 
-      const email = profileEmail?.value || window.userData.email;  // Use the global user data for email
+      const email = profileEmail?.value || window.userData.email; // Use the global user data for email
       const formData = new FormData();
       formData.append("profile_photo", file);
       formData.append("email", email);
@@ -62,7 +62,6 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Update active link
     links.forEach((link) => link.classList.remove("active"));
     const activeLink = document.querySelector(`a[data-link="${section}"]`);
     if (activeLink) {
@@ -70,27 +69,27 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
-      // Log request URL for debugging
       console.log(`Fetching content for: /dashboard/${section}`);
-      const response = await fetch(`/dashboard/${section}`);
+      const response = await fetch(`/dashboard/${section}`, {
+        credentials: "include", // Ensures cookies/session are sent
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
       const html = await response.text();
-      console.log("Fetched HTML:", html); // Log the fetched HTML content
+      console.log("Fetched HTML:", html);
 
       mainContent.innerHTML = html;
       console.log(`Loaded content for section: ${section}`);
 
-      // Initialize section-specific JS
       if (section === "schedule") {
         const { initializeSchedule } = await import(`/static/js/schedule.js`);
         initializeSchedule();
       } else if (section === "calendar") {
         const { initializeCalendar } = await import(`/static/js/calendar.js`);
-        initializeCalendar(); // Initialize calendar directly
+        initializeCalendar();
       }
     } catch (error) {
       console.error("Error loading section:", error);
@@ -118,21 +117,24 @@ document.addEventListener("DOMContentLoaded", function () {
       localStorage.setItem("activePage", section);
     });
   });
-  
+
   // Update profile photo on page load using global user data
   if (profileImg) {
-    profileImg.src = window.userData.profilePhotoUrl || "default_profile_photo_url.png";  // Use global profile photo URL
+    profileImg.src =
+      window.userData.profilePhotoUrl || "default_profile_photo_url.png"; // Use global profile photo URL
   }
-  
+
   // Optional: Show TikTok username and profile picture if available
   const tiktokUsernameElement = document.querySelector(".tiktok-username");
   const tiktokProfilePicElement = document.querySelector(".tiktok-profile-pic");
-  
+
   if (tiktokUsernameElement) {
-    tiktokUsernameElement.textContent = window.userData.tiktokUsername || "Not connected to TikTok";
+    tiktokUsernameElement.textContent =
+      window.userData.tiktokUsername || "Not connected to TikTok";
   }
 
   if (tiktokProfilePicElement) {
-    tiktokProfilePicElement.src = window.userData.tiktokProfilePicture || "default_tiktok_profile_pic.png";
+    tiktokProfilePicElement.src =
+      window.userData.tiktokProfilePicture || "default_tiktok_profile_pic.png";
   }
 });
