@@ -241,6 +241,7 @@ async def create_content_data(
         # Save the image file to a directory
         encoded_filename = urllib.parse.quote(image.filename)
         file_location = os.path.join(uploads_dir, encoded_filename)
+        media_url = file_location.replace(os.path.abspath("uploads"), "/uploads")
         with open(file_location, "wb") as buffer:
             shutil.copyfileobj(image.file, buffer)
 
