@@ -21,13 +21,20 @@ from app.utils.GetTiktok import get_tiktok_info
 router = APIRouter()
 
 
+# Get the absolute path of the 'uploads' folder (which is at the same level as 'app')
+BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), ".."))  # Move up one level from 'app'
+uploads_path = os.path.join(BASE_DIR, "uploads")
+
+# Ensure the 'uploads' folder exists
+if not os.path.exists(uploads_path):
+    os.makedirs(uploads_path)
+
+# Mount the static and uploads folders
 router.mount("/static", StaticFiles(directory=os.path.join(os.getcwd(), "static")), name="static")
-uploads_path = os.path.join(os.path.dirname(__file__), '../../uploads')
 router.mount("/uploads", StaticFiles(directory=uploads_path), name="uploads")
 
-
-
-templates = Jinja2Templates(directory="templates")
+# Set up Jinja2 templates directory
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
 
 PROFILE_PHOTO_DIR = os.path.join(os.getcwd(), "static", "profile_photos")
@@ -219,6 +226,11 @@ async def create_content_data(
     db: Session = Depends(get_db),
 ):
     try:
+                # Ensure `uploads_dir` is defined
+        uploads_dir = os.path.abspath(os.path.join(os.getcwd(), "uploads"))
+        if not os.path.exists(uploads_dir):
+            os.makedirs(uploads_dir)
+
          # Step 1: Try to retrieve TikTok session from the session
         tiktok_session = request.session.get("tiktok_session")
         user_id = None
@@ -238,9 +250,11 @@ async def create_content_data(
         # Convert the string end time into a datetime object
         end_datetime = datetime.fromisoformat(end_time).replace(tzinfo=None)  # Make naive
 
+  # Ensure folder exists
+
         # Save the image file to a directory
         encoded_filename = urllib.parse.quote(image.filename)
-        file_location = f"uploads/{encoded_filename}"
+        file_location = os.path.join(uploads_dir, encoded_filename)
         with open(file_location, "wb") as f:
             f.write(await image.read())
 
