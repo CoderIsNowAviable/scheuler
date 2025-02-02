@@ -35,21 +35,20 @@ export function initializeCalendar() {
         }
       },
       // Event rendering logic
-      eventRender: function(info) {
-        const eventElement = info.el;
-        const mediaUrl = info.event.extendedProps.media; // Get media URL from extendedProps
-        if (mediaUrl) {
-          const imgElement = document.createElement("img");
-          imgElement.src = mediaUrl;
-          imgElement.alt = "Event Image";
-          imgElement.style.width = "50px"; // Adjust the size as needed
-          imgElement.style.marginRight = "5px"; // Space between image and title
+      eventContent: function (arg) {
+        let mediaUrl = arg.event.extendedProps.media; // Get media URL
+        let title = arg.event.title;
 
-          // Prepend the image to the event title
-          const titleElement = eventElement.querySelector(".fc-event-title");
-          titleElement.insertBefore(imgElement, titleElement.firstChild);
+        let innerHtml = "";
+
+        if (mediaUrl) {
+          innerHtml += `<img src="${mediaUrl}" alt="Event Image" style="width: 50px; margin-right: 5px;">`;
         }
-      }
+
+        innerHtml += `<span>${title}</span>`;
+
+        return { html: innerHtml };
+      },
     });
 
     // Render the calendar
@@ -57,6 +56,8 @@ export function initializeCalendar() {
 
     console.log("Calendar initialized with view dropdown");
   } else {
-    console.error("FullCalendar is not defined or #calendar element is missing");
+    console.error(
+      "FullCalendar is not defined or #calendar element is missing"
+    );
   }
 }
