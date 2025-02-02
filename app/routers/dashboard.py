@@ -21,20 +21,32 @@ from app.utils.GetTiktok import get_tiktok_info
 router = APIRouter()
 
 
-# Get the absolute path of the 'uploads' folder (which is at the same level as 'app')
-BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), ".."))  # Move up one level from 'app'
-uploads_path = os.path.join(BASE_DIR, "uploads")
+# Move up two levels to reach 'folder_testing'
+BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
 
-# Ensure the 'uploads' folder exists
-if not os.path.exists(uploads_path):
-    os.makedirs(uploads_path)
+# Define paths
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+UPLOADS_DIR = os.path.join(BASE_DIR, "uploads")
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
-# Mount the static and uploads folders
-router.mount("/static", StaticFiles(directory=os.path.join(os.getcwd(), "static")), name="static")
-router.mount("/uploads", StaticFiles(directory=uploads_path), name="uploads")
 
-# Set up Jinja2 templates directory
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+print("BASE_DIR:", BASE_DIR)
+print("STATIC_DIR:", STATIC_DIR)
+print("UPLOADS_DIR:", UPLOADS_DIR)
+print("TEMPLATES_DIR:", TEMPLATES_DIR)
+
+
+# Debugging: Ensure directories exist
+for path in [STATIC_DIR, UPLOADS_DIR, TEMPLATES_DIR]:
+    if not os.path.exists(path):
+        raise RuntimeError(f"Directory not found: {path}")
+
+# Mount directories
+router.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+router.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
+
+# Set up Jinja2 templates
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 
 PROFILE_PHOTO_DIR = os.path.join(os.getcwd(), "static", "profile_photos")
@@ -255,8 +267,8 @@ async def create_content_data(
         # Save the image file to a directory
         encoded_filename = urllib.parse.quote(image.filename)
         file_location = os.path.join(uploads_dir, encoded_filename)
-        with open(file_location, "wb") as f:
-            f.write(await image.read())
+        with open(file_location, "wb") as buffer:
+            shutil.copyfileobj(image.file, buffer)
 
         # Create content instance and insert into the database
         new_content = Content(
