@@ -19,7 +19,9 @@ from app.models.user import User, Content, TikTokAccount
 from app.utils.GetTiktok import get_tiktok_info
 
 router = APIRouter()
-
+# Serve static files from the 'uploads' folder
+uploads_dir = os.path.join(os.getcwd(), 'uploads')
+router.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 templates = Jinja2Templates(directory="templates")
 
