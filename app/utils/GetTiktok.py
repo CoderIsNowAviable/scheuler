@@ -1,6 +1,6 @@
 from fastapi import HTTPException, Request, Depends
 from sqlalchemy.orm import Session
-from app.models import User, TikTokAccount  # Import your models
+from app.models.user import User, TikTokAccount  # Import your models
 from app.core.database import get_db  # Your database dependency
 
 async def get_tiktok_info(request: Request, db: Session = Depends(get_db)):
