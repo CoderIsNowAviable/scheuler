@@ -21,33 +21,7 @@ from app.utils.GetTiktok import get_tiktok_info
 router = APIRouter()
 
 
-# Move up two levels to reach 'folder_testing'
-BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
-
-# Define paths
-STATIC_DIR = os.path.join(BASE_DIR, "static")
-UPLOADS_DIR = os.path.join(BASE_DIR, "uploads")
-TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
-
-
-print("BASE_DIR:", BASE_DIR)
-print("STATIC_DIR:", STATIC_DIR)
-print("UPLOADS_DIR:", UPLOADS_DIR)
-print("TEMPLATES_DIR:", TEMPLATES_DIR)
-
-
-# Debugging: Ensure directories exist
-for path in [STATIC_DIR, UPLOADS_DIR, TEMPLATES_DIR]:
-    if not os.path.exists(path):
-        raise RuntimeError(f"Directory not found: {path}")
-
-# Mount directories
-router.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-router.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
-
-# Set up Jinja2 templates
-templates = Jinja2Templates(directory=TEMPLATES_DIR)
-
+templates = Jinja2Templates(directory="templates")
 
 PROFILE_PHOTO_DIR = os.path.join(os.getcwd(), "static", "profile_photos")
 
@@ -241,7 +215,7 @@ async def create_content_data(
                 # Ensure `uploads_dir` is defined
         uploads_dir = os.path.abspath(os.path.join(os.getcwd(), "uploads"))
         if not os.path.exists(uploads_dir):
-            os.makedirs(uploads_dir)
+            return {"status": "error", "message": "Uploads directory does not exist"}
 
          # Step 1: Try to retrieve TikTok session from the session
         tiktok_session = request.session.get("tiktok_session")
