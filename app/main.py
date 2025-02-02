@@ -212,6 +212,11 @@ async def serve_verification_file(filename: str):
 
 @app.get("/login/tiktok/")
 async def auth_tiktok(request: Request):
+    # Clear any existing session data related to TikTok authentication
+    request.session.pop("tiktok_session", None)  # Clear TikTok session if it exists
+    request.session.pop("csrfState", None)  # Clear CSRF state if it exists
+    
+    
     csrf_state = secrets.token_urlsafe(16)  # ✅ Generate a secure random state
     request.session["csrfState"] = csrf_state  # ✅ Store CSRF state in session
 
