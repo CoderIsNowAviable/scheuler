@@ -7,6 +7,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+import urllib.parse
 from app.core.database import get_db
 from app.models.user import User, Content, TikTokAccount
 from app.utils.jwt import get_current_user, get_email_from_Ctoken, verify_access_token
@@ -235,7 +236,8 @@ async def create_content_data(
         end_datetime = datetime.fromisoformat(end_time).replace(tzinfo=None)  # Make naive
 
         # Save the image file to a directory
-        file_location = f"uploads/{image.filename}"
+        encoded_filename = urllib.parse.quote(image.filename)
+        file_location = f"uploads/{encoded_filename}"
         with open(file_location, "wb") as f:
             f.write(await image.read())
 

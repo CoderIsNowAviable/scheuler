@@ -39,12 +39,10 @@ export function initializeCalendar() {
         let mediaUrl = arg.event.extendedProps.media; // Get media URL
         let title = arg.event.title;
       
-        console.log("Media URL: ", mediaUrl); // Log to debug
-        let decodedMediaUrl = decodeURIComponent(mediaUrl);
-        console.log("Decoded Media URL: ", decodedMediaUrl); // Log to debug
         let innerHtml = "";
 
         if (mediaUrl) {
+          let decodedMediaUrl = decodeURIComponent(mediaUrl);
           innerHtml += `<img src="${decodedMediaUrl}" alt="Event Image" style="width: 50px; margin-right: 5px;">`;
         }
 
