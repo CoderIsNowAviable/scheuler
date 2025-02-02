@@ -36,7 +36,7 @@ export function initializeCalendar() {
       },
       // Event rendering logic
       eventContent: function (arg) {
-        let mediaUrl = arg.event.extendedProps.media; // Get media URL
+        let mediaUrl = `/uploads/${image.filename}`; // Get media URL
         let title = arg.event.title;
 
         let innerHtml = "";

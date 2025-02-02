@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import httpx
 from app.core.database import engine, Base, SessionLocal
-from app.models.user import TikTokAccount
+from app.models.user import User, TikTokAccount
 from app.routers.user import router as user_router
 # from app.routers.auth import router as auth_router
 from app.routers.pages import router as pages_router
@@ -21,7 +21,6 @@ from oauthlib.oauth2 import WebApplicationClient
 import urllib.parse
 from starlette.middleware.sessions import SessionMiddleware
 from app.core.database import get_db
-from app.models import User
 # Initialize database models
 Base.metadata.create_all(bind=engine)
 
