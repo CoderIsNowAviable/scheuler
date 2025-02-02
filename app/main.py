@@ -293,12 +293,13 @@ async def tiktok_callback(request: Request, db: requests.Session = Depends(get_d
 
     user_info = user_info_response.json().get("data", {}).get("user", {})
 
-    # Step 4: Retrieve the user from the database using the email stored in the session
-    user_email = request.session.get("email")  # Retrieve email from the session
-    if not user_email:
-        raise HTTPException(status_code=401, detail="User email not found in session")
+    # Step 4: Retrieve the user from the session using the user_id stored there
+    user_id = request.session.get("user_id")  # Retrieve user_id from session
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User ID not found in session")
 
-    user = db.query(User).filter(User.email == user_email).first()
+    # Retrieve user from the database by user_id
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -325,9 +326,11 @@ async def tiktok_callback(request: Request, db: requests.Session = Depends(get_d
 
     db.commit()  # Commit the transaction to save the TikTok account details in the database
 
+
+    user_id = request.session.get("user_id")
     # Step 6: Store TikTok session info (email and open_id)
     request.session["tiktok_session"] = {
-        "email": user_email,
+        "user_id": user.id,
         "open_id": openid,
         "access_token": access_token,  # Permanent token for API calls
     }
@@ -336,10 +339,10 @@ async def tiktok_callback(request: Request, db: requests.Session = Depends(get_d
     
     request.session.pop("csrfState", None)
 
-    # Create access token for session management
+   
 
     # Redirect to dashboard with access token
-    return RedirectResponse(url=f"/dashboard", status_code=302)
+    return RedirectResponse(url=f"/dashboard/me", status_code=302)
 
 
 
@@ -424,6 +427,7 @@ async def google_callback(request: Request, db: requests.Session = Depends(get_d
             db.commit()
             db.refresh(user)
             
+
         request.session["user_id"] = user.id
 
         return RedirectResponse(url=f"/dashboard", status_code=302)
