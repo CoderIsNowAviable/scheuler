@@ -21,6 +21,7 @@ from oauthlib.oauth2 import WebApplicationClient
 import urllib.parse
 from starlette.middleware.sessions import SessionMiddleware
 from app.core.database import get_db
+from app.utils.scheduler import start_scheduler
 # Initialize database models
 Base.metadata.create_all(bind=engine)
 
@@ -98,6 +99,8 @@ async def startup_event():
 
     
 
+
+start_scheduler()
     
 # Serve the HTML verification file for domain/app verification
 @app.get("/googleb524bf271b1d073d.html")  # Change the filename to your actual file
