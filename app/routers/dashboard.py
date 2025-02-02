@@ -22,8 +22,9 @@ router = APIRouter()
 
 
 router.mount("/static", StaticFiles(directory=os.path.join(os.getcwd(), "static")), name="static")
-uploads_path = os.path.join(os.path.dirname(__file__), '../')
-router.mount("/dashboard/uploads", StaticFiles(directory=uploads_path), name="uploads")
+uploads_path = os.path.join(os.path.dirname(__file__), '../uploads')
+router.mount("/uploads", StaticFiles(directory=uploads_path), name="uploads")
+
 
 
 templates = Jinja2Templates(directory="templates")
