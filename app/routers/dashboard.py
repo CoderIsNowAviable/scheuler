@@ -249,7 +249,7 @@ async def create_content_data(
         new_content = Content(
             user_id=user_id,  # Use the dynamically fetched user_id
             platform="tiktok",  # or another platform if necessary
-            media_url=file_location,  # Save the image/video path in the media_url
+            media_url=media_url,  # Save the image/video path in the media_url
             title=title,
             description=description,
             tags=tags,
@@ -265,6 +265,8 @@ async def create_content_data(
     except Exception as e:
         print(f"Error: {str(e)}")  # Log the full error
         raise HTTPException(status_code=500, detail=f"Error saving content data: {str(e)}")
+
+
 
 @router.get("/api/events")
 async def get_events(request: Request, db: Session = Depends(get_db)):

@@ -40,7 +40,7 @@ export function initializeCalendar() {
         let title = arg.event.title;
       
         let innerHtml = "";
-
+              
         if (mediaUrl) {
           let decodedMediaUrl = decodeURIComponent(mediaUrl);
           innerHtml += `<img src="${decodedMediaUrl}" alt="Event Image" style="width: 50px; margin-right: 5px;">`;
