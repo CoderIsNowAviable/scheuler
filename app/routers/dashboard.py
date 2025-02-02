@@ -42,7 +42,7 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
 
     if not user_id:
         # If no user ID in session, redirect to login
-        return RedirectResponse(url="/login", status_code=302)
+        return RedirectResponse(url="/register?form=signin", status_code=302)
 
     # Fetch the user from the database
     user = db.query(User).filter(User.id == user_id).first()
@@ -85,7 +85,7 @@ async def get_user_profile(request: Request, db: Session = Depends(get_db)):
 
     if not user_id:
         # If no user ID in session, redirect to login
-        return RedirectResponse(url="/login", status_code=302)
+        return RedirectResponse(url="/register?form=signin", status_code=302)
 
     # Fetch the user from the database
     user = db.query(User).filter(User.id == user_id).first()
@@ -133,7 +133,7 @@ async def load_section(request: Request, section: str, db: Session = Depends(get
 
     if not user_id:
         # If no user ID in session, redirect to login
-        return RedirectResponse(url="/login", status_code=302)
+        return RedirectResponse(url="/register?form=signin", status_code=302)
 
     # Fetch the user from the database
     user = db.query(User).filter(User.id == user_id).first()
