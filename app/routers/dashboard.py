@@ -242,7 +242,7 @@ async def create_content_data(
         # Save the image file to the uploads directory inside static
         encoded_filename = urllib.parse.quote(image.filename)
         file_location = os.path.join(uploads_dir, encoded_filename)
-        media_url = file_location.replace(os.path.abspath("static/uploads"), "/static/uploads")
+        media_url = "/static/uploads/" + encoded_filename
 
         with open(file_location, "wb") as buffer:
             shutil.copyfileobj(image.file, buffer)
