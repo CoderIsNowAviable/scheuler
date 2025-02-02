@@ -1,15 +1,13 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 import logging
-from fastapi import HTTPException, Request
+from fastapi import HTTPException
 import httpx
 import os
 from sqlalchemy.orm import Session
 from app.models.user import Content, TikTokAccount
 from asgiref.sync import async_to_sync
 from app.core.database import SessionLocal  # Import your database session factory
-
-
 
 # Initialize the scheduler
 scheduler = BackgroundScheduler()
@@ -19,6 +17,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 async def post_content_to_tiktok(content_id: int):
+    """Function to post scheduled content to TikTok."""
+    logger.info(f"Starting TikTok posting for Content ID {content_id}")  # Debug log at start
     db = SessionLocal()  # Manually create a session
     try:
         # Fetch content data
@@ -27,10 +27,10 @@ async def post_content_to_tiktok(content_id: int):
             logger.error(f"Content ID {content_id} not found in the database.")
             return
 
-        # Retrieve TikTok session from the database instead of `request`
+        # Retrieve TikTok session from the database
         user_tiktok_data = db.query(TikTokAccount).filter(TikTokAccount.user_id == content.user_id).first()
         if not user_tiktok_data or not user_tiktok_data.access_token:
-            logger.error("User is not authenticated with TikTok.")
+            logger.error(f"User {content.user_id} is not authenticated with TikTok.")
             return
 
         access_token = user_tiktok_data.access_token
@@ -59,26 +59,32 @@ async def post_content_to_tiktok(content_id: int):
     finally:
         db.close()  # Close the session
 
+def sync_post_content_to_tiktok(content_id: int):
+    """Wrapper to call async function inside APScheduler (which requires sync functions)."""
+    async_to_sync(post_content_to_tiktok)(content_id)
 
 # Function to start the scheduler
 def start_scheduler():
     """Start the APScheduler background scheduler."""
-    scheduler.start()
+    if not scheduler.running:
+        scheduler.start()
+        logger.info("Scheduler started.")
 
 # Function to schedule content posting
-def schedule_content_post(content_id: int, end_time: datetime, db: Session):
+def schedule_content_post(content_id: int, end_time: datetime):
+    """Schedules a job to post content at the specified end_time."""
     try:
-        def run_post_content():
-            async_to_sync(post_content_to_tiktok)(None, content_id, db)
-        # Add a job to the scheduler to post content at the `end_time`
         scheduler.add_job(
-            post_content_to_tiktok,  # The function that posts content
-            'date',  # Trigger once when the exact time arrives
-            run_date=end_time,  # The time when the job should run
-            args=[content_id],  # Pass content_id and db to the function
+            sync_post_content_to_tiktok,  # Wrapped function to make it sync
+            'date',  # Runs at a specific time
+            run_date=end_time,
+            args=[content_id],  # Pass content_id
             id=f"content_post_{content_id}",  # Unique job ID
-            misfire_grace_time=3600,  # Allow retry in case of error
+            misfire_grace_time=3600,  # Allow retry if missed
         )
         logger.info(f"Content ID {content_id} scheduled for {end_time}.")
     except Exception as e:
         logger.error(f"Error scheduling content: {str(e)}")
+
+# Ensure the scheduler starts when this module is loaded
+start_scheduler()
