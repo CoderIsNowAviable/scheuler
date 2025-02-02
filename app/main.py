@@ -63,7 +63,7 @@ app.add_middleware(
 )
 
 YOUR_SECRET_KEY = os.getenv("YOUR_SECRET_KEY")
-app.add_middleware(SessionMiddleware, secret_key=YOUR_SECRET_KEY, session_cookie="session")
+app.add_middleware(SessionMiddleware, secret_key=YOUR_SECRET_KEY, session_cookie="session_id")
 
 
 TIKTOK_CLIENT_KEY = os.getenv("TIKTOK_CLIENT_KEY")
@@ -423,5 +423,7 @@ async def google_callback(request: Request, db: requests.Session = Depends(get_d
             db.add(user)
             db.commit()
             db.refresh(user)
-        
+            
+        request.session["user_id"] = user.id
+
         return RedirectResponse(url=f"/dashboard", status_code=302)

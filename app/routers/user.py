@@ -71,6 +71,7 @@ async def signin(request: Request, email: str = Form(...), password: str = Form(
         # Check if user is authenticated via Google OAuth and skip password verification for them
         if user.hashed_password == "google-oauth":
             request.session["user_id"] = user.id
+            print("Session set:", request.session.get("user_id"))  # Debugging
             # Generate a JWT token and redirect to dashboard
             return RedirectResponse(url=f"/dashboard", status_code=302)
 
@@ -80,6 +81,7 @@ async def signin(request: Request, email: str = Form(...), password: str = Form(
 
         # Redirect to dashboard with token in the URL
         request.session["user_id"] = user.id
+        print("Session set:", request.session.get("user_id"))  # Debugging
         return RedirectResponse(url=f"/dashboard", status_code=302)
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
