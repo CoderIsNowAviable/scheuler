@@ -80,8 +80,6 @@ httpx_client = httpx.AsyncClient()
 # Static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
 # Serve static files from the 'uploads' folder
-uploads_dir = os.path.join(os.getcwd(), 'uploads')
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 templates = Jinja2Templates(directory="templates")
 PROFILE_PHOTO_DIR = "static/profile_photos"
 # Include routers
