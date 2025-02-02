@@ -1,8 +1,7 @@
-import json
 import logging
 import os
 import shutil
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile,status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -17,6 +16,7 @@ from fastapi import Query
 from datetime import datetime
 from app.models.user import User, Content, TikTokAccount
 from app.utils.GetTiktok import get_tiktok_info
+from app.utils.scheduler import schedule_content_post
 
 router = APIRouter()
 
@@ -261,7 +261,8 @@ async def create_content_data(
         # Add content to the database and commit
         db.add(new_content)
         db.commit()
-
+        # Schedule content posting
+        schedule_content_post(new_content.id, end_time, db)
         return {"status": "success", "message": "Content data saved successfully"}
 
     except Exception as e:
