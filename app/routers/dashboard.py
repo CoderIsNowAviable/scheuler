@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from fastapi import Query
 from datetime import datetime
 from app.models.user import User, Content, TikTokAccount
-
+from app.utils.GetTiktok import get_tiktok_info
 
 router = APIRouter()
 
@@ -215,26 +215,21 @@ async def create_content_data(
     db: Session = Depends(get_db),
 ):
     try:
-        # Retrieve the TikTok session from the session
+         # Step 1: Try to retrieve TikTok session from the session
         tiktok_session = request.session.get("tiktok_session")
-        
-        if not tiktok_session:
-            raise HTTPException(status_code=401, detail="User not authenticated with TikTok")
-        
-        # Retrieve the email or open_id from the session
-        user_email = tiktok_session.get("email")
-        
-        if not user_email:
-            raise HTTPException(status_code=401, detail="TikTok email not found in session")
-        
-        # Retrieve the user_id from the database based on the email
-        user = db.query(User).filter(User.email == user_email).first()
+        user_id = None
 
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        # Extract the user_id
-        user_id = user.id
+        if tiktok_session:
+            user_id = tiktok_session.get("user_id")
+
+        # Step 2: If no session found, fetch TikTok info from the database
+        if not user_id:
+            tiktok_info = await get_tiktok_info(request, db)
+            user_id = tiktok_info.get("user_id")  # Retrieve user_id from the function
+
+        # Step 3: If still no user_id, return login prompt
+        if not user_id:
+            raise HTTPException(status_code=401, detail="User not authenticated with TikTok. Please log in to TikTok.")
 
         # Convert the string end time into a datetime object
         end_datetime = datetime.fromisoformat(end_time).replace(tzinfo=None)  # Make naive
