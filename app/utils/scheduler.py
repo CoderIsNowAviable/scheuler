@@ -78,7 +78,7 @@ async def post_content_to_tiktok(content_id: int, request=None):
 
     except Exception as e:
         logger.exception(f"❌ Error posting Content ID {content_id} to TikTok: {str(e)}")
-    finally:
+    finally:    
         db.close()  # Close the session
         logger.info(f"🛑 Database session closed for Content ID {content_id}")
 
