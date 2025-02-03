@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 async def post_content_to_tiktok(content_id: int):
     """Function to post scheduled content to TikTok"""
+    logger.info(f"Starting TikTok post process for Content ID {content_id} at {datetime.utcnow()}")
+
     db = SessionLocal()  # Manually create a database session
     try:
         # Fetch content data
@@ -28,7 +30,7 @@ async def post_content_to_tiktok(content_id: int):
         # Retrieve TikTok access token
         user_tiktok_data = db.query(TikTokAccount).filter(TikTokAccount.user_id == content.user_id).first()
         if not user_tiktok_data or not user_tiktok_data.access_token:
-            logger.error("User is not authenticated with TikTok.")
+            logger.error(f"User {content.user_id} is not authenticated with TikTok.")
             return
 
         access_token = user_tiktok_data.access_token
@@ -39,6 +41,9 @@ async def post_content_to_tiktok(content_id: int):
             logger.error(f"Media file not found: {media_path}")
             return
 
+        # Log media and access token info (mask token for security)
+        logger.info(f"Posting Content ID {content_id}: {content.title}, Media: {content.media_url}")
+        
         # Post to TikTok
         url = "https://open.tiktokapis.com/v2/post/publish/creator_info/query/"
         headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
@@ -48,22 +53,25 @@ async def post_content_to_tiktok(content_id: int):
             response = await client.post(url, json=data, headers=headers)
 
         if response.status_code == 200:
-            logger.info(f"Content with ID {content_id} successfully posted to TikTok.")
+            logger.info(f"Content ID {content_id} successfully posted to TikTok at {datetime.utcnow()}.")
         else:
-            logger.error(f"Failed to post content to TikTok: {response.json()}")
+            logger.error(f"Failed to post content ID {content_id}. TikTok Response: {response.json()}")
 
     except Exception as e:
-        logger.error(f"Error posting content to TikTok: {str(e)}")
+        logger.exception(f"Error posting content ID {content_id} to TikTok: {str(e)}")
     finally:
         db.close()  # Close the session
+        logger.info(f"Database session closed for Content ID {content_id}")
 
 # Wrapper to make async function synchronous for APScheduler
 def sync_post_content_to_tiktok(content_id: int):
+    logger.info(f"Executing scheduled TikTok post for Content ID {content_id} at {datetime.utcnow()}")
     async_to_sync(post_content_to_tiktok)(content_id)
 
 # Function to start the scheduler
 def start_scheduler():
     """Start the APScheduler background scheduler."""
+    logger.info("Starting APScheduler...")
     scheduler.start()
 
 # Function to schedule content posting
@@ -80,4 +88,4 @@ def schedule_content_post(content_id: int, end_time: datetime):
         )
         logger.info(f"Content ID {content_id} scheduled for {end_time}.")
     except Exception as e:
-        logger.error(f"Error scheduling content: {str(e)}")
+        logger.error(f"Error scheduling content ID {content_id}: {str(e)}")
