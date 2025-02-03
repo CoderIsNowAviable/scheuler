@@ -44,6 +44,8 @@ class TikTokAccount(Base):
     openid = Column(String(255), unique=True, index=True)  # TikTok OpenID
     username = Column(String(255), nullable=False)
     profile_picture = Column(String(500), nullable=True)  # Increase to 500 characters
+    access_token = Column(String(500), nullable=True)  # ➜ Store TikTok Access Token
+
     user = relationship("User", back_populates="tiktok_account")
 
 class Content(Base):

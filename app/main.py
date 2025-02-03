@@ -92,6 +92,7 @@ os.makedirs("uploads", exist_ok=True)
 
 @app.on_event("startup")
 async def startup_event():
+    start_scheduler()
     global httpx_client
     httpx_client = httpx.AsyncClient()
     print(f"CLIENT_KEY: {TIKTOK_CLIENT_KEY}")
@@ -100,7 +101,6 @@ async def startup_event():
     
 
 
-start_scheduler()
     
 # Serve the HTML verification file for domain/app verification
 @app.get("/googleb524bf271b1d073d.html")  # Change the filename to your actual file
@@ -321,6 +321,7 @@ async def tiktok_callback(request: Request, db: requests.Session = Depends(get_d
         tiktok_account.openid = openid
         tiktok_account.username = user_info.get("display_name")
         tiktok_account.profile_picture = user_info.get("avatar_url")
+        tiktok_account.access_token = access_token  # Update the access token
     else:
         # Create a new TikTok account record
         new_tiktok_account = TikTokAccount(
@@ -328,6 +329,7 @@ async def tiktok_callback(request: Request, db: requests.Session = Depends(get_d
             openid=openid,
             username=user_info.get("display_name"),
             profile_picture=user_info.get("avatar_url"),
+            access_token=access_token   # Store the access token
         )
         db.add(new_tiktok_account)
 
