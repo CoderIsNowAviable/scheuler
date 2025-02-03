@@ -262,7 +262,7 @@ async def create_content_data(
         db.add(new_content)
         db.commit()
         # Schedule content posting
-        schedule_content_post(new_content.id, end_datetime, db)
+        schedule_content_post(new_content.id, end_datetime)
         return {"status": "success", "message": "Content data saved successfully"}
 
     except Exception as e:
