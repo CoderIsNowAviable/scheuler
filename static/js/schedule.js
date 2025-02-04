@@ -16,8 +16,7 @@ export function initializeSchedule() {
   const startTime = currentDate.toISOString(); // Get the current time in ISO format
   document.getElementById("start-time").value = startTime; // Set the hidden start-time field
 
-// Fetch TikTok account info from the backend
-fetch("/dashboard/api/tiktok-profile")
+  fetch("/dashboard/api/tiktok-profile")
   .then((response) => response.json())
   .then((data) => {
     const accountSection = document.getElementById("account-section");
@@ -30,8 +29,8 @@ fetch("/dashboard/api/tiktok-profile")
         <div class="account-info">
           <span class="account-name">${data.tiktok_username}</span>
         </div>
-        <button class="profile-toggle">▾</button>
-        <ul class="profile-options">
+        <button class="account-toggle">▾</button> <!-- Fixed class name -->
+        <ul class="account-options"> <!-- Fixed class name -->
           <li><a href="#">Help</a></li>
           <li><a href="/users/logout">Logout</a></li>
         </ul>
@@ -48,22 +47,25 @@ fetch("/dashboard/api/tiktok-profile")
     }
 
     // ✅ Attach event listener AFTER updating the DOM
-    const profileToggle = document.querySelector(".profile-toggle");
-    const profileMenu = document.querySelector(".profile-options");
+    setTimeout(() => {
+      const accountToggle = document.querySelector(".account-toggle"); // Fixed class name
+      const accountMenu = document.querySelector(".account-options"); // Fixed class name
 
-    if (profileToggle && profileMenu) {
-      profileToggle.addEventListener("click", () => {
-        profileMenu.classList.toggle("visible");
-      });
-    }
+      if (accountToggle && accountMenu) {
+        accountToggle.addEventListener("click", () => {
+          accountMenu.classList.toggle("visible");
+        });
+      }
+    }, 100); // Small delay to ensure the elements exist
 
-    // ✅ Call setupFileUpload only after account section is updated
+    // ✅ Call setupFileUpload after updating the DOM
     setupFileUpload();
   })
   .catch((error) => {
     console.error("Error fetching TikTok profile:", error);
     accountSection.innerHTML = `<p>Failed to load TikTok profile. Please try again later.</p>`;
   });
+
 
 
   // Set up file upload interaction

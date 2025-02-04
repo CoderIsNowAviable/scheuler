@@ -457,7 +457,40 @@ main {
   transform: scale(1.2);
 }
 
+.account-options {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #f4f4f4;
+  list-style: none;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.241);
+  opacity: 0;
+  transform: translateY(-10px); /* Start slightly above */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
 
+.account-options.visible {
+  animation: slideDown 0.3s ease;
+  display: block;
+  opacity: 1;
+  transform: translateY(0); /* Slide down into place */
+}
+
+.account-options li {
+  margin: 5px 0;
+  transition: all 0.4s ease;
+}
+.account-options li:hover{
+  transform: translate(-4px);
+}
+.account-options a {
+  text-decoration: none;
+  color: black;
+  font-size: 14px;
+}
 
 .schedule-text { /*targets the schedule text*/
   font-size: 70px;
