@@ -64,7 +64,7 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
         user_data["profile_photo_url"] = user.profile_photo_url
     else:
         # If not, generate a random profile picture
-        user_data["profile_photo_url"] = generate_random_profile_photo(user.id,db)  # Call the function to generate
+        user_data["profile_photo_url"] = generate_random_profile_photo(user,db)  # Call the function to generate
 
     # Add TikTok details to user_data if TikTok account is linked
     if tiktok_account:
