@@ -16,40 +16,55 @@ export function initializeSchedule() {
   const startTime = currentDate.toISOString(); // Get the current time in ISO format
   document.getElementById("start-time").value = startTime; // Set the hidden start-time field
 
-  // Fetch TikTok account info from the backend
-  fetch("/dashboard/api/tiktok-profile")
-    .then((response) => response.json())
-    .then((data) => {
-      const accountSection = document.getElementById("account-section");
+// Fetch TikTok account info from the backend
+fetch("/dashboard/api/tiktok-profile")
+  .then((response) => response.json())
+  .then((data) => {
+    const accountSection = document.getElementById("account-section");
 
-      // Check if TikTok account data is available
-      if (data && data.tiktok_username) {
-        accountSection.innerHTML = `
-        <div class="account-card bound-account">
-          <img src="${data.tiktok_profile_picture}" alt="Profile Picture" class="account-img" />
-          <div class="account-info">
-            <span class="account-name">${data.tiktok_username}</span>
-          </div>
-          <button class="account-toggle">▾</button>
+    // Check if TikTok account data is available
+    if (data && data.tiktok_username) {
+      accountSection.innerHTML = `
+      <div class="account-card bound-account">
+        <img src="${data.tiktok_profile_picture}" alt="Profile Picture" class="account-img" />
+        <div class="account-info">
+          <span class="account-name">${data.tiktok_username}</span>
         </div>
+        <button class="profile-toggle">▾</button>
+        <ul class="profile-options">
+          <li><a href="#">Help</a></li>
+          <li><a href="/users/logout">Logout</a></li>
+        </ul>
+      </div>
       `;
-      } else {
-        accountSection.innerHTML = `
-        <div class="account-card add-account">
-          <a href="/login/tiktok">
-            <button id="bind-account-btn">+ Add TikTok Account</button>
-          </a>
-        </div>
+    } else {
+      accountSection.innerHTML = `
+      <div class="account-card add-account">
+        <a href="/login/tiktok">
+          <button id="bind-account-btn">+ Add TikTok Account</button>
+        </a>
+      </div>
       `;
-      }
+    }
 
-      // Call initializeSchedule only after account section is updated
-      setupFileUpload();
-    })
-    .catch((error) => {
-      console.error("Error fetching TikTok profile:", error);
-      accountSection.innerHTML = `<p>Failed to load TikTok profile. Please try again later.</p>`;
-    });
+    // ✅ Attach event listener AFTER updating the DOM
+    const profileToggle = document.querySelector(".profile-toggle");
+    const profileMenu = document.querySelector(".profile-options");
+
+    if (profileToggle && profileMenu) {
+      profileToggle.addEventListener("click", () => {
+        profileMenu.classList.toggle("visible");
+      });
+    }
+
+    // ✅ Call setupFileUpload only after account section is updated
+    setupFileUpload();
+  })
+  .catch((error) => {
+    console.error("Error fetching TikTok profile:", error);
+    accountSection.innerHTML = `<p>Failed to load TikTok profile. Please try again later.</p>`;
+  });
+
 
   // Set up file upload interaction
   function setupFileUpload() {
