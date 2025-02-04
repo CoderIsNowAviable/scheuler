@@ -46,7 +46,7 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
     if not user:
         # If user does not exist, clear session and redirect to login
         request.session.clear()
-        raise RedirectResponse(url="/register?form=signin", status_code=401, detail="Invalid session. Please log in again.")
+        raise RedirectResponse(url="/register?form=signin", status_code=302)
 
     # Check if TikTok is linked to the user
     tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.user_id == user.id).first()
