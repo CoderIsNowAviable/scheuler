@@ -15,6 +15,7 @@ import logging
 router = APIRouter()
 
 logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 @router.post("/signup")
 async def signup(
@@ -65,23 +66,33 @@ async def signin(
     password: str = Form(...),
     db: Session = Depends(get_db)
 ):
+    logger.debug("Signin attempt for email: %s", email)
+
     # Check if the user is already logged in via session or JWT
     # Check if there's a session stored
     user_id = request.session.get("user_id")
     if user_id:
+        logger.info("User %s already logged in via session, redirecting to dashboard", user_id)
+
         # If the session exists, we can directly redirect to the dashboard
         return RedirectResponse(url=f"/dashboard", status_code=302)
 
     # Check if there's a valid JWT token stored in cookies
     access_token = request.cookies.get("access_token")
     if access_token:
+        logger.debug("JWT token found in cookies, verifying token")
+
         # If JWT is valid, we can directly redirect to the dashboard
         # You need to validate the JWT token here using your `create_access_token` method or other validation function
         try:
             user_data = verify_access_token(access_token)  # Assuming you have a function for this
             if user_data:
+                logger.info("Valid JWT token found, redirecting to dashboard")
+
                 return RedirectResponse(url=f"/dashboard", status_code=302)
         except Exception as e:
+            logger.warning("JWT token verification failed: %s", str(e))
+
             # If JWT is invalid, continue to login
             pass
     

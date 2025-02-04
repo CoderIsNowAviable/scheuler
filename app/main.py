@@ -122,24 +122,7 @@ async def serve_root_verification_file():
     return {"error": "File not found"}
 
 @app.get("/", response_class=HTMLResponse)
-async def landing_page(request: Request, token: str = Cookie(None)):
-    # Log the cookie value to check if the token is being sent
-    print(f"Cookie Token: {token}")  # This will appear in your server logs
-
-    if token:
-        try:
-            # Verify the token (you can implement your token verification function here)
-            verify_access_token(token)  # This function verifies the token
-            # If the token is valid, redirect to the dashboard with token in URL
-            print(f"Redirecting to dashboard with token: {token}")  # Debug log
-            return RedirectResponse(url=f"/dashboard?token={token}", status_code=302)
-        except HTTPException:
-            # If the token is invalid or expired, redirect to login page
-            print("Token is invalid or expired.")
-            return RedirectResponse(url="/register?form=signin", status_code=302)
-    else:
-        # If there's no token, render the landing page
-        print("No token found in cookie.")  # Debug log
+async def landing_page(request: Request):
         return templates.TemplateResponse("landingpage.html", {"request": request})
 
 
