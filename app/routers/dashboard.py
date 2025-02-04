@@ -26,7 +26,6 @@ templates = Jinja2Templates(directory="templates")
 PROFILE_PHOTO_DIR = os.path.join(os.getcwd(), "static", "profile_photos")
 
 
-
 @router.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request, db: Session = Depends(get_db)):
     """
@@ -47,7 +46,7 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
     if not user:
         # If user does not exist, clear session and redirect to login
         request.session.clear()
-        raise HTTPException(status_code=401, detail="Invalid session. Please log in again.")
+        raise HTTPException(url="/register?form=signin", status_code=401, detail="Invalid session. Please log in again.")
 
     # Check if TikTok is linked to the user
     tiktok_account = db.query(TikTokAccount).filter(TikTokAccount.user_id == user.id).first()
@@ -57,16 +56,27 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
         "user_id": user.id, 
         "username": user.full_name,  # Assuming `full_name` is the correct field
         "email": user.email,
-        "profile_photo_url": user.profile_photo_url if user.profile_photo_url else "default_profile_photo_url.png",
-        "tiktok_username": tiktok_account.username if tiktok_account else None,
-        "tiktok_profile_picture": tiktok_account.profile_picture if tiktok_account else None,
     }
 
+    # Check if the user has a profile photo
+    if user.profile_photo_url:
+        # If the user has a profile picture, use that
+        user_data["profile_photo_url"] = user.profile_photo_url
+    else:
+        # If not, generate a random profile picture
+        user_data["profile_photo_url"] = generate_random_profile_photo(user.id)  # Call the function to generate
+
+    # Add TikTok details to user_data if TikTok account is linked
+    if tiktok_account:
+        user_data["tiktok_username"] = tiktok_account.username
+        user_data["tiktok_profile_picture"] = tiktok_account.profile_picture
+
+    # Check if TikTok account is linked to the user
     if tiktok_account:
         # If TikTok account is linked, redirect to /dashboard/me
         return RedirectResponse(url="/dashboard/me", status_code=302)
 
-    # If TikTok is not linked, render dashboard without TikTok info
+    # If TikTok is not linked, render dashboard with user data
     return templates.TemplateResponse("dashboard.html", {"request": request, **user_data})
 
 

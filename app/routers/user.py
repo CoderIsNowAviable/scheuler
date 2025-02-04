@@ -57,35 +57,57 @@ async def signup(
 
     return RedirectResponse(url=f"/authenticate?email={email}&token={access_token}", status_code=302)
 
-@router.post("/signin")
-async def signin(request: Request, email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == email).first()
-    pending_user = db.query(PendingUser).filter(PendingUser.email == email).first()
 
+@router.post("/signin")
+async def signin(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    # Check if the user is already logged in via session or JWT
+    # Check if there's a session stored
+    user_id = request.session.get("user_id")
+    if user_id:
+        # If the session exists, we can directly redirect to the dashboard
+        return RedirectResponse(url=f"/dashboard", status_code=302)
+
+    # Check if there's a valid JWT token stored in cookies
+    access_token = request.cookies.get("access_token")
+    if access_token:
+        # If JWT is valid, we can directly redirect to the dashboard
+        # You need to validate the JWT token here using your `create_access_token` method or other validation function
+        try:
+            user_data = verify_access_token(access_token)  # Assuming you have a function for this
+            if user_data:
+                return RedirectResponse(url=f"/dashboard", status_code=302)
+        except Exception as e:
+            # If JWT is invalid, continue to login
+            pass
+    
+    # If the user is not logged in via session or valid JWT, proceed to check for pending users
+    pending_user = db.query(PendingUser).filter(PendingUser.email == email).first()
     if pending_user:
         access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=1))
         request.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
         return RedirectResponse(url=f"/authenticate?email={email}&token={access_token}", status_code=302)
 
+    # If the user exists, check the password (ignoring Google OAuth login)
+    user = db.query(User).filter(User.email == email).first()
     if user:
-        # Check if user is authenticated via Google OAuth and skip password verification for them
         if user.hashed_password == "google-oauth":
             request.session["user_id"] = user.id
-            print("Session set:", request.session.get("user_id"))  # Debugging
-            # Generate a JWT token and redirect to dashboard
             return RedirectResponse(url=f"/dashboard", status_code=302)
 
-        # If not Google OAuth, verify the password
+        # If password is not Google OAuth, validate the password
         if not verify_password(password, user.hashed_password):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid password")
 
-        # Redirect to dashboard with token in the URL
+        # Set session and redirect to dashboard
         request.session["user_id"] = user.id
-        print("Session set:", request.session.get("user_id"))  # Debugging
         return RedirectResponse(url=f"/dashboard", status_code=302)
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-
 
 
 
