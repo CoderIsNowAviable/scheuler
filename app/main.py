@@ -18,7 +18,7 @@ import requests
 import datetime
 from dotenv import load_dotenv
 from jose import jwt, JWTError
-from app.utils.jwt import  get_email_from_token
+from app.utils.jwt import  get_email_from_token, get_valid_daily_token, is_month_token_valid
 from oauthlib.oauth2 import WebApplicationClient
 import urllib.parse
 from starlette.middleware.sessions import SessionMiddleware
@@ -135,10 +135,6 @@ async def landing_page(request: Request):
         return templates.TemplateResponse("landingpage.html", {"request": request})
 
 
-
-
-
-
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request, form: str = "signup", db: Session = Depends(get_db)):
     """
@@ -152,9 +148,8 @@ async def register_page(request: Request, form: str = "signup", db: Session = De
     if user_id:
         logger.info(f"User {user_id} found in session, checking tokens...")
 
-        if is_month_token_valid(user_id):  # Monthly token still valid?
+        if is_month_token_valid(request):  # Check validity from cookies
             daily_token = get_valid_daily_token(user_id)  # Refresh daily token if needed
-            request.session["month_token"] = redis_client.get(f"month_token:{user_id}")
             request.session["daily_token"] = daily_token
             return RedirectResponse(url="/dashboard", status_code=302)
 
@@ -191,8 +186,7 @@ async def register_page(request: Request, form: str = "signup", db: Session = De
             return RedirectResponse(url="/register?form=signin")
 
     # 5️⃣ No valid session or token → Render login/signup page
-    return templates.TemplateResponse("registerr.html", {"request": request, "form_type": form})
-
+    return templates.TemplateResponse("register.html", {"request": request, "form_type": form})
 
 
 
@@ -490,15 +484,6 @@ async def google_callback(request: Request, db: requests.Session = Depends(get_d
 
         return RedirectResponse(url=f"/dashboard", status_code=302)
 
-
-
-@app.get("/debug-redis")
-async def debug_redis(user_id: int):
-    month_token = redis_client.get(f"month_token:{user_id}")
-    daily_token = redis_client.get(f"daily_token:{user_id}")
-    expiry = redis_client.get(f"month_token_expiry:{user_id}")
-
-    return {"month_token": month_token, "daily_token": daily_token, "expiry": expiry}
 
 
 @app.get("/debug-session")

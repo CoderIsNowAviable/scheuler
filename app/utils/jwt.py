@@ -1,7 +1,8 @@
 import logging
+from urllib import request
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException, Depends, Response
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 import os
@@ -107,6 +108,74 @@ def get_email_from_Ctoken(token: str):
 # Generate Month Token and Store in Redis
 def generate_month_token(user_id):
     expire = datetime.utcnow() + timedelta(days=30)
-    payload = {"user_id": user_id, "exp": expire}
+    payload = {"user_id": user_id, "exp": expire.timestamp()}
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return token
+
+
+def is_month_token_valid(user_id):
+    """Check if the user's month token is still valid."""
+    month_token = request.cookie.get(f"month_token:{user_id}")
+
+    if not month_token:
+        return False  # No token stored
+
+    try:
+        payload = jwt.decode(month_token, SECRET_KEY, algorithms=[ALGORITHM])
+        exp_timestamp = payload.get("exp")
+
+        if datetime.utcnow().timestamp() > exp_timestamp:
+            return False  # Token expired
+
+        return True  # Token is valid
+
+    except JWTError:
+        return False  # Token is invalid
+
+
+def generate_daily_token(user_id):
+    """Generate a new daily token if the month token is still valid."""
+    expire = datetime.utcnow() + timedelta(days=1)
+
+    payload = {"user_id": user_id, "exp": expire.timestamp()}
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+    return token
+
+
+
+def get_valid_daily_token(request: Request, response: Response):
+    """
+    Check if the daily token in cookies is valid.
+    If expired or missing, generate a new one and set it in cookies.
+    """
+    daily_token = request.cookies.get("daily_token")
+
+    if daily_token:
+        try:
+            payload = jwt.decode(daily_token, SECRET_KEY, algorithms=[ALGORITHM])
+            exp_timestamp = payload.get("exp")
+
+            if datetime.utcnow().timestamp() <= exp_timestamp:
+                return daily_token  # Token is valid, return it
+
+        except JWTError:
+            logger.warning("Invalid or expired daily token. Generating a new one.")
+
+    # If expired or missing, generate a new token
+    user_id = request.session.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User session missing. Please re-authenticate.")
+
+    new_token = generate_daily_token(user_id)
+
+    # Store the new daily token in cookies
+    response.set_cookie(
+        key="daily_token",
+        value=new_token,
+        httponly=True,
+        max_age=86400,  # 1 day in seconds
+        secure=True  # Use Secure flag in production
+    )
+
+    return new_token
