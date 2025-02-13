@@ -186,7 +186,7 @@ async def register_page(request: Request, form: str = "signup", db: Session = De
             return RedirectResponse(url="/register?form=signin")
 
     # 5️⃣ No valid session or token → Render login/signup page
-    return templates.TemplateResponse("register.html", {"request": request, "form_type": form})
+    return templates.TemplateResponse("registerr.html", {"request": request, "form_type": form})
 
 
 
