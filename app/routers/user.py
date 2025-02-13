@@ -84,6 +84,19 @@ async def signin(
     if user:
         if user.hashed_password == "google-oauth":
             request.session["user_id"] = user.id
+                            # Generate a monthly token
+            month_token = generate_month_token(user.id)
+
+            # Set the token in an HTTP-only, Secure cookie
+            response = RedirectResponse(url="/dashboard", status_code=302)
+            response.set_cookie(
+                key="month_token",
+                value=month_token,
+                httponly=True,  # Prevents JavaScript access (XSS protection)
+                secure=True,    # Only send over HTTPS
+                samesite="Strict",  # Prevents CSRF
+                max_age=30 * 24 * 60 * 60  # 30 days in seconds
+            )
             return RedirectResponse(url="/dashboard", status_code=302)
 
         if not verify_password(password, user.hashed_password):
@@ -102,16 +115,6 @@ async def signin(
             samesite="Strict",  # Prevents CSRF
             max_age=30 * 24 * 60 * 60  # 30 days in seconds
         )
-
-        # Step 6: Generate Monthly & Daily Tokens and Store in Redis
-        month_token = generate_month_token(user.id)
-        daily_token = generate_daily_token(user.id)
-
-        redis_client.set(f"month_token:{user.id}", month_token)
-        redis_client.set(f"daily_token:{user.id}", daily_token)
-
-        # Store user_id in session
-        request.session["user_id"] = user.id
 
         return RedirectResponse(url="/dashboard", status_code=302)
 

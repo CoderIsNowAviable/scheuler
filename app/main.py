@@ -15,7 +15,9 @@ from app.routers.dashboard import router as dashboard_router
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import requests
+import datetime
 from dotenv import load_dotenv
+from jose import jwt, JWTError
 from app.utils.jwt import  get_email_from_token, verify_access_token, is_month_token_valid, get_valid_daily_token, redis_client
 from oauthlib.oauth2 import WebApplicationClient
 import urllib.parse
@@ -79,7 +81,11 @@ SCOPES = ["openid", "email", "profile"]
 TIKTOK_SCOPE = "user.info.basic"  # Adjust the scope based on what you need
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 httpx_client = httpx.AsyncClient()
+# Load secrets
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
 
+logger = logging.getLogger(__name__)
 
 # Static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -130,21 +136,8 @@ async def landing_page(request: Request):
 
 
 
-from fastapi import Request, Depends, HTTPException
-from fastapi.responses import RedirectResponse
-from sqlalchemy.orm import Session
-from jose import jwt, JWTError
-from datetime import datetime
-from app.models import User
-from app.core.database import get_db
-import os
-import logging
 
-# Load secrets
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
 
-logger = logging.getLogger(__name__)
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request, form: str = "signup", db: Session = Depends(get_db)):
