@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 import urllib.parse
 from app.core.database import get_db
 from app.models.user import User, Content, TikTokAccount
-from app.utils.jwt import get_current_user, get_email_from_Ctoken, validate_token, verify_access_token
+from app.utils.jwt import get_current_user, get_email_from_Ctoken, verify_access_token
 from app.utils.random_profile_generator import generate_random_profile_photo
 from datetime import datetime, timedelta
 from fastapi import Query
@@ -27,7 +27,7 @@ PROFILE_PHOTO_DIR = os.path.join(os.getcwd(), "static", "profile_photos")
 
 
 @router.get("/", response_class=HTMLResponse)
-async def dashboard(request: Request, db: Session = Depends(validate_token)):
+async def dashboard(request: Request, db: Session = Depends(get_db)):
     """
     Dashboard page that isolates user data based on session authentication.
     Ensures only the logged-in user's data is retrieved.
