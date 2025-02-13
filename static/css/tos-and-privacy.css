@@ -1,7 +1,5 @@
-/* added three font faces coolvetica, antinkodan and thunder hc */
 @font-face {
   font-family: 'Coolvetica';
-  /* Removed the link  to coolvetica italic and renamed the files and updated the formats*/
   src: url('../fonts/coolvetica-20250105T074502Z-001/coolvetica/coolvetica-rg.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
@@ -52,7 +50,7 @@ header .logo { /*targets the scheulder text*/
 .logo-icon { /*targets the logo icon*/
   width: 120px;
   height: 120px;
-  margin-right: -20px;
+  margin-left: 75px;
   cursor: pointer;
 }
 
@@ -196,14 +194,80 @@ p{
     font-size: 14px;
   }
 
-/* Responsive Design for Mobile Screens */
-@media (max-width: 768px) {
+
+  @media (max-width: 768px) {
+    /* Adjust content layout */
+    .content {
+      display: flex;
+      flex-direction: column; /* Stack left and right panels vertically */
+      padding: 10px 20px; /* Adjust padding for smaller screens */
+      gap: 100px;
+      justify-content: center;
+      align-items: center;
+    }
+  
+    /* Make left and right panels full width */
+    .left-panel, .right-panel {
+      margin-top: -65px;
+      flex: none; /* Remove equal width distribution */
+      width: 100%; /* Make panels take full width */
+      gap: 20px
+    }
+  
+    /* Adjust box spacing for smaller screens */
+    .box {
+      padding: 20px; /* Reduce padding inside boxes */
+    }
+    
+  
+    nav{
+      padding: 16px 0px;
+      margin-top: 45px;
+      margin-left: 120px;
+      margin-bottom: 0px;
+      display: flex;
+    }
+  
+    nav a {
+      margin: 10px 2; /* Add spacing between links */
+    }
+  
+    /* Font size adjustments for better readability */
+    h1 {
+      font-size: 40px; /* Scale down heading size */
+      margin-top: 8px;
+    }
+    p {
+      font-size: 18px; /* Scale down paragraph size */
+    }
+    .box h2 {
+      font-size: 50px; /* Adjust box heading size */
+    }
+  
+    /* Logo adjustments (optional) */
+    .logo {
+      font-size: 35px; /* Scale down logo text size */
+      margin-bottom: 20px;
+    }
+    .logo-icon {
+      width: 100px; /* Scale down logo icon */
+      height: 100px;
+      margin-left: -0px ;
+      margin-top: -20px;
+      margin-bottom: -10px;
+    }
+  }
+
+
+@media (max-width: 480px) {
   /* Adjust content layout */
   .content {
     display: flex;
     flex-direction: column; /* Stack left and right panels vertically */
     padding: 10px 20px; /* Adjust padding for smaller screens */
-    gap: 100px
+    gap: 100px;
+    justify-content: center;
+    align-items: center;
   }
 
   /* Make left and right panels full width */
@@ -221,9 +285,10 @@ p{
   
 
   nav{
+
     padding: 16px 0px;
     margin-top: 45px;
-    margin-left: 10px;
+    margin-left: 0px;
     margin-bottom: 0px;
     display: flex;
   }
@@ -252,5 +317,7 @@ p{
   .logo-icon {
     width: 80px; /* Scale down logo icon */
     height: 80px;
+    margin-left: -0px ;
+    margin-top: -20px;
   }
 }
