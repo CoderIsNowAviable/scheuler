@@ -33,7 +33,9 @@ load_dotenv()
 # Initialize FastAPI app
 app = FastAPI()
 
-
+# Configure logging
+logging.basicConfig(level=logging.INFO)  # Set logging level
+logger = logging.getLogger(__name__)  # Create logger instance
 
 
 # Dependency to manage the database session
