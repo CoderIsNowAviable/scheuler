@@ -1,13 +1,12 @@
 from datetime import timedelta
 from urllib import request
-from fastapi import APIRouter, Form, HTTPException, Depends, Request, Response, status, Cookie
-from fastapi.responses import HTMLResponse, RedirectResponse
-from pydantic import BaseModel
+from fastapi import APIRouter, Form, HTTPException, Depends, Request, status, Cookie
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from app.models.user import PendingUser, User
 from app.schemas.user import PasswordResetRequest, ResendCodeRequest, ResetPasswordRequest, VerifyCodeRequest
 from app.utils.email_utils import generate_verification_code, send_password_reset_email, send_verification_email
-from app.utils.jwt import create_access_token, verify_access_token, get_email_from_token
+from app.utils.jwt import create_access_token, generate_daily_token, generate_month_token, get_valid_daily_token, is_month_token_valid, verify_access_token, get_email_from_token, redis_client
 from app.utils.password import verify_password, hash_password
 from app.core.database import get_db
 import logging
@@ -27,7 +26,7 @@ async def signup(
   # Check if user already exists
     if db.query(User).filter(User.email == email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
-    
+
     if db.query(PendingUser).filter(PendingUser.email == email).first():
         raise HTTPException(status_code=400, detail="Pending verification already exists for this email")
     hashed_password = hash_password(password)
@@ -58,7 +57,6 @@ async def signup(
 
     return RedirectResponse(url=f"/authenticate?email={email}&token={access_token}", status_code=302)
 
-
 @router.post("/signin")
 async def signin(
     request: Request,
@@ -68,58 +66,67 @@ async def signin(
 ):
     logger.debug("Signin attempt for email: %s", email)
 
-    # Check if the user is already logged in via session or JWT
-    # Check if there's a session stored
+    # Step 1: Check if user_id exists in session
     user_id = request.session.get("user_id")
     if user_id:
-        logger.info("User %s already logged in via session, redirecting to dashboard", user_id)
+        logger.info("User %s found in session, verifying tokens...", user_id)
 
-        # If the session exists, we can directly redirect to the dashboard
-        return RedirectResponse(url=f"/dashboard", status_code=302)
+        # Step 2: Validate monthly & daily tokens from Redis
+        month_token_valid = is_month_token_valid(user_id)
+        daily_token = get_valid_daily_token(user_id)  # Refresh daily token if expired
 
-    # Check if there's a valid JWT token stored in cookies
+        if month_token_valid and daily_token:
+            logger.info("Valid monthly & daily token found, redirecting to dashboard")
+            return RedirectResponse(url="/dashboard", status_code=302)
+
+        logger.warning("Tokens expired, proceeding with authentication")
+
+    # Step 3: Check JWT token stored in cookies
     access_token = request.cookies.get("access_token")
     if access_token:
-        logger.debug("JWT token found in cookies, verifying token")
-
-        # If JWT is valid, we can directly redirect to the dashboard
-        # You need to validate the JWT token here using your `create_access_token` method or other validation function
+        logger.debug("JWT token found in cookies, verifying...")
         try:
-            user_data = verify_access_token(access_token)  # Assuming you have a function for this
-            if user_data:
-                logger.info("Valid JWT token found, redirecting to dashboard")
+            user_data = verify_access_token(access_token)
+            user_id = user_data.get("user_id")
 
-                return RedirectResponse(url=f"/dashboard", status_code=302)
+            if user_id and is_month_token_valid(user_id):
+                get_valid_daily_token(user_id)  # Refresh daily token
+                request.session["user_id"] = user_id
+                return RedirectResponse(url="/dashboard", status_code=302)
         except Exception as e:
             logger.warning("JWT token verification failed: %s", str(e))
 
-            # If JWT is invalid, continue to login
-            pass
-    
-    # If the user is not logged in via session or valid JWT, proceed to check for pending users
+    # Step 4: Check if user is pending verification
     pending_user = db.query(PendingUser).filter(PendingUser.email == email).first()
     if pending_user:
         access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=1))
-        request.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
-        return RedirectResponse(url=f"/authenticate?email={email}&token={access_token}", status_code=302)
+        response = RedirectResponse(url=f"/authenticate?email={email}&token={access_token}", status_code=302)
+        response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
+        return response
 
-    # If the user exists, check the password (ignoring Google OAuth login)
+    # Step 5: Authenticate User (Email & Password)
     user = db.query(User).filter(User.email == email).first()
     if user:
         if user.hashed_password == "google-oauth":
             request.session["user_id"] = user.id
-            return RedirectResponse(url=f"/dashboard", status_code=302)
+            return RedirectResponse(url="/dashboard", status_code=302)
 
-        # If password is not Google OAuth, validate the password
         if not verify_password(password, user.hashed_password):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid password")
+            raise HTTPException(status_code=400, detail="Invalid password")
 
-        # Set session and redirect to dashboard
+        # Step 6: Generate Monthly & Daily Tokens and Store in Redis
+        month_token = generate_month_token(user.id)
+        daily_token = generate_daily_token(user.id)
+
+        redis_client.set(f"month_token:{user.id}", month_token)
+        redis_client.set(f"daily_token:{user.id}", daily_token)
+
+        # Store user_id in session
         request.session["user_id"] = user.id
-        return RedirectResponse(url=f"/dashboard", status_code=302)
 
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        return RedirectResponse(url="/dashboard", status_code=302)
 
+    raise HTTPException(status_code=404, detail="User not found")
 
 
 @router.post("/verify-code")
@@ -246,7 +253,7 @@ def resend_verification_code(request: ResendCodeRequest, db: Session = Depends(g
     except Exception as e:
         logging.error(f"Error during operation: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
-    
+
 
 
 

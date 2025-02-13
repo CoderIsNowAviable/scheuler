@@ -9,12 +9,13 @@ from fastapi.requests import Request
 from sqlalchemy.orm import Session
 from app.models import User
 from app.core.database import get_db
-
+import redis
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 hours
+redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -75,3 +76,46 @@ def get_email_from_Ctoken(token: str):
         return email
     except JWTError:
         raise HTTPException(status_code=403, detail="Could not validate credentials")
+
+
+# Generate Month Token and Store in Redis
+def generate_month_token(user_id):
+    expire = datetime.utcnow() + timedelta(days=30)
+    payload = {"user_id": user_id, "exp": expire}
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+    # Store token and expiry in Redis
+    redis_client.set(f"month_token:{user_id}", token)
+    redis_client.set(f"month_token_expiry:{user_id}", expire.timestamp())
+
+    return token
+
+# Check if Month Token is Expired
+def is_month_token_valid(user_id):
+    return redis_client.ttl(f"month_token:{user_id}") > 0
+
+
+# Generate Daily Token
+def generate_daily_token(user_id):
+    if not is_month_token_valid(user_id):
+        raise HTTPException(status_code=401, detail="Month token expired. Please re-authenticate.")
+
+    expire = datetime.utcnow() + timedelta(days=1)
+    payload = {"user_id": user_id, "exp": expire}
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+    redis_client.set(f"daily_token:{user_id}", token)
+    redis_client.set(f"daily_token_expiry:{user_id}", expire.timestamp())
+
+    return token
+
+# Check and Update Daily Token
+def get_valid_daily_token(user_id):
+    expiry_timestamp = redis_client.get(f"daily_token_expiry:{user_id}")
+
+    if not expiry_timestamp or datetime.utcnow().timestamp() > float(expiry_timestamp):
+        new_token = generate_daily_token(user_id)
+        redis_client.set(f"daily_token:{user_id}", new_token)  # Store new token
+        return new_token
+
+    return redis_client.get(f"daily_token:{user_id}")
