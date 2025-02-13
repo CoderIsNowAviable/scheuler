@@ -1,4 +1,5 @@
 import logging
+from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer
 
 from fastapi import HTTPException, Depends
@@ -61,22 +62,47 @@ def verify_access_token(token: str):
 
 def get_current_user(request: Request, db: Session = Depends(get_db)):
     """
-    Get the current authenticated user from the session.
+    Get the current authenticated user from session or JWT token.
+    If the monthly token is expired, redirect user to login.
     """
-    session_user_id = request.session.get("user_id")  # Retrieve user_id from session
 
-    if not session_user_id:
-        logger.warning("No user_id found in session")
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    # 1️⃣ Check session first
+    session_user_id = request.session.get("user_id")
+    if session_user_id:
+        user = db.query(User).filter(User.id == session_user_id).first()
+        if user:
+            logger.info(f"User {session_user_id} authenticated via session")
+            return user
+        logger.warning(f"User ID {session_user_id} from session not found in DB")
 
-    # Fetch the user from the database
-    user = db.query(User).filter(User.id == session_user_id).first()
+    # 2️⃣ Check for JWT token in cookies
+    month_token = request.cookies.get("month_token")
+    if not month_token:
+        logger.warning("No session and no JWT token found. Redirecting to login.")
+        return RedirectResponse(url="/register?form=signin")
 
-    if not user:
-        logger.warning(f"User with ID {session_user_id} not found in database")
-        raise HTTPException(status_code=404, detail="User not found")
+    try:
+        # Decode JWT token
+        payload = jwt.decode(month_token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("user_id")
+        exp_timestamp = payload.get("exp")
 
-    return user
+        # 3️⃣ If token expired, force login
+        if datetime.utcnow().timestamp() > exp_timestamp:
+            logger.warning(f"Monthly token expired for user {user_id}. Redirecting to login.")
+            return RedirectResponse(url="/register?form=signin")
+
+        # 4️⃣ Validate user from database
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            logger.warning(f"User ID {user_id} from token not found in DB. Redirecting to login.")
+            return RedirectResponse(url="/register?form=signin")
+
+        return user  # ✅ User authenticated via JWT
+
+    except JWTError:
+        logger.error("Invalid JWT token. Redirecting to login.")
+        return RedirectResponse(url="/login")
 
 def get_email_from_token(token: str):
     try:

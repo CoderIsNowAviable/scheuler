@@ -130,47 +130,76 @@ async def landing_page(request: Request):
 
 
 
+from fastapi import Request, Depends, HTTPException
+from fastapi.responses import RedirectResponse
+from sqlalchemy.orm import Session
+from jose import jwt, JWTError
+from datetime import datetime
+from app.models import User
+from app.core.database import get_db
+import os
+import logging
+
+# Load secrets
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+
+logger = logging.getLogger(__name__)
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request, form: str = "signup", db: Session = Depends(get_db)):
+    """
+    Handles user session and token authentication for registration.
+    - If session or cookie token is valid, redirect to dashboard.
+    - If the monthly token is expired, clear session & force login.
+    """
     user_id = request.session.get("user_id")
 
+    # 1️⃣ Check session first
     if user_id:
-        logger.info("User %s found in session, checking tokens...", user_id)
+        logger.info(f"User {user_id} found in session, checking tokens...")
 
-        if is_month_token_valid(user_id):  # Check if monthly token is valid
+        if is_month_token_valid(user_id):  # Monthly token still valid?
             daily_token = get_valid_daily_token(user_id)  # Refresh daily token if needed
             request.session["month_token"] = redis_client.get(f"month_token:{user_id}")
             request.session["daily_token"] = daily_token
             return RedirectResponse(url="/dashboard", status_code=302)
 
-    if not is_month_token_valid(user_id):
+        # Session exists but month token expired → Force login
         logger.warning(f"User {user_id} session exists but month token expired. Re-authentication required.")
-        request.session.clear()  # Clear expired session
+        request.session.clear()
 
-    # Check for JWT token in cookies
-    access_token = request.cookies.get("access_token")
-    if access_token:
-        logger.debug("JWT token found in cookies, verifying...")
+    # 2️⃣ Check for JWT token in cookies (fallback)
+    month_token = request.cookies.get("month_token")
+    if month_token:
+        logger.debug("JWT month token found in cookies, verifying...")
         try:
-            user_data = verify_access_token(access_token)
-            email = user_data.get("sub")
+            payload = jwt.decode(month_token, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = payload.get("user_id")
+            exp_timestamp = payload.get("exp")
 
-            user = db.query(User).filter(User.email == email).first()
-            if user and is_month_token_valid(user.id):
-                daily_token = get_valid_daily_token(user.id)
-                request.session["user_id"] = user.id
-                request.session["month_token"] = redis_client.get(f"month_token:{user.id}")
+            # 3️⃣ Expired month token → Redirect to login
+            if datetime.utcnow().timestamp() > exp_timestamp:
+                logger.warning(f"JWT month token expired for user {user_id}. Re-authentication required.")
+                request.session.clear()
+                return RedirectResponse(url="/register?form=signin")
+
+            # 4️⃣ Restore session from valid JWT token
+            user = db.query(User).filter(User.id == user_id).first()
+            if user:
+                daily_token = get_valid_daily_token(user_id)
+                request.session["user_id"] = user_id
+                request.session["month_token"] = month_token
                 request.session["daily_token"] = daily_token
                 return RedirectResponse(url="/dashboard", status_code=302)
 
-            logger.warning("JWT is valid but tokens expired, requiring manual login")
+        except JWTError:
+            logger.error("Invalid JWT token. Redirecting to login.")
+            return RedirectResponse(url="/register?form=signin")
 
-        except Exception as e:
-            logger.warning("JWT verification failed: %s", str(e))
-
-    # No valid session or token, render the login/signup page
+    # 5️⃣ No valid session or token → Render login/signup page
     return templates.TemplateResponse("registerr.html", {"request": request, "form_type": form})
+
 
 
 
