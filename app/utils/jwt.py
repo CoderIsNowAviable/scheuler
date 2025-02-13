@@ -1,5 +1,4 @@
 import logging
-from urllib import request
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import HTTPException, Depends, Response
@@ -113,7 +112,7 @@ def generate_month_token(user_id):
     return token
 
 
-def is_month_token_valid(user_id):
+def is_month_token_valid(request: Request,user_id:str):
     """Check if the user's month token is still valid."""
     month_token = request.cookies.get(f"month_token:{user_id}")
 
