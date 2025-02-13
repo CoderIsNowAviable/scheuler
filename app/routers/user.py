@@ -91,6 +91,10 @@ async def signin(
             # Update the month_token in the database
             user.month_token = month_token
             db.commit()
+                    # Log to ensure the token is stored
+            db.refresh(user)
+            logger.debug(f"Saved month token for user {user.id}: {user.month_token}")
+
 
             # Set the token in an HTTP-only, Secure cookie
             response = RedirectResponse(url="/dashboard", status_code=302)
@@ -113,6 +117,9 @@ async def signin(
         # Update the month_token in the database
         user.month_token = month_token
         db.commit()
+                # Log to ensure the token is stored
+        db.refresh(user)
+        logger.debug(f"Saved month token for user {user.id}: {user.month_token}")
 
         # Set the token in an HTTP-only, Secure cookie
         response = RedirectResponse(url="/dashboard", status_code=302)
