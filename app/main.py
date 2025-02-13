@@ -152,7 +152,7 @@ async def register_page(request: Request, form: str = "signup", db: Session = De
         user = db.query(User).filter(User.id == user_id).first()
         if user:
             month_token = user.month_token  # Assuming month_token is stored in the database
-            if is_month_token_valid(request, month_token):  # Check validity from session (replaced cookie with session)
+            if is_month_token_valid(request, month_token, db):  # Check validity from session (replaced cookie with session)
                 daily_token = get_valid_daily_token(request)  # Refresh daily token if needed
                 request.session["daily_token"] = daily_token
                 return RedirectResponse(url="/dashboard", status_code=302)
