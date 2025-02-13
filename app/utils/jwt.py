@@ -103,7 +103,12 @@ def get_email_from_Ctoken(token: str):
     except JWTError:
         raise HTTPException(status_code=403, detail="Could not validate credentials")
 
-
+# Generate Month Token and Store in Redis
+def generate_month_token(user_id: int):
+    expire = datetime.utcnow() + timedelta(days=30)
+    payload = {"user_id": user_id, "exp": expire.timestamp()}
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return token
 
 def is_month_token_valid(request: Request, user_id: int, db: Session):
     """
