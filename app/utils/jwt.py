@@ -1,7 +1,6 @@
 import logging
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer
-
 from fastapi import HTTPException, Depends
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
@@ -18,7 +17,6 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 hours
-
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -63,7 +61,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
     month_token = request.cookies.get("month_token")
     if not month_token:
         logger.warning("No session and no JWT token found. Redirecting to login.")
-        return RedirectResponse(url="/register?form=signin")
+        return RedirectResponse(url="/login")
 
     try:
         # Decode JWT token
@@ -74,20 +72,19 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
         # 3️⃣ If token expired, force login
         if datetime.utcnow().timestamp() > exp_timestamp:
             logger.warning(f"Monthly token expired for user {user_id}. Redirecting to login.")
-            return RedirectResponse(url="/register?form=signin")
+            return RedirectResponse(url="/login")
 
         # 4️⃣ Validate user from database
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             logger.warning(f"User ID {user_id} from token not found in DB. Redirecting to login.")
-            return RedirectResponse(url="/register?form=signin")
+            return RedirectResponse(url="/login")
 
         return user  # ✅ User authenticated via JWT
 
     except JWTError:
         logger.error("Invalid JWT token. Redirecting to login.")
-        return RedirectResponse(url="/register?form=signin")
-
+        return RedirectResponse(url="/login")
 
 def get_email_from_token(token: str):
     try:
@@ -105,3 +102,11 @@ def get_email_from_Ctoken(token: str):
         return email
     except JWTError:
         raise HTTPException(status_code=403, detail="Could not validate credentials")
+
+
+# Generate Month Token and Store in Redis
+def generate_month_token(user_id):
+    expire = datetime.utcnow() + timedelta(days=30)
+    payload = {"user_id": user_id, "exp": expire}
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return token
