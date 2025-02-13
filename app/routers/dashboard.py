@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 import urllib.parse
 from app.core.database import get_db
 from app.models.user import User, Content, TikTokAccount
-from app.utils.jwt import get_current_user, get_email_from_Ctoken, verify_access_token
+from app.utils.jwt import get_current_user, get_email_from_Ctoken, validate_token, verify_access_token
 from app.utils.random_profile_generator import generate_random_profile_photo
 from datetime import datetime, timedelta
 from fastapi import Query
@@ -27,7 +27,7 @@ PROFILE_PHOTO_DIR = os.path.join(os.getcwd(), "static", "profile_photos")
 
 
 @router.get("/", response_class=HTMLResponse)
-async def dashboard(request: Request, db: Session = Depends(get_db)):
+async def dashboard(request: Request, db: Session = Depends(validate_token)):
     """
     Dashboard page that isolates user data based on session authentication.
     Ensures only the logged-in user's data is retrieved.
@@ -53,7 +53,7 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
 
     # Prepare user data for the template
     user_data = {
-        "user_id": user.id, 
+        "user_id": user.id,
         "username": user.full_name,  # Assuming `full_name` is the correct field
         "email": user.email,
     }
@@ -86,7 +86,7 @@ async def get_user_profile(request: Request, db: Session = Depends(get_db)):
     Endpoint to get the logged-in user's profile information and verify their TikTok account.
     Only allows access to users with a linked TikTok account.
     """
-    
+
     # Retrieve the user ID from the session
     user_id = request.session.get("user_id")
 
@@ -167,18 +167,18 @@ async def load_section(request: Request, section: str, db: Session = Depends(get
     # Render the requested section
     if section == "schedule":
         return templates.TemplateResponse("schedule.html", {"request": request, "user": user_data})
-    
+
     elif section == "calendar":
         return templates.TemplateResponse("calendar.html", {"request": request, "user": user_data})
-    
+
     else:
         return HTMLResponse(content="Section Not Found", status_code=404)
 
-    
+
 @router.post("/upload-profile-photo")
 async def upload_profile_photo(
-    email: str = Form(...), 
-    profile_photo: UploadFile = File(...), 
+    email: str = Form(...),
+    profile_photo: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
     try:
@@ -293,7 +293,7 @@ async def get_events(request: Request, db: Session = Depends(get_db)):
 
     # Fetch user events (scheduled content) from the Content table
     events = db.query(Content).filter(Content.user_id == user_id, Content.scheduled_time >= datetime.utcnow()).all()
-    
+
         # Return events data, filter or format as needed
     return [
         {

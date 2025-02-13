@@ -1,4 +1,6 @@
 import logging
+from fastapi.security import OAuth2PasswordBearer
+
 from fastapi import HTTPException, Depends
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
@@ -18,6 +20,11 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 hours
 REDIS_HOST = os.getenv("REDIS_HOSTNAME")
 REDIS_PORT = int(os.getenv("REDIS_PORT"))
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")  # Add this if your Redis requires authentication
+
+
+
+# OAuth2PasswordBearer setup (for token extraction)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # Set up Redis connection
 redis_client = redis.Redis(
@@ -130,3 +137,23 @@ def get_valid_daily_token(user_id):
         return new_token
 
     return redis_client.get(f"daily_token:{user_id}")
+
+
+
+
+def validate_token(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("user_id")
+        if user_id is None:
+            raise HTTPException(status_code=403, detail="Invalid token")
+
+        # Check token expiration (you can adjust this check based on your needs)
+        expiration_time = datetime.utcfromtimestamp(payload["exp"])
+        if expiration_time < datetime.utcnow():
+            raise HTTPException(status_code=401, detail="Token has expired")
+
+        return user_id  # Return the user ID for use in routes
+
+    except JWTError:
+        raise HTTPException(status_code=403, detail="Could not validate credentials")
