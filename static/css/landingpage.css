@@ -1,22 +1,18 @@
 /* General Reset */
 * {
   margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  padding: 0
 }
 
-/* added three font faces coolvetica, antinkodan and thunder hc */
+
 @font-face {
   font-family: 'Coolvetica';
-  /* Removed the link  to coolvetica italic and renamed the files and updated the formats*/
   src: url('../fonts/coolvetica-20250105T074502Z-001/coolvetica/coolvetica-rg.woff2') format('woff2');
 }
-
 @font-face {
   font-family: 'Antinkodan';
   src: url('../fonts/antinkodan-20250105T074502Z-001/antinkodan/Antinkodan.woff2') format('woff2');
 }
-
 @font-face {
   font-family: 'Thunder HC';
   src: url('../fonts/thunder-20250105T074544Z-001/thunder/Thunder-HC.woff2') format('woff2');
@@ -377,56 +373,41 @@ body {
   }
 }
 
+
 @media (max-width: 480px) {
-  /* Further adjustments for very small screens */
-
   body {
-    background-size: cover; /* Adjust background for smaller screens */
-    justify-content: flex-start; /* Align content properly */
-    background-position: center 0px;
+    max-width: 100vw;
+    max-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
-  .navbar {
-    padding: 20px;
-    margin-top: 0px;
-    margin-right: 30px;
+  .navbar{
+    padding: 50px;
   }
 
-  .navbar nav a {
-    font-size: 16px;
-    margin-left: 10; /* Reduce nav tab spacing */
+  .hero .content h1,h2,h3 {
+    line-height: 0.5;
+    font-size: 60px;
   }
 
-  /* Hero Section */
-   .hero {
-    margin-top: 100px; /* Reduce top margin */
-    padding: 1rem; /* Add padding */
-    text-align: center; /* Center-align for mobile */
-    margin-right: 45px;
+  .main-img{
+    display:none;
+  }
+  .sub-img{
+    display: none;
   }
 
-  .hero .content h1 {
-    font-size: 45px;
-    line-height: 0.8;
+  .btn-get-started{
+    box-shadow: 7px 7px 0px #BEBEBE;
   }
-
-  .hero .content .thin {
+  .hero .slogan{
     font-size: 35px;
   }
-
-  .hero .content .bold,
-  .hero .content .thick {
-    font-size: 30px;
-  }
-  .hero .btn-get-started {
-    font-size: 16px;
-    padding: 8px 15px;
-  }
-
-  .hero .star-img{
-    padding: 0px;
-    margin-left: 0px;
-    margin-left: 10px;
+  .footer{
+    margin-top: 130px;
   }
 }
-
