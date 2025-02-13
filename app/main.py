@@ -18,7 +18,7 @@ import requests
 import datetime
 from dotenv import load_dotenv
 from jose import jwt, JWTError
-from app.utils.jwt import  get_email_from_token, verify_access_token, is_month_token_valid, get_valid_daily_token, redis_client
+from app.utils.jwt import  get_email_from_token
 from oauthlib.oauth2 import WebApplicationClient
 import urllib.parse
 from starlette.middleware.sessions import SessionMiddleware
