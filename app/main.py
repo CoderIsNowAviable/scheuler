@@ -134,6 +134,7 @@ async def serve_root_verification_file():
 async def landing_page(request: Request):
         return templates.TemplateResponse("landingpage.html", {"request": request})
 
+
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request, form: str = "signup", db: Session = Depends(get_db)):
     """
@@ -143,30 +144,35 @@ async def register_page(request: Request, form: str = "signup", db: Session = De
     """
     user_id = request.session.get("user_id")
 
-    # Check session first
+    # 1️⃣ Check session first
     if user_id:
+        logger.info(f"User {user_id} found in session, checking tokens...")
+
         if is_month_token_valid(request, user_id):  # Check validity from cookies
             daily_token = get_valid_daily_token(user_id)  # Refresh daily token if needed
             request.session["daily_token"] = daily_token
             return RedirectResponse(url="/dashboard", status_code=302)
 
         # Session exists but month token expired → Force login
+        logger.warning(f"User {user_id} session exists but month token expired. Re-authentication required.")
         request.session.clear()
 
-    # Check for JWT token in cookies (fallback)
+    # 2️⃣ Check for JWT token in cookies (fallback)
     month_token = request.cookies.get("month_token")
     if month_token:
+        logger.debug("JWT month token found in cookies, verifying...")
         try:
             payload = jwt.decode(month_token, SECRET_KEY, algorithms=[ALGORITHM])
             user_id = payload.get("user_id")
             exp_timestamp = payload.get("exp")
 
-            # Expired month token → Redirect to login
+            # 3️⃣ Expired month token → Redirect to login
             if datetime.utcnow().timestamp() > exp_timestamp:
+                logger.warning(f"JWT month token expired for user {user_id}. Re-authentication required.")
                 request.session.clear()
                 return RedirectResponse(url="/register?form=signin")
 
-            # Restore session from valid JWT token
+            # 4️⃣ Restore session from valid JWT token
             user = db.query(User).filter(User.id == user_id).first()
             if user:
                 daily_token = get_valid_daily_token(user_id)
@@ -176,10 +182,12 @@ async def register_page(request: Request, form: str = "signup", db: Session = De
                 return RedirectResponse(url="/dashboard", status_code=302)
 
         except JWTError:
+            logger.error("Invalid JWT token. Redirecting to login.")
             return RedirectResponse(url="/register?form=signin")
 
-    # No valid session or token → Render login/signup page
+    # 5️⃣ No valid session or token → Render login/signup page
     return templates.TemplateResponse("registerr.html", {"request": request, "form_type": form})
+
 
 
 

@@ -112,24 +112,46 @@ def generate_month_token(user_id: int):
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return token
 
-def is_month_token_valid(request: Request, user_id: int):
-    """Check if the user's month token is still valid."""
-    month_token = request.cookies.get("month_token")
 
-    if not month_token:
-        return False  # No token stored
 
+def is_month_token_valid(request, user_id: int, db: Session):
+    """
+    Check if the month token is valid:
+    - Token should match the one stored in the database for the user.
+    - Token should not be expired.
+    """
+    # 1️⃣ Get the month token stored in the database for the user
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db_month_token = user.month_token
+
+    # 2️⃣ Get the month token from the cookies (or session)
+    month_token_from_cookie = request.cookies.get("month_token")
+    if not month_token_from_cookie:
+        raise HTTPException(status_code=401, detail="Month token missing")
+
+    # 3️⃣ Decode the month token to check for its validity
     try:
-        payload = jwt.decode(month_token, SECRET_KEY, algorithms=[ALGORITHM])
+        # Decode the JWT and extract the expiry time
+        payload = jwt.decode(month_token_from_cookie, SECRET_KEY, algorithms=[ALGORITHM])
         exp_timestamp = payload.get("exp")
 
+        # 4️⃣ Check if token matches the one in the database and if it's expired
+        if db_month_token != month_token_from_cookie:
+            raise HTTPException(status_code=401, detail="Invalid month token")
+
+        # 5️⃣ Check if the token has expired
         if datetime.utcnow().timestamp() > exp_timestamp:
-            return False  # Token expired
+            raise HTTPException(status_code=401, detail="Month token expired")
 
-        return True  # Token is valid
+        return True
 
-    except JWTError:
-        return False  # Token is invalid
+    except JWTError as e:
+        raise HTTPException(status_code=401, detail="Invalid month token")
+
 
 
 
