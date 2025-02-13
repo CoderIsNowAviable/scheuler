@@ -129,38 +129,47 @@ async def landing_page(request: Request):
 
 
 
-
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request, form: str = "signup", db: Session = Depends(get_db)):
-    # Check if the user is already logged in via session or JWT token
     user_id = request.session.get("user_id")
 
     if user_id:
-        logger.info("User %s already logged in via session, redirecting to dashboard", user_id)
-        return RedirectResponse(url=f"/dashboard", status_code=302)
+        logger.info("User %s found in session, checking tokens...", user_id)
 
-    # Check if there's a valid JWT token stored in cookies
+        if is_month_token_valid(user_id):  # Check if monthly token is valid
+            daily_token = get_valid_daily_token(user_id)  # Refresh daily token if needed
+            request.session["month_token"] = redis_client.get(f"month_token:{user_id}")
+            request.session["daily_token"] = daily_token
+            return RedirectResponse(url="/dashboard", status_code=302)
+
+        logger.warning("Session exists but tokens are expired, requiring manual login")
+
+    # Check for JWT token in cookies
     access_token = request.cookies.get("access_token")
     if access_token:
-        logger.debug("JWT token found in cookies, verifying token")
+        logger.debug("JWT token found in cookies, verifying...")
         try:
-            user_data = verify_access_token(access_token)  # Assuming you have a function for this
-            if user_data:
-                # Check for Month Token validity
-                user = db.query(User).filter(User.email == user_data['sub']).first()
-                if user and is_month_token_valid(user.id):  # Assuming you have this function
-                    logger.info("Valid JWT token found and month token valid, redirecting to dashboard")
-                    daily_token = get_valid_daily_token(user.id)  # Assuming you have a function for daily token
-                    request.session["user_id"] = user.id
-                    request.session["month_token"] = redis_client.get(f"month_token:{user.id}")
-                    request.session["daily_token"] = daily_token
-                    return RedirectResponse(url=f"/dashboard", status_code=302)
-        except Exception as e:
-            logger.warning("JWT token verification failed: %s", str(e))
-            pass  # Continue to check for normal registration process
+            user_data = verify_access_token(access_token)
+            email = user_data.get("sub")
 
-    # Render the registration page if the user is not logged in
+            user = db.query(User).filter(User.email == email).first()
+            if user and is_month_token_valid(user.id):
+                daily_token = get_valid_daily_token(user.id)
+                request.session["user_id"] = user.id
+                request.session["month_token"] = redis_client.get(f"month_token:{user.id}")
+                request.session["daily_token"] = daily_token
+                return RedirectResponse(url="/dashboard", status_code=302)
+
+            logger.warning("JWT is valid but tokens expired, requiring manual login")
+
+        except Exception as e:
+            logger.warning("JWT verification failed: %s", str(e))
+
+    # No valid session or token, render the login/signup page
     return templates.TemplateResponse("registerr.html", {"request": request, "form_type": form})
+
+
+
 
 @app.get("/forgot-password", response_class=HTMLResponse)
 async def terms_page(request: Request):
