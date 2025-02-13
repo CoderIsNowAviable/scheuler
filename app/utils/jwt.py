@@ -112,7 +112,7 @@ def generate_month_token(user_id):
     return token
 
 
-def is_month_token_valid(request: Request,user_id:str):
+def is_month_token_valid(request: Request,user_id):
     """Check if the user's month token is still valid."""
     month_token = request.cookies.get(f"month_token:{user_id}")
 
