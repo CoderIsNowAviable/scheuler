@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.models.user import PendingUser, User
 from app.schemas.user import PasswordResetRequest, ResendCodeRequest, ResetPasswordRequest, VerifyCodeRequest
 from app.utils.email_utils import generate_verification_code, send_password_reset_email, send_verification_email
-from app.utils.jwt import create_access_token, generate_daily_token, generate_month_token, get_valid_daily_token, is_month_token_valid, verify_access_token, get_email_from_token, redis_client
+from app.utils.jwt import create_access_token,  generate_month_token,  get_email_from_token
 from app.utils.password import verify_password, hash_password
 from app.core.database import get_db
 import logging
