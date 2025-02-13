@@ -108,10 +108,13 @@ def generate_month_token(user_id):
 
     return token
 
-# Check if Month Token is Expired
 def is_month_token_valid(user_id):
-    return redis_client.ttl(f"month_token:{user_id}") > 0
+    expiry_timestamp = redis_client.get(f"month_token_expiry:{user_id}")
 
+    if not expiry_timestamp:
+        return False  # No expiry timestamp means token is missing or expired
+
+    return datetime.utcnow().timestamp() < float(expiry_timestamp)
 
 # Generate Daily Token
 def generate_daily_token(user_id):

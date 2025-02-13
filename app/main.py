@@ -144,7 +144,9 @@ async def register_page(request: Request, form: str = "signup", db: Session = De
             request.session["daily_token"] = daily_token
             return RedirectResponse(url="/dashboard", status_code=302)
 
-        logger.warning("Session exists but tokens are expired, requiring manual login")
+    if not is_month_token_valid(user_id):
+        logger.warning(f"User {user_id} session exists but month token expired. Re-authentication required.")
+        request.session.clear()  # Clear expired session
 
     # Check for JWT token in cookies
     access_token = request.cookies.get("access_token")
@@ -465,3 +467,20 @@ async def google_callback(request: Request, db: requests.Session = Depends(get_d
         request.session["user_id"] = user.id
 
         return RedirectResponse(url=f"/dashboard", status_code=302)
+
+
+
+@app.get("/debug-redis")
+async def debug_redis(user_id: int):
+    month_token = redis_client.get(f"month_token:{user_id}")
+    daily_token = redis_client.get(f"daily_token:{user_id}")
+    expiry = redis_client.get(f"month_token_expiry:{user_id}")
+
+    return {"month_token": month_token, "daily_token": daily_token, "expiry": expiry}
+
+
+@app.get("/debug-session")
+async def debug_session(request: Request):
+    session_data = dict(request.session)
+    logger.info(f"Session Data: {session_data}")
+    return session_data
