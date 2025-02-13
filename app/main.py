@@ -139,7 +139,7 @@ async def landing_page(request: Request):
 async def register_page(request: Request, form: str = "signup", db: Session = Depends(get_db)):
     """
     Handles user session and token authentication for registration.
-    - If session or cookie token is valid, redirect to dashboard.
+    - If session or database token is valid, redirect to dashboard.
     - If the monthly token is expired, clear session & force login.
     """
     user_id = request.session.get("user_id")
@@ -148,46 +148,54 @@ async def register_page(request: Request, form: str = "signup", db: Session = De
     if user_id:
         logger.info(f"User {user_id} found in session, checking tokens...")
 
-        if is_month_token_valid(request, user_id, db):  # Check validity from cookies
-            daily_token = get_valid_daily_token(user_id)  # Refresh daily token if needed
-            request.session["daily_token"] = daily_token
-            return RedirectResponse(url="/dashboard", status_code=302)
+        # Query database for the month token
+        user = db.query(User).filter(User.id == user_id).first()
+        if user:
+            month_token = user.month_token  # Assuming month_token is stored in the database
+            if is_month_token_valid(request, month_token):  # Check validity from session (replaced cookie with session)
+                daily_token = get_valid_daily_token(request)  # Refresh daily token if needed
+                request.session["daily_token"] = daily_token
+                return RedirectResponse(url="/dashboard", status_code=302)
 
         # Session exists but month token expired → Force login
         logger.warning(f"User {user_id} session exists but month token expired. Re-authentication required.")
         request.session.clear()
+        response = RedirectResponse(url="/register?form=signin", status_code=302)
+        # Clear session tokens
+        request.session.pop("month_token", None)
+        request.session.pop("daily_token", None)
+        return response
 
-    # 2️⃣ Check for JWT token in cookies (fallback)
-    month_token = request.cookies.get("month_token")
-    if month_token:
-        logger.debug("JWT month token found in cookies, verifying...")
-        try:
-            payload = jwt.decode(month_token, SECRET_KEY, algorithms=[ALGORITHM])
-            user_id = payload.get("user_id")
-            exp_timestamp = payload.get("exp")
+    # 2️⃣ No valid session, check if the month token is valid in the session
+    month_token_from_session = request.session.get("month_token")
+    if month_token_from_session:
+        logger.debug("Month token found in session, verifying...")
+
+        # Query database for the month token and verify
+        user = db.query(User).filter(User.month_token == month_token_from_session).first()
+        if user:
+            exp_timestamp = user.month_token_expiry  # Assuming you store expiry date in the database
 
             # 3️⃣ Expired month token → Redirect to login
             if datetime.utcnow().timestamp() > exp_timestamp:
-                logger.warning(f"JWT month token expired for user {user_id}. Re-authentication required.")
+                logger.warning(f"Month token expired for user {user.id}. Re-authentication required.")
                 request.session.clear()
-                return RedirectResponse(url="/register?form=signin")
+                response = RedirectResponse(url="/register?form=signin")
+                # Clear session tokens
+                request.session.pop("month_token", None)
+                request.session.pop("daily_token", None)
+                return response
 
-            # 4️⃣ Restore session from valid JWT token
-            user = db.query(User).filter(User.id == user_id).first()
-            if user:
-                daily_token = get_valid_daily_token(user_id)
-                request.session["user_id"] = user_id
-                request.session["month_token"] = month_token
-                request.session["daily_token"] = daily_token
-                return RedirectResponse(url="/dashboard", status_code=302)
-
-        except JWTError:
-            logger.error("Invalid JWT token. Redirecting to login.")
-            return RedirectResponse(url="/register?form=signin")
+            # 4️⃣ Restore session from valid month token
+            daily_token = get_valid_daily_token(request)  # Refresh daily token if needed
+            request.session["user_id"] = user.id
+            request.session["month_token"] = month_token_from_session
+            request.session["daily_token"] = daily_token
+            return RedirectResponse(url="/dashboard", status_code=302)
 
     # 5️⃣ No valid session or token → Render login/signup page
+    logger.debug("No session or valid token found. Rendering login/signup page.")
     return templates.TemplateResponse("registerr.html", {"request": request, "form_type": form})
-
 
 
 

@@ -104,17 +104,8 @@ def get_email_from_Ctoken(token: str):
         raise HTTPException(status_code=403, detail="Could not validate credentials")
 
 
-# Generate Month Token and Store in Redis
-def generate_month_token(user_id: int):
-    """Generate a month-long token for the user."""
-    expire = datetime.utcnow() + timedelta(days=30)
-    payload = {"user_id": user_id, "exp": expire.timestamp()}
-    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-    return token
 
-
-
-def is_month_token_valid(request, user_id: int, db: Session):
+def is_month_token_valid(request: Request, user_id: int, db: Session):
     """
     Check if the month token is valid:
     - Token should match the one stored in the database for the user.
@@ -128,19 +119,19 @@ def is_month_token_valid(request, user_id: int, db: Session):
 
     db_month_token = user.month_token
 
-    # 2️⃣ Get the month token from the cookies (or session)
-    month_token_from_cookie = request.cookies.get("month_token")
-    if not month_token_from_cookie:
+    # 2️⃣ Get the month token from the session
+    month_token_from_session = request.session.get("month_token")
+    if not month_token_from_session:
         raise HTTPException(status_code=401, detail="Month token missing")
 
     # 3️⃣ Decode the month token to check for its validity
     try:
         # Decode the JWT and extract the expiry time
-        payload = jwt.decode(month_token_from_cookie, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(month_token_from_session, SECRET_KEY, algorithms=[ALGORITHM])
         exp_timestamp = payload.get("exp")
 
         # 4️⃣ Check if token matches the one in the database and if it's expired
-        if db_month_token != month_token_from_cookie:
+        if db_month_token != month_token_from_session:
             raise HTTPException(status_code=401, detail="Invalid month token")
 
         # 5️⃣ Check if the token has expired
@@ -153,8 +144,6 @@ def is_month_token_valid(request, user_id: int, db: Session):
         raise HTTPException(status_code=401, detail="Invalid month token")
 
 
-
-
 def generate_daily_token(user_id):
     """Generate a new daily token if the month token is still valid."""
     expire = datetime.utcnow() + timedelta(days=1)
@@ -165,13 +154,12 @@ def generate_daily_token(user_id):
     return token
 
 
-
 def get_valid_daily_token(request: Request, response: Response):
     """
-    Check if the daily token in cookies is valid.
-    If expired or missing, generate a new one and set it in cookies.
+    Check if the daily token in session is valid.
+    If expired or missing, generate a new one and store it in the session.
     """
-    daily_token = request.cookies.get("daily_token")
+    daily_token = request.session.get("daily_token")
 
     if daily_token:
         try:
@@ -191,13 +179,7 @@ def get_valid_daily_token(request: Request, response: Response):
 
     new_token = generate_daily_token(user_id)
 
-    # Store the new daily token in cookies
-    response.set_cookie(
-        key="daily_token",
-        value=new_token,
-        httponly=True,
-        max_age=86400,  # 1 day in seconds
-        secure=True  # Use Secure flag in production
-    )
+    # Store the new daily token in session
+    request.session["daily_token"] = new_token
 
     return new_token

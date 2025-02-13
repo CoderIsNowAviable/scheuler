@@ -96,16 +96,10 @@ async def signin(
             db.refresh(user)
             logger.debug(f"Saved month token for user {user.id}: {user.month_token}")
 
-            # Set the token in an HTTP-only, Secure cookie
-            response = RedirectResponse(url="/dashboard", status_code=302)
-            response.set_cookie(
-                key="month_token",
-                value=month_token,
-                httponly=True,
-                secure=True,
-                samesite="Strict",
-                max_age=30 * 24 * 60 * 60  # 30 days in seconds
-            )
+            # Store the month token in the session
+            request.session["month_token"] = month_token
+
+            # Redirect to the dashboard
             return RedirectResponse(url="/dashboard", status_code=302)
 
         if not verify_password(password, user.hashed_password):
@@ -122,17 +116,11 @@ async def signin(
         db.refresh(user)
         logger.debug(f"Saved month token for user {user.id}: {user.month_token}")
 
-        # Set the token in an HTTP-only, Secure cookie
-        response = RedirectResponse(url="/dashboard", status_code=302)
-        response.set_cookie(
-            key="month_token",
-            value=month_token,
-            httponly=True,
-            secure=True,
-            samesite="Strict",
-            max_age=30 * 24 * 60 * 60  # 30 days in seconds
-        )
+        # Store the month token in the session
+        request.session["user_id"] = user.id
+        request.session["month_token"] = month_token
 
+        # Redirect to the dashboard
         return RedirectResponse(url="/dashboard", status_code=302)
 
     raise HTTPException(status_code=404, detail="User not found")
