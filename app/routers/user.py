@@ -69,32 +69,7 @@ async def signin(
     # Step 1: Check if user_id exists in session
     user_id = request.session.get("user_id")
     if user_id:
-        logger.info("User %s found in session, verifying tokens...", user_id)
-
-        # Step 2: Validate monthly & daily tokens from Redis
-        month_token_valid = is_month_token_valid(user_id)
-        daily_token = get_valid_daily_token(user_id)  # Refresh daily token if expired
-
-        if month_token_valid and daily_token:
-            logger.info("Valid monthly & daily token found, redirecting to dashboard")
-            return RedirectResponse(url="/dashboard", status_code=302)
-
-        logger.warning("Tokens expired, proceeding with authentication")
-
-    # Step 3: Check JWT token stored in cookies
-    access_token = request.cookies.get("access_token")
-    if access_token:
-        logger.debug("JWT token found in cookies, verifying...")
-        try:
-            user_data = verify_access_token(access_token)
-            user_id = user_data.get("user_id")
-
-            if user_id and is_month_token_valid(user_id):
-                get_valid_daily_token(user_id)  # Refresh daily token
-                request.session["user_id"] = user_id
-                return RedirectResponse(url="/dashboard", status_code=302)
-        except Exception as e:
-            logger.warning("JWT token verification failed: %s", str(e))
+        logger.info("User %s found in session, proceeding with authentication", user_id)
 
     # Step 4: Check if user is pending verification
     pending_user = db.query(PendingUser).filter(PendingUser.email == email).first()

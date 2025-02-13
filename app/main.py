@@ -1,7 +1,7 @@
 from datetime import timedelta
 import logging
 import secrets
-from fastapi import Cookie, Depends,FastAPI, HTTPException, Request, Response
+from fastapi import Cookie, Depends,FastAPI, HTTPException, Request, Response, logger
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -16,11 +16,12 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 import requests
 from dotenv import load_dotenv
-from app.utils.jwt import create_access_token, get_email_from_token, verify_access_token
+from app.utils.jwt import  get_email_from_token, verify_access_token, is_month_token_valid, get_valid_daily_token, redis_client
 from oauthlib.oauth2 import WebApplicationClient
 import urllib.parse
 from starlette.middleware.sessions import SessionMiddleware
 from app.core.database import get_db
+from sqlalchemy.orm import Session
 from app.utils.scheduler import start_scheduler
 # Initialize database models
 Base.metadata.create_all(bind=engine)
@@ -98,10 +99,10 @@ async def startup_event():
     print(f"CLIENT_KEY: {TIKTOK_CLIENT_KEY}")
     print(f"REDIRECT_URI: {TIKTOK_REDIRECT_URI}")
 
-    
 
 
-    
+
+
 # Serve the HTML verification file for domain/app verification
 @app.get("/googleb524bf271b1d073d.html")  # Change the filename to your actual file
 async def serve_verification_file():
@@ -127,8 +128,38 @@ async def landing_page(request: Request):
 
 
 
+
+
 @app.get("/register", response_class=HTMLResponse)
-async def register_page(request: Request, form: str = "signup"):
+async def register_page(request: Request, form: str = "signup", db: Session = Depends(get_db)):
+    # Check if the user is already logged in via session or JWT token
+    user_id = request.session.get("user_id")
+
+    if user_id:
+        logger.info("User %s already logged in via session, redirecting to dashboard", user_id)
+        return RedirectResponse(url=f"/dashboard", status_code=302)
+
+    # Check if there's a valid JWT token stored in cookies
+    access_token = request.cookies.get("access_token")
+    if access_token:
+        logger.debug("JWT token found in cookies, verifying token")
+        try:
+            user_data = verify_access_token(access_token)  # Assuming you have a function for this
+            if user_data:
+                # Check for Month Token validity
+                user = db.query(User).filter(User.email == user_data['sub']).first()
+                if user and is_month_token_valid(user.id):  # Assuming you have this function
+                    logger.info("Valid JWT token found and month token valid, redirecting to dashboard")
+                    daily_token = get_valid_daily_token(user.id)  # Assuming you have a function for daily token
+                    request.session["user_id"] = user.id
+                    request.session["month_token"] = redis_client.get(f"month_token:{user.id}")
+                    request.session["daily_token"] = daily_token
+                    return RedirectResponse(url=f"/dashboard", status_code=302)
+        except Exception as e:
+            logger.warning("JWT token verification failed: %s", str(e))
+            pass  # Continue to check for normal registration process
+
+    # Render the registration page if the user is not logged in
     return templates.TemplateResponse("registerr.html", {"request": request, "form_type": form})
 
 @app.get("/forgot-password", response_class=HTMLResponse)
@@ -200,8 +231,8 @@ async def auth_tiktok(request: Request):
     # Clear any existing session data related to TikTok authentication
     request.session.pop("tiktok_session", None)  # Clear TikTok session if it exists
     request.session.pop("csrfState", None)  # Clear CSRF state if it exists
-    
-    
+
+
     csrf_state = secrets.token_urlsafe(16)  # ✅ Generate a secure random state
     request.session["csrfState"] = csrf_state  # ✅ Store CSRF state in session
 
@@ -328,10 +359,10 @@ async def tiktok_callback(request: Request, db: requests.Session = Depends(get_d
     }
 
     # Clear session after successful authentication
-    
+
     request.session.pop("csrfState", None)
 
-   
+
 
     # Redirect to dashboard with access token
     return RedirectResponse(url=f"/dashboard/me", status_code=302)
@@ -357,7 +388,7 @@ async def get_robots_txt():
 @app.get("/auth/google")
 async def google_login(response: Response):
     """Generate Google OAuth URL and redirect user to Google for authentication."""
-    
+
     # Generate the Google OAuth2 URL
     authorization_url = client.prepare_request_uri(
         "https://accounts.google.com/o/oauth2/auth",
@@ -377,7 +408,7 @@ async def google_login(response: Response):
 @app.get("/auth/callback")
 async def google_callback(request: Request, db: requests.Session = Depends(get_db), oauth_state: str = Cookie(None)):
     """Handle the OAuth2 callback and fetch the user's profile."""
-    
+
     # Extract the code and state from the callback URL
     code = request.query_params.get("code")
     state = request.query_params.get("state")
@@ -397,28 +428,28 @@ async def google_callback(request: Request, db: requests.Session = Depends(get_d
             "grant_type": "authorization_code"
         }
         token_response = requests.post(token_url, data=token_data)
-        
+
         if token_response.status_code != 200:
             return {"error": "Failed to get tokens"}
 
         access_token = token_response.json().get("access_token")
-        profile_response = requests.get("https://www.googleapis.com/oauth2/v1/userinfo", 
+        profile_response = requests.get("https://www.googleapis.com/oauth2/v1/userinfo",
                                         headers={"Authorization": f"Bearer {access_token}"})
         if profile_response.status_code != 200:
             raise HTTPException(status_code=400, detail="Failed to fetch Google profile")
-        
+
         profile_data = profile_response.json()
         email = profile_data.get("email")
         full_name = profile_data.get("name")
         profile_photo = profile_data.get("picture")
-        
+
         user = db.query(User).filter(User.email == email).first()
         if not user:
             user = User(full_name=full_name, email=email, profile_photo_url=profile_photo, is_verified=True, hashed_password="google-oauth")
             db.add(user)
             db.commit()
             db.refresh(user)
-            
+
 
         request.session["user_id"] = user.id
 
