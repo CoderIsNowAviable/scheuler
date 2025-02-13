@@ -13,6 +13,8 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
     verification_code = Column(String(5))
     profile_photo_url = Column(String(255), default=None)
+    month_token = Column(max_length=255, nullable=True, blank=True)
+
 
     # Relationships
     pending_user = relationship("PendingUser", back_populates="owner", uselist=False)

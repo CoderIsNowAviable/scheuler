@@ -105,16 +105,16 @@ def get_email_from_Ctoken(token: str):
 
 
 # Generate Month Token and Store in Redis
-def generate_month_token(user_id):
+def generate_month_token(user_id: int):
+    """Generate a month-long token for the user."""
     expire = datetime.utcnow() + timedelta(days=30)
     payload = {"user_id": user_id, "exp": expire.timestamp()}
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return token
 
-
-def is_month_token_valid(request: Request,user_id):
+def is_month_token_valid(request: Request, user_id: int):
     """Check if the user's month token is still valid."""
-    month_token = request.cookies.get(f"month_token:{user_id}")
+    month_token = request.cookies.get("month_token")
 
     if not month_token:
         return False  # No token stored
@@ -130,6 +130,7 @@ def is_month_token_valid(request: Request,user_id):
 
     except JWTError:
         return False  # Token is invalid
+
 
 
 def generate_daily_token(user_id):

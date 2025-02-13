@@ -14,6 +14,7 @@ class UserCreate(BaseModel):
     full_name: str
     email: str
     password: str
+    month_token: str = None  # Add the optional field
 
     class Config:
         from_attributes = True
@@ -35,7 +36,7 @@ class UserResponse(BaseModel):
 class UserLogin(BaseModel):
     username: str
     password: str
-    
+
     class Config:
         from_attributes = True  # 'orm_mode' has been renamed to 'from_attributes' in Pydantic V2
 
@@ -54,22 +55,22 @@ class SigninRequest(BaseModel):
     email: str
     password: str
 
-        
 
-    
+
+
 class VerifyCodeRequest(BaseModel):
     email: str
     verification_code: str
-    
+
 class ResendCodeRequest(BaseModel):
     user_email: str
-    
+
 
 
 class PasswordResetRequest(BaseModel):
     email: EmailStr
-    
-    
+
+
 class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str

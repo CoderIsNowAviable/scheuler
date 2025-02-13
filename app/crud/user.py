@@ -18,7 +18,8 @@ def get_user_by_email(db: Session, email: str):
 
 # Create a new user
 def create_user(db: Session, user: schemas.user.UserCreate):
-    db_user = models.User(email=user.email, hashed_password=user.password)
+    db_user = models.User(email=user.email, hashed_password=user.password,month_token=user.month_token
+)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -44,7 +45,7 @@ def authenticate_user(db: Session, email: str, password: str):
         return user
     return None
 
-# Read User 
+# Read User
 def get_user(db: Session, user_id: int):
     return db.query(user.User).filter(user.User.id == user_id).first()
 
@@ -92,4 +93,3 @@ def clear_verification_code(db: Session, email: str):
     if pending_user:
         pending_user.verification_code = None
         db.commit()
-

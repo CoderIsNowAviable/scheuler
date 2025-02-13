@@ -84,17 +84,22 @@ async def signin(
     if user:
         if user.hashed_password == "google-oauth":
             request.session["user_id"] = user.id
-                            # Generate a monthly token
+
+            # Generate a new month token
             month_token = generate_month_token(user.id)
+
+            # Update the month_token in the database
+            user.month_token = month_token
+            db.commit()
 
             # Set the token in an HTTP-only, Secure cookie
             response = RedirectResponse(url="/dashboard", status_code=302)
             response.set_cookie(
                 key="month_token",
                 value=month_token,
-                httponly=True,  # Prevents JavaScript access (XSS protection)
-                secure=True,    # Only send over HTTPS
-                samesite="Strict",  # Prevents CSRF
+                httponly=True,
+                secure=True,
+                samesite="Strict",
                 max_age=30 * 24 * 60 * 60  # 30 days in seconds
             )
             return RedirectResponse(url="/dashboard", status_code=302)
@@ -102,17 +107,21 @@ async def signin(
         if not verify_password(password, user.hashed_password):
             raise HTTPException(status_code=400, detail="Invalid password")
 
-                # Generate a monthly token
+        # Generate a new month token
         month_token = generate_month_token(user.id)
+
+        # Update the month_token in the database
+        user.month_token = month_token
+        db.commit()
 
         # Set the token in an HTTP-only, Secure cookie
         response = RedirectResponse(url="/dashboard", status_code=302)
         response.set_cookie(
             key="month_token",
             value=month_token,
-            httponly=True,  # Prevents JavaScript access (XSS protection)
-            secure=True,    # Only send over HTTPS
-            samesite="Strict",  # Prevents CSRF
+            httponly=True,
+            secure=True,
+            samesite="Strict",
             max_age=30 * 24 * 60 * 60  # 30 days in seconds
         )
 
