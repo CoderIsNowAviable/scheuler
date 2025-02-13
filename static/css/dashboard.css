@@ -559,3 +559,74 @@ main {
   transform: translateY(-5px); /* Moves the button slightly up */
 }
 
+
+
+
+@media (max-width: 1000px) {
+  header .logo .logo-icon{
+    width: 90px;
+    height: 90px;
+  }
+  .nav-container{
+    padding: 4px 12px;
+    border-radius: 7px;
+    margin-bottom: 20px;
+    margin-left: 10px;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.241);
+  }
+  .nav-container nav{
+    gap: 12px;
+  }
+  .nav-container a{
+    font-size: 16px;
+  }
+  .profile-card{
+    margin-right: 25px;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.241);
+  }
+  .profile-img{
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+  }
+  .profile-name{
+    font-size:18px;
+  }
+  .notif-img{
+    width: 13px;
+    height: 13px;
+  }
+  .profile-toggle{
+    font-size: 22px;
+  }
+  .profile-options a{
+    font-size: 12px;
+  }
+
+
+  main{
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .upload-section{
+    width: 650px;
+    height: 350px;
+    margin-top: 20px;
+    margin-left: 0px;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.241);
+  }
+  .upload-box{
+    padding:75px 160px;
+  }
+  .schedule-section{
+    width: 650px;
+
+    margin-top: 0px;
+    margin-right: 0px;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.241);
+    
+  }
+}
+
+
