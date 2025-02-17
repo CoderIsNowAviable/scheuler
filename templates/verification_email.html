@@ -2,39 +2,45 @@
 <html>
 <head>
     <style>
+        @font-face{
+        font-family: 'Helvetica Neue';
+        src:url('../fonts/helvetica-neue-5/HelveticaNeueRoman.woff2')format('woff2');
+        }
+
         body {
-            font-family: Coolvetica;
-            font-weight: 100;
             color:black;
             background-color: #fff;
             margin: 0;
             padding: 0;
+            font-family: Helvetica Neue;
+            display: flex;
         }
         .email-container {
             max-width: 500px;
             margin: 100px auto;
             padding: 20px;
-            background: #d9d9d9;
-            border-radius: 10px;
-            box-shadow: 22px 22px 0px #000;
-            transition: all 0.4s ease;
         }
-        .email-container:hover{
-            transform: translate(-4px);
-            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.241);
+        .logo{
+            width: 80px;
+            margin-top: -200px;
+            margin-left: 140px;
+            margin-bottom: -5px;
         }
         .header {
             text-align: center;
             color: #000;
             font-size: 36px;
             font-weight: bold;
-            margin-top: 5px
+            margin-top: 5px;
+            font-weight:100;
         }
         .content {
             text-align: center;
         }
         .content h1{
-            font-size: 32px;
+            font-size: 30px;
+            font-weight: 100;
+            margin-bottom: 50px;
         }
         .content h2{
             line-height: 0.8;
@@ -48,15 +54,16 @@
             margin-top: 45px;
             font-weight: 100;
             margin-bottom: 0px;
+            font-weight: 100;
         }
         .content p{
             margin-top: 0px;
         }
         .verification-code {
             font-size: 36px;
-            font-weight: bold;
             color: #000;
             margin: 20px 0;
+            font-weight: 100;
         }
         .footer {
             text-align: center;
@@ -70,17 +77,18 @@
 </head>
 <body>
     <div class="email-container">
-        <div class="header">Your Verification Code</div>
+        <img src="/static/images/Logo.png" class="logo"/>
         <div class="content">
+            <div class="header">Your Verification Code</div>
             <h1>Hi, {{ user_email }},</h1>
             <h2>Use the code below to verify your account:</h2>
             <div class="verification-code">{{ verification_code }}</div>
             
-            <h3>This code is valid for <strong>5 minutes</strong>.</h3>
+            <h3>This code is valid for <strong><em>5 minutes</strong></em>.</h3>
             <p>If you did not request this, please ignore this email.</p>
         </div>
         <div class="footer">
-            <p>Contact our support team at<br><strong>contact.schedulerapp@gmail.com</strong></p></a>
+            <p>Contact our support team at<br><em>contact.schedulerapp@gmail.com</em></p></a>
             <p>Thank you for using our service!</p>
         </div>
     </div>
