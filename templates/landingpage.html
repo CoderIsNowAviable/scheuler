@@ -33,6 +33,20 @@
     <link rel="stylesheet" href="/static/css/landingpage.css" />
     <link rel="canonical" href="https://scheduler-9v36.onrender.com/" />
     <title>Scheduler - The Best Social Media Scheduling Tool</title>
+    <style>
+        df-messenger {
+          --df-messenger-logo-url: url('https://your-logo-url.com/logo.png');
+          --df-messenger-titlebar-color: #ff5733;
+          --df-messenger-button-titlebar-color: #007bff;
+          --df-messenger-chat-background-color: #f4f4f4;
+          --df-messenger-bot-message: #e0e0e0;
+          --df-messenger-user-message: #007bff;
+          --df-messenger-user-font-color: #ffffff;
+          --df-messenger-input-box-color: #ffffff;
+          --df-messenger-chat-window-width: 400px;
+          --df-messenger-chat-window-height: 500px;
+        }
+      </style>
   </head>
 
   <body>
@@ -123,13 +137,12 @@
         }
       }
     </script>
-    <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
-    <df-messenger
-    --df-messenger-logo-url: url('/static/images/LightLogo.webp'); /* Change this to your logo URL */
-    chat-title="Counsellor_Education_ChatBot"
-    agent-id="3e57a88d-0882-46e2-a007-938a2ad2bd44"
-    language-code="en"
-    ></df-messenger>
-    <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+      <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+      <df-messenger
+        chat-title="Counsellor_Education_ChatBot"
+        agent-id="3e57a88d-0882-46e2-a007-938a2ad2bd44"
+        language-code="en"
+      ></df-messenger>
+
   </body>
 </html>
