@@ -123,5 +123,21 @@
         }
       }
     </script>
+    <button id="chatbot-button" style="position: fixed; bottom: 20px; right: 20px; background: #0084FF; color: white; border: none; padding: 10px 15px; border-radius: 50px; cursor: pointer;">
+        Chat with Us 💬
+    </button>
+
+    <div id="chatbot-container" style="position: fixed; bottom: 80px; right: 20px; width: 350px; height: 500px; display: none; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);">
+        <iframe style="width: 100%; height: 100%; border: none; border-radius: 10px;"
+            src="https://bot.dialogflow.com/3e57a88d-0882-46e2-a007-938a2ad2bd44">
+        </iframe>
+    </div>
+
+    <script>
+        document.getElementById("chatbot-button").addEventListener("click", function() {
+            var chatbot = document.getElementById("chatbot-container");
+            chatbot.style.display = chatbot.style.display === "none" ? "block" : "none";
+        });
+    </script>
   </body>
 </html>
