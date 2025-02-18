@@ -194,8 +194,13 @@ async def register_page(request: Request, form: str = "signup", db: Session = De
             return RedirectResponse(url="/dashboard", status_code=302)
 
     # 5️⃣ No valid session or token → Render login/signup page
-    logger.debug("No session or valid token found. Rendering login/signup page.")
-    return templates.TemplateResponse("registerr.html", {"request": request, "form_type": form})
+    # No valid session or token → Render signup or signin based on form parameter
+    logger.debug("No session or valid token found. Rendering appropriate page.")
+
+    if form == "signup":
+        return templates.TemplateResponse("register.html", {"request": request, "form_type": "signup"})
+    else:
+        return templates.TemplateResponse("register.html", {"request": request, "form_type": "signin"})
 
 
 
