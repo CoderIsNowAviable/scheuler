@@ -198,9 +198,9 @@ async def register_page(request: Request, form: str = "signup", db: Session = De
     logger.debug("No session or valid token found. Rendering appropriate page.")
 
     if form == "signup":
-        return templates.TemplateResponse("register.html", {"request": request, "form_type": "signup"})
+        return templates.TemplateResponse("registerr.html", {"request": request, "form_type": "signup"})
     else:
-        return templates.TemplateResponse("register.html", {"request": request, "form_type": "signin"})
+        return templates.TemplateResponse("registerr.html", {"request": request, "form_type": "signin"})
 
 
 
