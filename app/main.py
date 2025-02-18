@@ -142,6 +142,9 @@ async def register_page(request: Request, form: str = "signup", db: Session = De
     - If session or database token is valid, redirect to dashboard.
     - If the monthly token is expired, clear session & force login.
     """
+
+    if form == "signup":
+        return templates.TemplateResponse("registerr.html", {"request": request, "form_type": "signup"})
     user_id = request.session.get("user_id")
 
     # 1️⃣ Check session first
@@ -196,11 +199,7 @@ async def register_page(request: Request, form: str = "signup", db: Session = De
     # 5️⃣ No valid session or token → Render login/signup page
     # No valid session or token → Render signup or signin based on form parameter
     logger.debug("No session or valid token found. Rendering appropriate page.")
-
-    if form == "signup":
-        return templates.TemplateResponse("registerr.html", {"request": request, "form_type": "signup"})
-    else:
-        return templates.TemplateResponse("registerr.html", {"request": request, "form_type": "signin"})
+    return templates.TemplateResponse("registerr.html", {"request": request, "form_type": "signin"})
 
 
 
