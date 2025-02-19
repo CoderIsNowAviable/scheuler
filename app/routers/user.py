@@ -21,8 +21,8 @@ router = APIRouter()
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 # Secret key for signing cookies
-SECRET_KEY = os.getenv("YOUR_SECRET_KEY")
-signer = TimestampSigner(SECRET_KEY)
+COOKIE_SECRET_KEY = os.getenv("YOUR_SECRET_KEY")
+signer = TimestampSigner(COOKIE_SECRET_KEY)
 @router.post("/signup")
 async def signup(
     full_name: str = Form(...),

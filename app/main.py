@@ -69,8 +69,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+COOKIE_SECRET_KEY = os.getenv("COOKIE_SECRET_KEY")
+signer = TimestampSigner(COOKIE_SECRET_KEY)
 YOUR_SECRET_KEY = os.getenv("YOUR_SECRET_KEY")
-signer = TimestampSigner(YOUR_SECRET_KEY)
 app.add_middleware(SessionMiddleware, secret_key=YOUR_SECRET_KEY, session_cookie="session_id")
 
 
