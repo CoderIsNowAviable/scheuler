@@ -126,8 +126,10 @@ async def signin(
         value=session_token,
         httponly=True,
         secure=True,  # Set to False in development
-        samesite="Strict",
-        max_age=60 * 60 * 24 * 30  # 30 days
+        samesite="None",
+        max_age=60 * 60 * 24 * 30,  # 30 days
+        domain=".onrender.com",  # Allows sharing across subdomains
+        path="/"  # Makes the cookie available on all pages
     )
 
     return response

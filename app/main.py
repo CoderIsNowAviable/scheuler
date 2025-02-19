@@ -140,9 +140,7 @@ async def landing_page(request: Request):
 
 
 
-from fastapi import Response
 
-port logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
