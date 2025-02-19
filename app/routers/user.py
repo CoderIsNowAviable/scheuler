@@ -80,9 +80,16 @@ async def signin(
     # Step 1: Check if user_id exists in session
     user_id = request.session.get("user_id")
     if user_id:
-        logger.info("User %s found in session, proceeding with authentication", user_id)
+        logger.info("User %s found in session, fetching user data...", user_id)
+        user = db.query(User).filter(User.id == user_id).first()
+    else:
+        # If no user_id in session, fetch user by email
+        user = db.query(User).filter(User.email == email).first()
 
-    # Step 4: Check if user is pending verification
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Step 2: Check if user is pending verification
     pending_user = db.query(PendingUser).filter(PendingUser.email == email).first()
     if pending_user:
         access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=1))
@@ -90,71 +97,40 @@ async def signin(
         response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
         return response
 
-    # Step 5: Authenticate User (Email & Password)
-    user = db.query(User).filter(User.email == email).first()
-    if user:
-        if user.hashed_password == "google-oauth":
-            request.session["user_id"] = user.id
+    # Step 3: Handle Google OAuth Login
+    if user.hashed_password == "google-oauth":
+        logger.info(f"User {user.id} is logging in via Google OAuth")
 
-            # Generate a new month token
-            month_token = generate_month_token(user.id)
-
-            # Update the month_token in the database
-            logger.debug(f"Generated month token for user {user.id}: {month_token}")
-            user.month_token = month_token
-            db.add(user)  # Add the user to the session to track the changes
-            db.commit()
-            db.refresh(user)
-            logger.debug(f"Saved month token for user {user.id}: {user.month_token}")
-
-            # Store the month token in the session
-            request.session["user_id"] = user.id
-            request.session["month_token"] = month_token
-
-            session_token = signer.sign("user_session").decode()
-            # Set the cookie with session token
-            response.set_cookie(
-                key="session_token",
-                value=session_token,
-                httponly=True,  # Prevents access via JavaScript (XSS protection)
-                secure=False,   # Set to True if using HTTPS
-                samesite="Lax", # Prevents CSRF while allowing cross-tab sharing
-                max_age=60 * 60 * 24 * 30  # 30 days expiration
-            )
-            # Redirect to the dashboard
-            return RedirectResponse(url="/dashboard", status_code=302)
-
+    else:
+        # Manual login with password verification
         if not verify_password(password, user.hashed_password):
             raise HTTPException(status_code=400, detail="Invalid password")
 
-        # Generate a new month token
-        month_token = generate_month_token(user.id)
+    # Step 4: Generate & store a new month token
+    month_token = generate_month_token(user.id)
+    logger.debug(f"Generated month token for user {user.id}: {month_token}")
 
-        # Update the month_token in the database
-        logger.debug(f"Generated month token for user {user.id}: {month_token}")
-        user.month_token = month_token
-        db.add(user)  # Add the user to the session to track the changes
-        db.commit()
-        db.refresh(user)
-        logger.debug(f"Saved month token for user {user.id}: {user.month_token}")
+    user.month_token = month_token
+    db.commit()
+    db.refresh(user)
 
-        # Store the month token in the session
-        request.session["user_id"] = user.id
-        request.session["month_token"] = month_token
-        session_token = signer.sign("user_session").decode()
-            # Set the cookie with session token
-        response.set_cookie(
-            key="session_token",
-            value=session_token,
-            httponly=True,  # Prevents access via JavaScript (XSS protection)
-            secure=False,   # Set to True if using HTTPS
-            samesite="Lax", # Prevents CSRF while allowing cross-tab sharing
-            max_age=60 * 60 * 24 * 30  # 30 days expiration
-        )
-        # Redirect to the dashboard
-        return RedirectResponse(url="/dashboard", status_code=302)
+    # Step 5: Store session details
+    request.session["user_id"] = user.id
+    request.session["month_token"] = month_token
+    session_token = signer.sign(f"user_session_{user.id}").decode()
 
-    raise HTTPException(status_code=404, detail="User not found")
+    # Step 6: Set cookie and redirect
+    response = RedirectResponse(url="/dashboard", status_code=302)
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,  # Set to False in development
+        samesite="Strict",
+        max_age=60 * 60 * 24 * 30  # 30 days
+    )
+
+    return response
 
 
 @router.post("/verify-code")
