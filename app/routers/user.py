@@ -1,5 +1,6 @@
 from datetime import timedelta
 from urllib import request
+from dotenv import load_dotenv
 from fastapi import APIRouter, Form, HTTPException, Depends, Request, status, Cookie
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
@@ -10,12 +11,18 @@ from app.utils.jwt import create_access_token,  get_email_from_token, generate_m
 from app.utils.password import verify_password, hash_password
 from app.core.database import get_db
 import logging
+import os
+from itsdangerous import TimestampSigner, BadSignature
+
+load_dotenv()
 
 router = APIRouter()
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
+# Secret key for signing cookies
+SECRET_KEY = os.getenv("YOUR_SECRET_KEY")
+signer = TimestampSigner(SECRET_KEY)
 @router.post("/signup")
 async def signup(
     full_name: str = Form(...),
@@ -97,8 +104,19 @@ async def signin(
             logger.debug(f"Saved month token for user {user.id}: {user.month_token}")
 
             # Store the month token in the session
+            request.session["user_id"] = user.id
             request.session["month_token"] = month_token
 
+            session_token = signer.sign("user_session").decode()
+            # Set the cookie with session token
+            response.set_cookie(
+                key="session_token",
+                value=session_token,
+                httponly=True,  # Prevents access via JavaScript (XSS protection)
+                secure=False,   # Set to True if using HTTPS
+                samesite="Lax", # Prevents CSRF while allowing cross-tab sharing
+                max_age=60 * 60 * 24 * 30  # 30 days expiration
+            )
             # Redirect to the dashboard
             return RedirectResponse(url="/dashboard", status_code=302)
 
@@ -119,7 +137,16 @@ async def signin(
         # Store the month token in the session
         request.session["user_id"] = user.id
         request.session["month_token"] = month_token
-
+        session_token = signer.sign("user_session").decode()
+            # Set the cookie with session token
+        response.set_cookie(
+            key="session_token",
+            value=session_token,
+            httponly=True,  # Prevents access via JavaScript (XSS protection)
+            secure=False,   # Set to True if using HTTPS
+            samesite="Lax", # Prevents CSRF while allowing cross-tab sharing
+            max_age=60 * 60 * 24 * 30  # 30 days expiration
+        )
         # Redirect to the dashboard
         return RedirectResponse(url="/dashboard", status_code=302)
 

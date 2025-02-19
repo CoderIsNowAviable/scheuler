@@ -25,6 +25,8 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.core.database import get_db
 from sqlalchemy.orm import Session
 from app.utils.scheduler import start_scheduler
+from itsdangerous import TimestampSigner, BadSignature
+
 # Initialize database models
 Base.metadata.create_all(bind=engine)
 
@@ -68,6 +70,7 @@ app.add_middleware(
 )
 
 YOUR_SECRET_KEY = os.getenv("YOUR_SECRET_KEY")
+signer = TimestampSigner(YOUR_SECRET_KEY)
 app.add_middleware(SessionMiddleware, secret_key=YOUR_SECRET_KEY, session_cookie="session_id")
 
 
@@ -136,18 +139,16 @@ async def landing_page(request: Request):
 
 
 
+from fastapi import Response
+
 @app.get("/register", response_class=HTMLResponse)
-async def register_page(request: Request, form: str = "signup", db: Session = Depends(get_db)):
+async def register_page(request: Request, response: Response, form: str = "signup", db: Session = Depends(get_db)):
     """
-    Handles user authentication using session and token-based authentication.
+    Handles user authentication using session and cookie-based authentication.
 
-    - If user is logged in (session exists), check their monthly token:
-        - If valid, update daily token and redirect to dashboard.
-        - If expired, clear session and force login.
-
-    - If no session exists but a valid monthly token is found, restore session and redirect.
-
-    - If no valid session or token is found, render login/signup page.
+    - Checks for a valid session or `month_token` stored in cookies.
+    - If valid, restores session and redirects to the dashboard.
+    - If invalid or expired, clears session and forces login.
     """
 
     # 🟢 1️⃣ If form type is "signup", directly render signup page
@@ -156,7 +157,7 @@ async def register_page(request: Request, form: str = "signup", db: Session = De
 
     user_id = request.session.get("user_id")
 
-    # 🟠 2️⃣ Check if user session exists
+    # 🔵 2️⃣ Check if user session exists
     if user_id:
         user = db.query(User).filter(User.id == user_id).first()
 
@@ -167,10 +168,11 @@ async def register_page(request: Request, form: str = "signup", db: Session = De
 
         # ❌ If monthly token is expired, clear session and force login
         request.session.clear()
+        response.delete_cookie("month_token")  # Clear expired cookie
         return RedirectResponse(url="/register?form=signin", status_code=302)
 
-    # 🔵 3️⃣ No session → Check for a valid monthly token in session
-    month_token = request.session.get("month_token")
+    # 🟠 3️⃣ No session → Check for `month_token` in cookies
+    month_token = request.cookies.get("month_token")
 
     if month_token:
         user = db.query(User).filter(User.month_token == month_token).first()
@@ -181,11 +183,13 @@ async def register_page(request: Request, form: str = "signup", db: Session = De
             request.session["daily_token"] = get_valid_daily_token(request)
             return RedirectResponse(url="/dashboard", status_code=302)
 
-        # ❌ If expired, clear session and force login
+        # ❌ If expired, clear session and cookie, then force login
         request.session.clear()
+        response.delete_cookie("month_token")
 
     # 🔴 4️⃣ No valid session or token → Show login/signup page
     return templates.TemplateResponse("registerr.html", {"request": request, "form_type": "signin"})
+
 
 
 @app.get("/forgot-password", response_class=HTMLResponse)
