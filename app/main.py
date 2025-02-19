@@ -108,8 +108,12 @@ async def startup_event():
     start_scheduler()
     global httpx_client
     httpx_client = httpx.AsyncClient()
-    print(f"CLIENT_KEY: {TIKTOK_CLIENT_KEY}")
-    print(f"REDIRECT_URI: {TIKTOK_REDIRECT_URI}")
+    print(f"CLIENT_KEY: ")
+    print(f"REDIRECT_URI: ")
+    print(f"cooke key : ")
+
+    print(f"cookie secret key")
+
 
 
 
