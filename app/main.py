@@ -142,6 +142,12 @@ async def landing_page(request: Request):
 
 from fastapi import Response
 
+port logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(
     request: Request,
@@ -157,22 +163,33 @@ async def register_page(
     - If invalid or expired, clears session and forces login.
     """
 
+    logger.info(f"Received /register request | form: {form}")
+
     # 🟢 1️⃣ If form type is "signup", directly render signup page
     if form == "signup":
+        logger.info("Rendering signup page.")
         return templates.TemplateResponse("registerr.html", {"request": request, "form_type": "signup"})
 
     user_id = request.session.get("user_id")
+    logger.info(f"Checking session | user_id: {user_id}")
 
     # 🔵 2️⃣ Check if user session exists
     if user_id:
         user = db.query(User).filter(User.id == user_id).first()
 
-        if user and is_month_token_valid(request, user.month_token, db):
-            # ✅ If valid, update daily token and redirect
-            request.session["daily_token"] = get_valid_daily_token(request)
-            return RedirectResponse(url="/dashboard", status_code=302)
+        if user:
+            logger.info(f"User found in session | user_id: {user.id}")
+            if is_month_token_valid(request, user.month_token, db):
+                request.session["daily_token"] = get_valid_daily_token(request)
+                logger.info(f"Valid session restored for user {user.id}, redirecting to dashboard.")
+                return RedirectResponse(url="/dashboard", status_code=302)
+            else:
+                logger.warning(f"Month token expired for user {user.id}, clearing session.")
 
-        # ❌ If expired, clear session and cookies
+        else:
+            logger.error(f"User not found in session! user_id: {user_id}")
+
+        # ❌ If expired or not found, clear session and cookies
         request.session.clear()
         response = RedirectResponse(url="/register?form=signin", status_code=302)
         response.delete_cookie("month_token")
@@ -180,15 +197,22 @@ async def register_page(
 
     # 🟠 3️⃣ No session → Check for `month_token` in cookies
     month_token = request.cookies.get("month_token")
+    logger.info(f"Checking cookies | month_token: {month_token is not None}")
 
     if month_token:
         user = db.query(User).filter(User.month_token == month_token).first()
 
-        if user and datetime.utcnow().timestamp() < user.month_token_expiry:
-            # ✅ If valid, restore session and update daily token
-            request.session["user_id"] = user.id
-            request.session["daily_token"] = get_valid_daily_token(request)
-            return RedirectResponse(url="/dashboard", status_code=302)
+        if user:
+            logger.info(f"User found with month_token | user_id: {user.id}")
+            if datetime.utcnow().timestamp() < user.month_token_expiry:
+                request.session["user_id"] = user.id
+                request.session["daily_token"] = get_valid_daily_token(request)
+                logger.info(f"Restored session for user {user.id}, redirecting to dashboard.")
+                return RedirectResponse(url="/dashboard", status_code=302)
+            else:
+                logger.warning(f"Month token expired for user {user.id}, clearing session.")
+        else:
+            logger.error("User not found with given month_token.")
 
         # ❌ If expired, clear session and cookie
         request.session.clear()
@@ -197,9 +221,8 @@ async def register_page(
         return response
 
     # 🔴 4️⃣ No valid session or token → Show login/signup page
+    logger.info("No valid session or token found, rendering signin page.")
     return templates.TemplateResponse("registerr.html", {"request": request, "form_type": "signin"})
-
-
 
 
 @app.get("/forgot-password", response_class=HTMLResponse)
