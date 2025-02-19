@@ -135,72 +135,57 @@ async def landing_page(request: Request):
         return templates.TemplateResponse("landingpage.html", {"request": request})
 
 
+
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request, form: str = "signup", db: Session = Depends(get_db)):
     """
-    Handles user session and token authentication for registration.
-    - If session or database token is valid, redirect to dashboard.
-    - If the monthly token is expired, clear session & force login.
+    Handles user authentication using session and token-based authentication.
+
+    - If user is logged in (session exists), check their monthly token:
+        - If valid, update daily token and redirect to dashboard.
+        - If expired, clear session and force login.
+
+    - If no session exists but a valid monthly token is found, restore session and redirect.
+
+    - If no valid session or token is found, render login/signup page.
     """
 
+    # 🟢 1️⃣ If form type is "signup", directly render signup page
     if form == "signup":
         return templates.TemplateResponse("registerr.html", {"request": request, "form_type": "signup"})
+
     user_id = request.session.get("user_id")
 
-    # 1️⃣ Check session first
+    # 🟠 2️⃣ Check if user session exists
     if user_id:
-        logger.info(f"User {user_id} found in session, checking tokens...")
-
-        # Query database for the month token
         user = db.query(User).filter(User.id == user_id).first()
-        if user:
-            month_token = user.month_token  # Assuming month_token is stored in the database
-            if is_month_token_valid(request, month_token, db):  # Check validity from session (replaced cookie with session)
-                daily_token = get_valid_daily_token(request)  # Refresh daily token if needed
-                request.session["daily_token"] = daily_token
-                return RedirectResponse(url="/dashboard", status_code=302)
 
-        # Session exists but month token expired → Force login
-        logger.warning(f"User {user_id} session exists but month token expired. Re-authentication required.")
-        request.session.clear()
-        response = RedirectResponse(url="/register?form=signin", status_code=302)
-        # Clear session tokens
-        request.session.pop("month_token", None)
-        request.session.pop("daily_token", None)
-        return response
-
-    # 2️⃣ No valid session, check if the month token is valid in the session
-    month_token_from_session = request.session.get("month_token")
-    if month_token_from_session:
-        logger.debug("Month token found in session, verifying...")
-
-        # Query database for the month token and verify
-        user = db.query(User).filter(User.month_token == month_token_from_session).first()
-        if user:
-            exp_timestamp = user.month_token_expiry  # Assuming you store expiry date in the database
-
-            # 3️⃣ Expired month token → Redirect to login
-            if datetime.utcnow().timestamp() > exp_timestamp:
-                logger.warning(f"Month token expired for user {user.id}. Re-authentication required.")
-                request.session.clear()
-                response = RedirectResponse(url="/register?form=signin")
-                # Clear session tokens
-                request.session.pop("month_token", None)
-                request.session.pop("daily_token", None)
-                return response
-
-            # 4️⃣ Restore session from valid month token
-            daily_token = get_valid_daily_token(request)  # Refresh daily token if needed
-            request.session["user_id"] = user.id
-            request.session["month_token"] = month_token_from_session
-            request.session["daily_token"] = daily_token
+        if user and is_month_token_valid(request, user.month_token, db):
+            # ✅ If valid, update daily token and redirect
+            request.session["daily_token"] = get_valid_daily_token(request)
             return RedirectResponse(url="/dashboard", status_code=302)
 
-    # 5️⃣ No valid session or token → Render login/signup page
-    # No valid session or token → Render signup or signin based on form parameter
-    logger.debug("No session or valid token found. Rendering appropriate page.")
-    return templates.TemplateResponse("registerr.html", {"request": request, "form_type": "signin"})
+        # ❌ If monthly token is expired, clear session and force login
+        request.session.clear()
+        return RedirectResponse(url="/register?form=signin", status_code=302)
 
+    # 🔵 3️⃣ No session → Check for a valid monthly token in session
+    month_token = request.session.get("month_token")
+
+    if month_token:
+        user = db.query(User).filter(User.month_token == month_token).first()
+
+        if user and datetime.utcnow().timestamp() < user.month_token_expiry:
+            # ✅ If valid, restore session and update daily token
+            request.session["user_id"] = user.id
+            request.session["daily_token"] = get_valid_daily_token(request)
+            return RedirectResponse(url="/dashboard", status_code=302)
+
+        # ❌ If expired, clear session and force login
+        request.session.clear()
+
+    # 🔴 4️⃣ No valid session or token → Show login/signup page
+    return templates.TemplateResponse("registerr.html", {"request": request, "form_type": "signin"})
 
 
 @app.get("/forgot-password", response_class=HTMLResponse)
