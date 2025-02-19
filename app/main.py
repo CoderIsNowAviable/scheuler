@@ -112,10 +112,6 @@ async def startup_event():
     print(f"REDIRECT_URI: ")
     print(f"cooke key : ")
 
-    print(f"cookie secret key")
-
-
-
 
 
 
