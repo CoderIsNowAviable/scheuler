@@ -143,7 +143,12 @@ async def landing_page(request: Request):
 from fastapi import Response
 
 @app.get("/register", response_class=HTMLResponse)
-async def register_page(request: Request, response: Response, form: str = "signup", db: Session = Depends(get_db)):
+async def register_page(
+    request: Request,
+    response: Response,
+    form: str = "signup",
+    db: Session = Depends(get_db)
+):
     """
     Handles user authentication using session and cookie-based authentication.
 
@@ -167,10 +172,11 @@ async def register_page(request: Request, response: Response, form: str = "signu
             request.session["daily_token"] = get_valid_daily_token(request)
             return RedirectResponse(url="/dashboard", status_code=302)
 
-        # ❌ If monthly token is expired, clear session and force login
+        # ❌ If expired, clear session and cookies
         request.session.clear()
-        response.delete_cookie("month_token")  # Clear expired cookie
-        return RedirectResponse(url="/register?form=signin", status_code=302)
+        response = RedirectResponse(url="/register?form=signin", status_code=302)
+        response.delete_cookie("month_token")
+        return response
 
     # 🟠 3️⃣ No session → Check for `month_token` in cookies
     month_token = request.cookies.get("month_token")
@@ -184,12 +190,15 @@ async def register_page(request: Request, response: Response, form: str = "signu
             request.session["daily_token"] = get_valid_daily_token(request)
             return RedirectResponse(url="/dashboard", status_code=302)
 
-        # ❌ If expired, clear session and cookie, then force login
+        # ❌ If expired, clear session and cookie
         request.session.clear()
+        response = RedirectResponse(url="/register?form=signin", status_code=302)
         response.delete_cookie("month_token")
+        return response
 
     # 🔴 4️⃣ No valid session or token → Show login/signup page
     return templates.TemplateResponse("registerr.html", {"request": request, "form_type": "signin"})
+
 
 
 
