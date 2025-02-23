@@ -87,9 +87,6 @@ async def signin(
     else:
         user = db.query(User).filter(User.email == email).first()
 
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
     # 🔹 Step 2: Check if user is pending verification
     pending_user = db.query(PendingUser).filter(PendingUser.email == email).first()
     if pending_user:
