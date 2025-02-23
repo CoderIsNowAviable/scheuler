@@ -1,4 +1,5 @@
 from datetime import timedelta
+import datetime
 from urllib import request
 from dotenv import load_dotenv
 from fastapi import APIRouter, Form, HTTPException, Depends, Request, status, Cookie
@@ -115,6 +116,7 @@ async def signin(
     request.session["user_id"] = user.id
     request.session["daily_token"] = get_valid_daily_token(request)
 
+    request.session["expires at"] = (datetime.utcnow() + timedelta(days=30)). timestamp()
     response = RedirectResponse(url="/dashboard", status_code=302)
     return response
 

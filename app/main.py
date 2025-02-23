@@ -68,7 +68,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+app.add_middleware(
+    SessionMiddleware,
+    secret_key="your_super_secret_key",  # Change this to a secure key
+    session_cookie="session_id",         # Custom cookie name (optional)
+    max_age=2592000,                     # 30 days in seconds
+    same_site="Lax",                      # Controls cross-site behavior
+    https_only=True,                      # Ensures security over HTTPS
+)
 COOKIE_SECRET_KEY = os.getenv("COOKIE_SECRET_KEY")
 signer = TimestampSigner(COOKIE_SECRET_KEY)
 YOUR_SECRET_KEY = os.getenv("YOUR_SECRET_KEY")
