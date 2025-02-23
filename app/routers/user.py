@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.models.user import PendingUser, User
 from app.schemas.user import PasswordResetRequest, ResendCodeRequest, ResetPasswordRequest, VerifyCodeRequest
 from app.utils.email_utils import generate_verification_code, send_password_reset_email, send_verification_email
-from app.utils.jwt import create_access_token,  get_email_from_token, generate_month_token
+from app.utils.jwt import create_access_token,  get_email_from_token, generate_month_token, is_month_token_valid
 from app.utils.password import verify_password, hash_password
 from app.core.database import get_db
 import logging
@@ -106,33 +106,17 @@ async def signin(
         if not verify_password(password, user.hashed_password):
             raise HTTPException(status_code=400, detail="Invalid password")
 
-    # Step 4: Generate & store a new month token
-    month_token = generate_month_token(user.id)
-    logger.debug(f"Generated month token for user {user.id}: {month_token}")
 
-    user.month_token = month_token
+    # Step 4: Check if month token exists and is valid
+    if not user.month_token or not is_month_token_valid(request, user.month_token, db):
+        logger.info(f"Generating new month token for user {user.id}")
+        user.month_token = generate_month_token(user.id)
+
+    # Commit changes to the database
     db.commit()
     db.refresh(user)
-
-    # Step 5: Store session details
-    request.session["user_id"] = user.id
-    request.session["month_token"] = month_token
-    session_token = signer.sign(f"user_session_{user.id}").decode()
-
     # Step 6: Set cookie and redirect
     response = RedirectResponse(url="/dashboard", status_code=302)
-    response.set_cookie(
-        key="session_token",
-        value=session_token,
-        httponly=True,
-        secure=True,  # Set to False in development
-        samesite="None",
-        max_age=60 * 60 * 24 * 30,  # 30 days
-        path="/"  # Makes the cookie available on all pages
-    )
-
-    return response
-
 
 @router.post("/verify-code")
 async def verify_code(request: VerifyCodeRequest, db: Session = Depends(get_db)):
