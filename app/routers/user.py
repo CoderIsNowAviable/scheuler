@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.models.user import PendingUser, User
 from app.schemas.user import PasswordResetRequest, ResendCodeRequest, ResetPasswordRequest, VerifyCodeRequest
 from app.utils.email_utils import generate_verification_code, send_password_reset_email, send_verification_email
-from app.utils.jwt import create_access_token,  get_email_from_token, generate_month_token, is_month_token_valid
+from app.utils.jwt import create_access_token,  get_email_from_token, generate_month_token, get_valid_daily_token, is_month_token_valid
 from app.utils.password import verify_password, hash_password
 from app.core.database import get_db
 import logging
@@ -115,6 +115,8 @@ async def signin(
     # Commit changes to the database
     db.commit()
     db.refresh(user)
+    request.session["user_id"] = user.id
+    request.session["daily_token"] = get_valid_daily_token(request)
     # Step 6: Set cookie and redirect
     response = RedirectResponse(url="/dashboard", status_code=302)
 
