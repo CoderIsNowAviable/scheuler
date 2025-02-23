@@ -177,7 +177,7 @@ async def register_page(
             else:
                 # 🔹 Step 2: If month token expired/missing, require re-login
                 logger.warning(f"Month token expired for user {user.id}, redirecting to signin.")
-                return RedirectResponse(url="/register?form=signin", status_code=302)
+                return templates.TemplateResponse("registerr.html", {"request": request, "form_type": "signin"})
 
     # 🔹 Step 3: No session, show signin page
     logger.info("No valid session found, rendering signin page.")
