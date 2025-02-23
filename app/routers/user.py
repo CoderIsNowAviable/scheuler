@@ -68,6 +68,7 @@ async def signup(
 
     return RedirectResponse(url=f"/authenticate?email={email}&token={access_token}", status_code=302)
 
+
 @router.post("/signin")
 async def signin(
     request: Request,
@@ -77,19 +78,19 @@ async def signin(
 ):
     logger.debug("Signin attempt for email: %s", email)
 
-    # Step 1: Check if user_id exists in session
     user_id = request.session.get("user_id")
+
+    # 🔹 Step 1: If session already exists, fetch user
     if user_id:
         logger.info("User %s found in session, fetching user data...", user_id)
         user = db.query(User).filter(User.id == user_id).first()
     else:
-        # If no user_id in session, fetch user by email
         user = db.query(User).filter(User.email == email).first()
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Step 2: Check if user is pending verification
+    # 🔹 Step 2: Check if user is pending verification
     pending_user = db.query(PendingUser).filter(PendingUser.email == email).first()
     if pending_user:
         access_token = create_access_token(data={"sub": email}, expires_delta=timedelta(hours=1))
@@ -97,7 +98,7 @@ async def signin(
         response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="Strict")
         return response
 
-    # Step 3: Handle Google OAuth Login
+    # 🔹 Step 3: Handle Google OAuth Login
     if user.hashed_password == "google-oauth":
         logger.info(f"User {user.id} is logging in via Google OAuth")
 
@@ -106,19 +107,20 @@ async def signin(
         if not verify_password(password, user.hashed_password):
             raise HTTPException(status_code=400, detail="Invalid password")
 
-
-    # Step 4: Check if month token exists and is valid
+    # 🔹 Step 4: Check or generate month token
     if not user.month_token or not is_month_token_valid(request, user.month_token, db):
         logger.info(f"Generating new month token for user {user.id}")
         user.month_token = generate_month_token(user.id)
 
-    # Commit changes to the database
+    # 🔹 Step 5: Commit changes, set session, and redirect to dashboard
     db.commit()
     db.refresh(user)
     request.session["user_id"] = user.id
     request.session["daily_token"] = get_valid_daily_token(request)
-    # Step 6: Set cookie and redirect
+
     response = RedirectResponse(url="/dashboard", status_code=302)
+    return response
+
 
 @router.post("/verify-code")
 async def verify_code(request: VerifyCodeRequest, db: Session = Depends(get_db)):

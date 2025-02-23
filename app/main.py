@@ -141,12 +141,6 @@ async def landing_page(request: Request):
 
 
 
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(
     request: Request,
@@ -163,7 +157,7 @@ async def register_page(
 
     logger.info(f"Received /register request | form: {form}")
 
-    # Directly render signup page if form type is "signup"
+    # 🔹 If the form type is "signup", render the signup page
     if form == "signup":
         logger.info("Rendering signup page.")
         return templates.TemplateResponse("registerr.html", {"request": request, "form_type": "signup"})
@@ -175,15 +169,17 @@ async def register_page(
         user = db.query(User).filter(User.id == user_id).first()
 
         if user:
+            # 🔹 Step 1: If month token exists and is valid, go to dashboard
             if user.month_token and is_month_token_valid(request, user.month_token, db):
                 request.session["daily_token"] = get_valid_daily_token(request)
                 logger.info(f"Valid session restored for user {user.id}, redirecting to dashboard.")
                 return RedirectResponse(url="/dashboard", status_code=302)
             else:
-                logger.warning(f"Month token expired or not present for user {user.id}, redirecting to signin.")
+                # 🔹 Step 2: If month token expired/missing, require re-login
+                logger.warning(f"Month token expired for user {user.id}, redirecting to signin.")
                 return RedirectResponse(url="/register?form=signin", status_code=302)
 
-    # No valid session → Show login/signup page
+    # 🔹 Step 3: No session, show signin page
     logger.info("No valid session found, rendering signin page.")
     return templates.TemplateResponse("registerr.html", {"request": request, "form_type": "signin"})
 
